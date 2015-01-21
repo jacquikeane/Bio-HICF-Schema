@@ -16,5 +16,32 @@ __PACKAGE__->load_namespaces;
 
 # ABSTRACT: DBIC schema for the HICF repository
 
-__PACKAGE__->meta->make_immutable(inline_constructor => 0);
+use Carp qw( croak );
+use Bio::Metadata::Validator;
+use List::MoreUtils qw( mesh );
+
+sub load_manifest {
+  my ( $self, $manifest ) = @_;
+
+  croak 'not a Bio::Metadata::Manifest'
+    unless ref $manifest eq 'Bio::Metadata::Manifest';
+
+  my $v = Bio::Metadata::Validator->new;
+
+  croak 'the data in the manifest are not valid'
+    unless $v->validate($manifest);
+
+  my $field_names = $manifest->field_names;
+
+  foreach my $row ( $manifest->all_rows ) {
+    # zip the field names and values together to form a hash
+    my %upload = mesh @$field_names, @$row;
+
+    # and pass that hash to the ResultSet to load
+    $self->resultset('Sample')->load_row(\%upload);
+  }
+}
+
+__PACKAGE__->meta->make_immutable;
+
 1;

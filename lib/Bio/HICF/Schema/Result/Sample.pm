@@ -43,6 +43,7 @@ __PACKAGE__->table("sample");
 =head2 sample_id
 
   data_type: 'integer'
+  is_auto_increment: 1
   is_nullable: 0
 
 =head2 raw_data_accession
@@ -60,6 +61,12 @@ __PACKAGE__->table("sample");
 =head2 sample_description
 
   data_type: 'tinytext'
+  is_nullable: 1
+
+=head2 collected_at
+
+  data_type: 'enum'
+  extra: {list => ["WTSI","UCL","OXFORD"]}
   is_nullable: 1
 
 =head2 ncbi_taxid
@@ -82,9 +89,9 @@ __PACKAGE__->table("sample");
 
 =head2 source
 
-  data_type: 'enum'
-  extra: {list => ["WTSI","UCL","OXFORD"]}
+  data_type: 'varchar'
   is_nullable: 1
+  size: 45
 
 =head2 collection_date
 
@@ -184,13 +191,19 @@ __PACKAGE__->table("sample");
 
 __PACKAGE__->add_columns(
   "sample_id",
-  { data_type => "integer", is_nullable => 0 },
+  { data_type => "integer", is_auto_increment => 1, is_nullable => 0 },
   "raw_data_accession",
   { data_type => "varchar", is_nullable => 0, size => 45 },
   "sample_accession",
   { data_type => "varchar", is_nullable => 0, size => 45 },
   "sample_description",
   { data_type => "tinytext", is_nullable => 1 },
+  "collected_at",
+  {
+    data_type => "enum",
+    extra => { list => ["WTSI", "UCL", "OXFORD"] },
+    is_nullable => 1,
+  },
   "ncbi_taxid",
   { data_type => "integer", is_foreign_key => 1, is_nullable => 1 },
   "scientific_name",
@@ -198,11 +211,7 @@ __PACKAGE__->add_columns(
   "collected_by",
   { data_type => "varchar", is_nullable => 1, size => 45 },
   "source",
-  {
-    data_type => "enum",
-    extra => { list => ["WTSI", "UCL", "OXFORD"] },
-    is_nullable => 1,
-  },
+  { data_type => "varchar", is_nullable => 1, size => 45 },
   "collection_date",
   {
     data_type => "datetime",
@@ -372,8 +381,8 @@ __PACKAGE__->has_many(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07042 @ 2015-01-14 16:23:19
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:GgzByJzytLAfcPz6IwzV2A
+# Created by DBIx::Class::Schema::Loader v0.07042 @ 2015-01-21 15:41:19
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:k7QJ/zv4Uk+7UEU0eM2JCg
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration

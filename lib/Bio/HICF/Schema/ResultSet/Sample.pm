@@ -5,33 +5,23 @@ use Moose;
 use MooseX::NonMoose;
 use List::MoreUtils qw( mesh );
 use DateTime;
+use Carp qw ( croak );
 
 extends 'DBIx::Class::ResultSet';
 
-sub load {
-  my $self = shift;
+sub BUILDARGS { $_[2] }
+# see https://metacpan.org/pod/DBIx::Class::ResultSet#ResultSet-subclassing-with-Moose-and-similar-constructor-providers
 
-  # accept an array, an array ref, or a hash. We'll assume the values in the
-  # lists are in the correct order for the table, then turn them into a hash by
-  # zipping them with the column names
-  my $upload;
-  if ( ref $_[0] eq 'HASH' ) {
-    $upload = $_[0];
-  }
-  else {
-    my @columns = $self->result_source->columns;
-    my @values = ref $_[0]
-               ? @{ $_[0] }
-               : @_;
-    my %hash = mesh @columns, @values;
-    $upload = \%hash;
-  }
+sub load_row {
+  my ( $self, $row ) = @_;
 
-  # parse out the antimicrobial resistance data and put them into the uploads
-  # hash so that they'll get inserted correctly in the child table
+  croak 'not a valid row' unless ref $row eq 'HASH';
+
+  # parse out the antimicrobial resistance data and put them back into the row
+  # hash in a format that means they'll get inserted correctly in the child
+  # table
   my $amr = [];
-  if ( $upload->{amr} ) {
-    my $amr_string = delete $upload->{amr};
+  if ( my $amr_string = delete $row->{antimicrobial_resistance} ) {
     while ( $amr_string =~ m/(([A-Za-z\d\- ]+);([SIR]);(\d+)(;(\w+))?),? */g) {
       push @$amr, {
         antimicrobial_name => $2,
@@ -40,11 +30,11 @@ sub load {
         diagnostic_centre  => $6
       }
     }
-
-    $upload->{antimicrobial_resistances} = $amr;
+    $row->{antimicrobial_resistances} = $amr;
   }
 
-  $self->update_or_create( $upload, { key => 'primary' } );
+  $self->update_or_create( $row );
+  # $self->update_or_create( $row, { key => 'primary' } );
 }
 
 __PACKAGE__->meta->make_immutable;
