@@ -142,11 +142,13 @@ __PACKAGE__->add_columns(
 
 =item * L</run_id>
 
+=item * L</sample_id>
+
 =back
 
 =cut
 
-__PACKAGE__->set_primary_key("run_id");
+__PACKAGE__->set_primary_key("run_id", "sample_id");
 
 =head1 RELATIONS
 
@@ -181,8 +183,8 @@ __PACKAGE__->belongs_to(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07042 @ 2015-01-14 15:53:57
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:zK5y7MJJNzF8PBau85ePFQ
+# Created by DBIx::Class::Schema::Loader v0.07042 @ 2015-01-22 10:51:00
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:mIsHR61qR5wp4Vv5fLb2oQ
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration

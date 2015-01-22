@@ -13,15 +13,15 @@ sub BUILDARGS { $_[2] }
 # see https://metacpan.org/pod/DBIx::Class::ResultSet#ResultSet-subclassing-with-Moose-and-similar-constructor-providers
 
 sub load_row {
-  my ( $self, $row ) = @_;
+  my ( $self, $upload ) = @_;
 
-  croak 'not a valid row' unless ref $row eq 'HASH';
+  croak 'not a valid row' unless ref $upload eq 'HASH';
 
   # parse out the antimicrobial resistance data and put them back into the row
   # hash in a format that means they'll get inserted correctly in the child
   # table
   my $amr = [];
-  if ( my $amr_string = delete $row->{antimicrobial_resistance} ) {
+  if ( my $amr_string = delete $upload->{antimicrobial_resistance} ) {
     while ( $amr_string =~ m/(([A-Za-z\d\- ]+);([SIR]);(\d+)(;(\w+))?),? */g) {
       push @$amr, {
         antimicrobial_name => $2,
@@ -30,11 +30,10 @@ sub load_row {
         diagnostic_centre  => $6
       }
     }
-    $row->{antimicrobial_resistances} = $amr;
+    $upload->{antimicrobial_resistances} = $amr;
   }
 
-  $self->update_or_create( $row );
-  # $self->update_or_create( $row, { key => 'primary' } );
+  my $rs = $self->find_or_create( $upload, { key => 'sample_uc' } );
 }
 
 __PACKAGE__->meta->make_immutable;

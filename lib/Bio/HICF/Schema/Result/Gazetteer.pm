@@ -52,8 +52,6 @@ __PACKAGE__->table("gazetteer");
   is_nullable: 1
   size: 45
 
-Stores the GAZ ontology IDs
-
 =cut
 
 __PACKAGE__->add_columns(
@@ -93,8 +91,8 @@ __PACKAGE__->has_many(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07042 @ 2015-01-14 15:53:57
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:Vxa2v2r82bivHIOTOK5mCA
+# Created by DBIx::Class::Schema::Loader v0.07042 @ 2015-01-22 10:51:00
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:AVv8UUK7VE0XvqLxJLQBKg
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration

@@ -46,6 +46,13 @@ __PACKAGE__->table("sample");
   is_auto_increment: 1
   is_nullable: 0
 
+=head2 manifest_id
+
+  data_type: 'char'
+  is_foreign_key: 1
+  is_nullable: 0
+  size: 36
+
 =head2 raw_data_accession
 
   data_type: 'varchar'
@@ -127,7 +134,7 @@ __PACKAGE__->table("sample");
 
   data_type: 'varchar'
   is_foreign_key: 1
-  is_nullable: 0
+  is_nullable: 1
   size: 11
 
 =head2 isolation_source
@@ -192,6 +199,8 @@ __PACKAGE__->table("sample");
 __PACKAGE__->add_columns(
   "sample_id",
   { data_type => "integer", is_auto_increment => 1, is_nullable => 0 },
+  "manifest_id",
+  { data_type => "char", is_foreign_key => 1, is_nullable => 0, size => 36 },
   "raw_data_accession",
   { data_type => "varchar", is_nullable => 0, size => 45 },
   "sample_accession",
@@ -231,7 +240,7 @@ __PACKAGE__->add_columns(
     is_nullable => 1,
   },
   "host_isolation_source",
-  { data_type => "varchar", is_foreign_key => 1, is_nullable => 0, size => 11 },
+  { data_type => "varchar", is_foreign_key => 1, is_nullable => 1, size => 11 },
   "isolation_source",
   { data_type => "varchar", is_foreign_key => 1, is_nullable => 1, size => 10 },
   "serovar",
@@ -307,7 +316,12 @@ __PACKAGE__->belongs_to(
   "host_isolation_source",
   "Bio::HICF::Schema::Result::Brenda",
   { brenda_id => "host_isolation_source" },
-  { is_deferrable => 1, on_delete => "NO ACTION", on_update => "NO ACTION" },
+  {
+    is_deferrable => 1,
+    join_type     => "LEFT",
+    on_delete     => "NO ACTION",
+    on_update     => "NO ACTION",
+  },
 );
 
 =head2 isolation_source
@@ -342,6 +356,21 @@ __PACKAGE__->belongs_to(
   "location",
   "Bio::HICF::Schema::Result::Gazetteer",
   { gaz_id => "location" },
+  { is_deferrable => 1, on_delete => "NO ACTION", on_update => "NO ACTION" },
+);
+
+=head2 manifest
+
+Type: belongs_to
+
+Related object: L<Bio::HICF::Schema::Result::Manifest>
+
+=cut
+
+__PACKAGE__->belongs_to(
+  "manifest",
+  "Bio::HICF::Schema::Result::Manifest",
+  { manifest_id => "manifest_id" },
   { is_deferrable => 1, on_delete => "NO ACTION", on_update => "NO ACTION" },
 );
 
@@ -381,10 +410,12 @@ __PACKAGE__->has_many(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07042 @ 2015-01-21 15:41:19
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:k7QJ/zv4Uk+7UEU0eM2JCg
+# Created by DBIx::Class::Schema::Loader v0.07042 @ 2015-01-22 15:23:32
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:kMGVyN69F7U6eCAuB97nkg
 
+__PACKAGE__->add_unique_constraint(
+  sample_uc => [ qw( manifest_id raw_data_accession sample_accession ) ]
+);
 
-# You can replace this text with custom code or comments, and it will be preserved on regeneration
 __PACKAGE__->meta->make_immutable;
 1;

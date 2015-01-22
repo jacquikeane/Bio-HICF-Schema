@@ -28,7 +28,6 @@ else {
   diag 'using in-memory SQLite DB (set $ENV{SQLITE_FILE_DB} to true to use file-based DB)';
 }
 
-  # 'dbi:SQLite:dbname=' . $fh->filename, '', '',
 my $schema = Bio::HICF::Schema->connect(
   $dsn, '', '',
   {
@@ -38,18 +37,19 @@ my $schema = Bio::HICF::Schema->connect(
 
 ok $schema, 'connected to test DB successfully';
 
-lives_ok { $schema->deploy } 'successfully deployed schema';
+lives_ok { $schema->deploy } 'deployed schema successfully';
 
 # INSERTs to set up the tables
 my @setup_statements = (
-  q|PRAGMA foreign_keys = ON|,
+  q|PRAGMA foreign_keys = ON|, # have to turn on foreign keys explicitly for SQLite
   q|INSERT INTO `antimicrobial` (`name`, `created_at`) VALUES ('am1', date('now')), ('am2', date('now'))|,
   q|INSERT INTO `gazetteer` (`gaz_id`, `description`) VALUES ('GAZ:00444180', 'Hinxton')|,
   q|INSERT INTO `brenda` (`brenda_id`, `description`) VALUES ('BTO:0000645', 'Lung')|,
   q|INSERT INTO `taxonomy` (`ncbi_taxid`) VALUES (9606)|,
   q|INSERT INTO `envo` (`envo_id`, `description`) VALUES ('ENVO:00002148', 'coarse beach sand')|,
-  q|INSERT INTO `sample` (`raw_data_accession`, `sample_accession`, `sample_description`, `collected_at`, `ncbi_taxid`, `scientific_name`, `collected_by`, `collection_date`, `location`, `host_associated`, `specific_host`, `host_disease_status`, `host_isolation_source`, `isolation_source`, `serovar`, `other_classification`, `strain`, `isolate`, `withdrawn`, `created_at`, `updated_at`, `deleted_at`) VALUES ('data:1', 'sample:1', 'New sample', 'WTSI', NULL, 'Homo sapiens', 'Tate JG', '2015-01-10T14:30:00', 'GAZ:00444180', 1, 'Homo sapiens', 'healthy', 'BTO:0000645', NULL, 'serovar', NULL, 'strain', NULL, NULL, '20141202T16:55:00', '20141202T16:55:00', NULL)|,
-  q|INSERT INTO `antimicrobial_resistance` (`sample_id`, `antimicrobial_name`, `susceptibility`, `mic`, `diagnostic_centre`, `created_at`) VALUES (1,'am1','S',50,'WTSI',date('now'))|,
+  q|INSERT INTO `manifest` (`manifest_id`,`md5`,`ticket`,`created_at`) VALUES ('4162F712-1DD2-11B2-B17E-C09EFE1DC403','6df23dc03f9b54cc38a0fc1483df6e21',NULL,datetime('now'))|,
+  q|INSERT INTO `sample` (`manifest_id`, `raw_data_accession`, `sample_accession`, `sample_description`, `collected_at`, `ncbi_taxid`, `scientific_name`, `collected_by`, `collection_date`, `location`, `host_associated`, `specific_host`, `host_disease_status`, `host_isolation_source`, `isolation_source`, `serovar`, `other_classification`, `strain`, `isolate`, `withdrawn`, `created_at`, `updated_at`, `deleted_at`) VALUES ('4162F712-1DD2-11B2-B17E-C09EFE1DC403', 'data:1', 'sample:1', 'New sample', 'WTSI', 9606, NULL, 'Tate JG', '2015-01-10T14:30:00', 'GAZ:00444180', 1, 'Homo sapiens', 'healthy', 'BTO:0000645', NULL, 'serovar', NULL, 'strain', NULL, NULL, '20141202T16:55:00', '20141202T16:55:00', NULL)|,
+  q|INSERT INTO `antimicrobial_resistance` (`sample_id`, `antimicrobial_name`, `susceptibility`, `mic`, `diagnostic_centre`, `created_at`) VALUES (1,'am1','S',50,'WTSI',datetime('now'))|,
 );
 
 my $dbh_do = sub {
@@ -61,30 +61,30 @@ my $dbh_do = sub {
 
 lives_ok { $schema->storage->dbh_do( $dbh_do, @setup_statements ) } 'no error when pre-loading DB';
 
-# my @sample_columns = (
-#   qw(
-#     raw_data_accession
-#     sample_accession
-#     sample_description
-#     collected_at
-#     ncbi_taxid
-#     scientific_name
-#     collected_by
-#     source
-#     collection_date
-#     location
-#     host_associated
-#     specific_host
-#     host_disease_status
-#     host_isolation_source
-#     isolation_source
-#     serovar
-#     other_classification
-#     strain
-#     isolate
-#     antimicrobial_resistance
-#   )
-# );
+my @sample_columns = (
+  qw(
+    raw_data_accession
+    sample_accession
+    sample_description
+    collected_at
+    ncbi_taxid
+    scientific_name
+    collected_by
+    source
+    collection_date
+    location
+    host_associated
+    specific_host
+    host_disease_status
+    host_isolation_source
+    isolation_source
+    serovar
+    other_classification
+    strain
+    isolate
+    antimicrobial_resistance
+  )
+);
 
 my @sample_data = (
   'rda:2',                 # raw_data_accession
@@ -115,17 +115,8 @@ Test::CacheFile::cache( 'http://purl.obolibrary.org/obo/gaz.obo', 'gaz.obo' );
 Test::CacheFile::cache( 'http://www.brenda-enzymes.info/ontology/tissue/tree/update/update_files/BrendaTissueOBO', 'bto.obo' );
 
 my $c = Bio::Metadata::Config->new( config_file => 't/data/01_manifest.conf' );
-my $m = Bio::Metadata::Manifest->new( config => $c );
-
-# add a couple of rows to the manifest. We need to make sure we create two
-# distinct arrays though, because we're adding them by reference.
-my @row_0 = @sample_data;
-my @row_1 = @sample_data;
-
-$row_1[0] = 'rda:3';
-$row_1[19] = 'am1;S;10,am2;I;20;WTSI';
-
-$m->add_rows( \@row_0, \@row_1 );
+my $r = Bio::Metadata::Reader->new( config => $c );
+my $m = $r->read_csv('t/data/01_manifest.csv');
 
 lives_ok { $schema->load_manifest($m) } 'loading valid manifest works';
 
@@ -134,29 +125,17 @@ my $amr_table = $schema->resultset('AntimicrobialResistance');
 ok( $sample_table->find(2), 'found new sample row in table' );
 is( $amr_table->search({},{})->count, 3, 'found expected number of antimicrobial resistance rows' );
 
+my $existing_row = $sample_table->find(2);
+isnt( $existing_row->created_at, undef, 'created_at not empty, as expected' );
+is( $existing_row->updated_at, undef, '"updated_at" empty as expected before update' );
+
+diag 'SQLite DB at ' . $fh->filename;
+
 $DB::single = 1;
 
 done_testing();
 
 __END__
-
-my %sample_hash = mesh @sample_columns, @sample_data;
-
-my $sample_rs = $schema->resultset('Sample');
-
-# check we can load from an array, an array ref, or a hash ref
-lives_ok { $sample_rs->load( @sample_data ) } 'loading from an array works';
-
-my $row = $sample_rs->find(2);
-isnt( $row->created_at, undef, 'created_at not empty, as expected' );
-
-$sample_data[0] = 3;
-lives_ok { $sample_rs->load( \@sample_data ) } 'loading from an array ref works';
-
-$sample_hash{sample_id} = 4;
-lives_ok { $sample_rs->load( \%sample_hash ) } 'loading from a hash ref works';
-
-is( $sample_rs->search( {}, {} )->count, 4, 'got expected number of rows in database' );
 
 # make sure the DB state is as we expect before updating
 $row = $sample_rs->find(4);

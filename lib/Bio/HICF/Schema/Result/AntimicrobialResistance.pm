@@ -138,19 +138,19 @@ __PACKAGE__->add_columns(
 
 =over 4
 
-=item * L</sample_id>
-
 =item * L</antimicrobial_name>
 
 =item * L</susceptibility>
 
 =item * L</mic>
 
+=item * L</sample_id>
+
 =back
 
 =cut
 
-__PACKAGE__->set_primary_key("sample_id", "antimicrobial_name", "susceptibility", "mic");
+__PACKAGE__->set_primary_key("antimicrobial_name", "susceptibility", "mic", "sample_id");
 
 =head1 RELATIONS
 
@@ -185,8 +185,8 @@ __PACKAGE__->belongs_to(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07042 @ 2015-01-14 16:30:09
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:+UpM6CvWNpcZn+nLsbxuvg
+# Created by DBIx::Class::Schema::Loader v0.07042 @ 2015-01-22 10:51:00
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:TDk24V7DMQCPOLYWa6fQ2Q
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration

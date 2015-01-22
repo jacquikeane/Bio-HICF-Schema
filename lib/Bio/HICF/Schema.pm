@@ -34,10 +34,19 @@ sub load_manifest {
   my $field_names = $manifest->field_names;
 
   foreach my $row ( $manifest->all_rows ) {
-    # zip the field names and values together to form a hash
+    # add a row to the manifest table
+    my $rs = $self->resultset('Manifest')
+                  ->find_or_create( { manifest_id => $manifest->uuid,
+                                      md5         => $manifest->md5 },
+                                    { key => 'primary' } );
+
+    # zip the field names and values together to form a hash...
     my %upload = mesh @$field_names, @$row;
 
-    # and pass that hash to the ResultSet to load
+    # ... add the manifest ID...
+    $upload{manifest_id} = $manifest->uuid;
+
+    # ... and pass that hash to the ResultSet to load
     $self->resultset('Sample')->load_row(\%upload);
   }
 }
