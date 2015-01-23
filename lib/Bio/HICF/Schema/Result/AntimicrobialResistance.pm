@@ -189,6 +189,20 @@ __PACKAGE__->belongs_to(
 # DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:TDk24V7DMQCPOLYWa6fQ2Q
 
 
-# You can replace this text with custom code or comments, and it will be preserved on regeneration
+sub get_amr_string {
+  my $self = shift;
+
+  my $amr_string = $self->antimicrobial_name . ';'
+                 . $self->susceptibility . ';'
+                 . $self->mic;
+
+  $amr_string .= ';' . $self->diagnostic_centre
+    if defined $self->diagnostic_centre;
+
+  return $amr_string;
+}
+
+#-------------------------------------------------------------------------------
+
 __PACKAGE__->meta->make_immutable;
 1;

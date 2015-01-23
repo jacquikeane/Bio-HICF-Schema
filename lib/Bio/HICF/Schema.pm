@@ -20,6 +20,8 @@ use Carp qw( croak );
 use Bio::Metadata::Validator;
 use List::MoreUtils qw( mesh );
 
+#-------------------------------------------------------------------------------
+
 sub load_manifest {
   my ( $self, $manifest ) = @_;
 
@@ -50,6 +52,48 @@ sub load_manifest {
     $self->resultset('Sample')->load_row(\%upload);
   }
 }
+
+#-------------------------------------------------------------------------------
+
+sub get_manifest {
+  my ( $self, $manifest_id ) = @_;
+
+  #...
+  # return @samples;
+}
+
+#-------------------------------------------------------------------------------
+
+sub get_sample {
+  my ( $self, $sample_id ) = @_;
+
+  # ...
+  # return $sample;
+}
+
+#-------------------------------------------------------------------------------
+
+sub get_samples {
+  my $self = shift;
+
+  my @samples;
+
+  if ( $_[0] =~ m//i ) {
+    # we were handed a manifest ID
+    @samples = $self->_get_samples_from_manifest(shift);
+  }
+  else {
+    my $sample_ids = ( ref $_[0] eq 'ARRAY' )
+                   ? $_[0]
+                   : \@_;
+    # we were handed a list of sample IDs
+    push @samples, $self->get_sample($_) for @$sample_ids;
+  }
+
+  return @samples;
+}
+
+#-------------------------------------------------------------------------------
 
 __PACKAGE__->meta->make_immutable;
 
