@@ -78,6 +78,8 @@ $new_m->config->{config_file} = 't/data/01_manifest.conf';
 
 is_deeply( $m, $new_m, 'manifest generated from the DB matches original' );
 
+is( Schema->get_manifest('x'), undef, '"get_manifest" returns undef with bad manifest ID' );
+
 # test insert failure behaviour
 $m->rows->[0]->[0] = 'rda:99';
 $m->rows->[0]->[9] = undef;

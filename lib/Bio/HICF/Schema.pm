@@ -162,6 +162,8 @@ sub get_manifest {
                                  { prefetch => [ 'config' ] } )
                        ->single;
 
+  return unless $config_rs;
+
   my %config_args = ( config_string => $config_rs->config->config );
   if ( defined $config_rs->config->name ) {
     $config_args{config_name} = $config_rs->config->name;
