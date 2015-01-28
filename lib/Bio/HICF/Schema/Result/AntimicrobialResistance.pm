@@ -188,11 +188,12 @@ __PACKAGE__->belongs_to(
 # Created by DBIx::Class::Schema::Loader v0.07042 @ 2015-01-22 10:51:00
 # DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:TDk24V7DMQCPOLYWa6fQ2Q
 
+#-------------------------------------------------------------------------------
 
 sub get_amr_string {
   my $self = shift;
 
-  my $amr_string = $self->antimicrobial_name . ';'
+  my $amr_string = $self->get_column('antimicrobial_name') . ';'
                  . $self->susceptibility . ';'
                  . $self->mic;
 

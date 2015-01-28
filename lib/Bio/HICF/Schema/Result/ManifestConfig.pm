@@ -1,12 +1,12 @@
 use utf8;
-package Bio::HICF::Schema::Result::Manifest;
+package Bio::HICF::Schema::Result::ManifestConfig;
 
 # Created by DBIx::Class::Schema::Loader
 # DO NOT MODIFY THE FIRST PART OF THIS FILE
 
 =head1 NAME
 
-Bio::HICF::Schema::Result::Manifest
+Bio::HICF::Schema::Result::ManifestConfig
 
 =cut
 
@@ -32,38 +32,33 @@ extends 'DBIx::Class::Core';
 
 __PACKAGE__->load_components("InflateColumn::DateTime", "TimeStamp");
 
-=head1 TABLE: C<manifest>
+=head1 TABLE: C<manifest_config>
 
 =cut
 
-__PACKAGE__->table("manifest");
+__PACKAGE__->table("manifest_config");
 
 =head1 ACCESSORS
-
-=head2 manifest_id
-
-  data_type: 'char'
-  is_nullable: 0
-  size: 36
-
-A UUID that uniquely identifies the manifest.
 
 =head2 config_id
 
   data_type: 'integer'
-  is_foreign_key: 1
+  is_auto_increment: 1
   is_nullable: 0
 
-=head2 md5
+=head2 config
 
-  data_type: 'char'
+  data_type: 'mediumtext'
   is_nullable: 0
-  size: 32
 
-=head2 ticket
+The configuration string, suitable for generating a Bio::Metadata::Config object
 
-  data_type: 'integer'
+=head2 name
+
+  data_type: 'tinytext'
   is_nullable: 1
+
+The name of a configuration in a multi-part configuration. Not required if the configuration string has only a single <checklist> block.
 
 =head2 created_at
 
@@ -88,14 +83,12 @@ A UUID that uniquely identifies the manifest.
 =cut
 
 __PACKAGE__->add_columns(
-  "manifest_id",
-  { data_type => "char", is_nullable => 0, size => 36 },
   "config_id",
-  { data_type => "integer", is_foreign_key => 1, is_nullable => 0 },
-  "md5",
-  { data_type => "char", is_nullable => 0, size => 32 },
-  "ticket",
-  { data_type => "integer", is_nullable => 1 },
+  { data_type => "integer", is_auto_increment => 1, is_nullable => 0 },
+  "config",
+  { data_type => "mediumtext", is_nullable => 0 },
+  "name",
+  { data_type => "tinytext", is_nullable => 1 },
   "created_at",
   {
     data_type => "datetime",
@@ -122,49 +115,34 @@ __PACKAGE__->add_columns(
 
 =over 4
 
-=item * L</manifest_id>
+=item * L</config_id>
 
 =back
 
 =cut
 
-__PACKAGE__->set_primary_key("manifest_id");
+__PACKAGE__->set_primary_key("config_id");
 
 =head1 RELATIONS
 
-=head2 config
-
-Type: belongs_to
-
-Related object: L<Bio::HICF::Schema::Result::ManifestConfig>
-
-=cut
-
-__PACKAGE__->belongs_to(
-  "config",
-  "Bio::HICF::Schema::Result::ManifestConfig",
-  { config_id => "config_id" },
-  { is_deferrable => 1, on_delete => "NO ACTION", on_update => "NO ACTION" },
-);
-
-=head2 samples
+=head2 manifests
 
 Type: has_many
 
-Related object: L<Bio::HICF::Schema::Result::Sample>
+Related object: L<Bio::HICF::Schema::Result::Manifest>
 
 =cut
 
 __PACKAGE__->has_many(
-  "samples",
-  "Bio::HICF::Schema::Result::Sample",
-  { "foreign.manifest_id" => "self.manifest_id" },
+  "manifests",
+  "Bio::HICF::Schema::Result::Manifest",
+  { "foreign.config_id" => "self.config_id" },
   { cascade_copy => 0, cascade_delete => 0 },
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07042 @ 2015-01-27 11:06:54
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:D2Wlx0CDrd1TenTarfDLEw
+# Created by DBIx::Class::Schema::Loader v0.07042 @ 2015-01-27 14:41:05
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:DnoiLP2mysmQkzFFsiI57g
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration

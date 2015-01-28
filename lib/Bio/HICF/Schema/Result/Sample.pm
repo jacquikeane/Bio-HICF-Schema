@@ -413,9 +413,55 @@ __PACKAGE__->has_many(
 # Created by DBIx::Class::Schema::Loader v0.07042 @ 2015-01-22 15:23:32
 # DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:kMGVyN69F7U6eCAuB97nkg
 
+#-------------------------------------------------------------------------------
+
 __PACKAGE__->add_unique_constraint(
   sample_uc => [ qw( manifest_id raw_data_accession sample_accession ) ]
 );
+
+#-------------------------------------------------------------------------------
+
+our @_field_order = qw(
+  raw_data_accession
+  sample_accession
+  sample_description
+  collected_at
+  ncbi_taxid
+  scientific_name
+  collected_by
+  source
+  collection_date
+  location
+  host_associated
+  specific_host
+  host_disease_status
+  host_isolation_source
+  isolation_source
+  serovar
+  other_classification
+  strain
+  isolate
+);
+
+#-------------------------------------------------------------------------------
+
+sub get_field_values {
+  my $self = shift;
+
+  my $values;
+  foreach my $field ( @_field_order ) {
+    push @$values, $self->get_column($field);
+  }
+  my @amr_strings;
+  foreach my $amr ( $self->antimicrobial_resistances ) {
+    push @amr_strings, $amr->get_amr_string;
+  }
+  push @$values, join ',', @amr_strings;
+
+  return $values;
+}
+
+#-------------------------------------------------------------------------------
 
 __PACKAGE__->meta->make_immutable;
 1;

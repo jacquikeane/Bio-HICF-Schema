@@ -22,6 +22,14 @@ use List::MoreUtils qw( mesh );
 
 #-------------------------------------------------------------------------------
 
+=head1 METHODS
+
+=head2 load_manifest($manifest)
+
+Loads the sample data in a L<Bio::Metadata::Manifest>.
+
+=cut
+
 sub load_manifest {
   my ( $self, $manifest ) = @_;
 
@@ -33,14 +41,21 @@ sub load_manifest {
   croak 'the data in the manifest are not valid'
     unless $v->validate($manifest);
 
+  # add a row to the manifest table
+  my $rs = $self->resultset('Manifest')
+                ->find_or_create(
+                  {
+                    manifest_id => $manifest->uuid,
+                    md5         => $manifest->md5,
+                    config      => { config => $manifest->config->config_string }
+                  },
+                  { key => 'primary' }
+                );
+
+  # load the sample rows
   my $field_names = $manifest->field_names;
 
   foreach my $row ( $manifest->all_rows ) {
-    # add a row to the manifest table
-    my $rs = $self->resultset('Manifest')
-                  ->find_or_create( { manifest_id => $manifest->uuid,
-                                      md5         => $manifest->md5 },
-                                    { key => 'primary' } );
 
     # zip the field names and values together to form a hash...
     my %upload = mesh @$field_names, @$row;
@@ -55,42 +70,71 @@ sub load_manifest {
 
 #-------------------------------------------------------------------------------
 
-sub get_manifest {
-  my ( $self, $manifest_id ) = @_;
-
-  #...
-  # return @samples;
-}
-
-#-------------------------------------------------------------------------------
-
 sub get_sample {
   my ( $self, $sample_id ) = @_;
 
-  # ...
-  # return $sample;
+  my $sample = $self->resultset('Sample')
+                    ->find($sample_id);
+  croak "ERROR: no sample with that ID ($sample_id)"
+    unless defined $sample;
+
+  my $values = $sample->get_field_values;
+  croak "ERROR: couldn't get values for sample $sample_id"
+    unless ( defined $values and scalar @$values );
+
+  return $values;
 }
 
 #-------------------------------------------------------------------------------
 
 sub get_samples {
-  my $self = shift;
+  my ( $self, @args ) = @_;
 
-  my @samples;
+  my $samples;
 
-  if ( $_[0] =~ m//i ) {
+  if ( $args[0] =~ m/^[0-9a-f]{8}-([0-9a-f]{4}-){3}[0-9a-f]{12}$/i ) {
     # we were handed a manifest ID
-    @samples = $self->_get_samples_from_manifest(shift);
+    my $rs = $self->resultset('Sample')
+                  ->search( { manifest_id => $args[0] },
+                            { prefetch => 'antimicrobial_resistances' } );
+    push @$samples, $_->get_field_values for ( $rs->all );
   }
   else {
-    my $sample_ids = ( ref $_[0] eq 'ARRAY' )
-                   ? $_[0]
-                   : \@_;
+    my $sample_ids = ( ref $args[0] eq 'ARRAY' )
+                   ? $args[0]
+                   : \@args;
     # we were handed a list of sample IDs
-    push @samples, $self->get_sample($_) for @$sample_ids;
+    push @$samples, $self->get_sample($_) for @$sample_ids;
   }
 
-  return @samples;
+  return $samples;
+}
+
+#-------------------------------------------------------------------------------
+
+sub get_manifest {
+  my ( $self, $manifest_id ) = @_;
+
+  # create a B::M::Config object from the config string that we have stored for
+  # this manifest
+  my $config_rs = $self->resultset('Manifest')
+                       ->search( { manifest_id => $manifest_id },
+                                 { prefetch => [ 'config' ] } )
+                       ->single;
+
+  my %config_args = ( config_string => $config_rs->config->config );
+  if ( defined $config_rs->config->name ) {
+    $config_args{config_name} = $config_rs->config->name;
+  }
+
+  my $c = Bio::Metadata::Config->new(%config_args);
+
+  # get the values for the samples in the manifest and add them to a new
+  # B::M::Manifest
+  my $values = $self->get_samples($manifest_id);
+  my $m = Bio::Metadata::Manifest->new( config => $c, rows => $values );
+
+  return $m;
 }
 
 #-------------------------------------------------------------------------------
