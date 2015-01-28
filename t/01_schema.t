@@ -28,7 +28,10 @@ my $c = Bio::Metadata::Config->new( config_file => 't/data/01_manifest.conf' );
 my $r = Bio::Metadata::Reader->new( config => $c );
 my $m = $r->read_csv('t/data/01_manifest.csv');
 
-lives_ok { Schema->load_manifest($m) } 'loading valid manifest works';
+my @sample_ids;
+lives_ok { @sample_ids = Schema->load_manifest($m) } 'loading valid manifest works';
+
+is_deeply( \@sample_ids, [ 2, 3 ], 'got expected sample_ids from "load_manifest"' );
 
 ok my $sample = Sample->find(2), 'found new sample';
 is( AntimicrobialResistance->search({},{})->count, 5, 'found expected number of antimicrobial resistance rows' );

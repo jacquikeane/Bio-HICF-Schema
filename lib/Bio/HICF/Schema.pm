@@ -16,6 +16,19 @@ __PACKAGE__->load_namespaces;
 
 # ABSTRACT: DBIC schema for the HICF repository
 
+=head1 SYNOPSIS
+
+ # read in a manifest
+ my $c = Bio::Metadata::Config->new( config_file => 'hicf.conf' );
+ my $r = Bio::Metadata::Reader->new( config => $c );
+ my $m = $r->read_csv( 'hicf.csv' );
+
+ # load it into the database
+ my $schema = Bio::HICF::Schema->connect( $dsn, $username, $password );
+ my @sample_ids = $schema->load_manifest($m);
+
+=cut
+
 use Carp qw( croak );
 use Bio::Metadata::Validator;
 use List::MoreUtils qw( mesh );
@@ -26,7 +39,8 @@ use List::MoreUtils qw( mesh );
 
 =head2 load_manifest($manifest)
 
-Loads the sample data in a L<Bio::Metadata::Manifest>.
+Loads the sample data in a L<Bio::Metadata::Manifest>. Returns a list of the
+sample IDs for the newly inserted rows.
 
 =cut
 
@@ -55,6 +69,7 @@ sub load_manifest {
   # load the sample rows
   my $field_names = $manifest->field_names;
 
+  my @row_ids;
   foreach my $row ( $manifest->all_rows ) {
 
     # zip the field names and values together to form a hash...
@@ -64,11 +79,20 @@ sub load_manifest {
     $upload{manifest_id} = $manifest->uuid;
 
     # ... and pass that hash to the ResultSet to load
-    $self->resultset('Sample')->load_row(\%upload);
+    push @row_ids, $self->resultset('Sample')->load_row(\%upload);
   }
+
+  return @row_ids;
 }
 
 #-------------------------------------------------------------------------------
+
+=head2 get_sample($sample_id)
+
+Returns a reference to an array containing the field values for the specified
+sample.
+
+=cut
 
 sub get_sample {
   my ( $self, $sample_id ) = @_;
@@ -86,6 +110,16 @@ sub get_sample {
 }
 
 #-------------------------------------------------------------------------------
+
+=head2 get_samples(@args)
+
+Returns a reference to an array containing the field values for the specified
+samples, one sample per row. If the first element of C<@args> looks like a UUID,
+it's assumed to be a manifest ID and the method returns the field data for all
+samples in that manifest. Otherwise C<@args> is assumed to be a list of sample
+IDs and the field data for each is return.
+
+=cut
 
 sub get_samples {
   my ( $self, @args ) = @_;
@@ -111,6 +145,12 @@ sub get_samples {
 }
 
 #-------------------------------------------------------------------------------
+
+=head2 get_manifest($manifest_id)
+
+Returns a L<Bio::Metadata::Manifest> object for the specified manifest.
+
+=cut
 
 sub get_manifest {
   my ( $self, $manifest_id ) = @_;
@@ -138,6 +178,16 @@ sub get_manifest {
 }
 
 #-------------------------------------------------------------------------------
+
+=head1 SEE ALSO
+
+L<Bio::Metadata::Validator>
+
+=head1 CONTACT
+
+path-help@sanger.ac.uk
+
+=cut
 
 __PACKAGE__->meta->make_immutable;
 
