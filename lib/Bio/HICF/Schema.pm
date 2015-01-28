@@ -32,6 +32,8 @@ __PACKAGE__->load_namespaces;
 use Carp qw( croak );
 use Bio::Metadata::Validator;
 use List::MoreUtils qw( mesh );
+use MooseX::Params::Validate;
+use TryCatch;
 
 #-------------------------------------------------------------------------------
 
@@ -68,6 +70,9 @@ sub load_manifest {
 
   # load the sample rows
   my $field_names = $manifest->field_names;
+
+  # TODO we should perhaps put this in a transaction, so that if a load_row
+  # TODO fails, we can roll back the inserts for the whole manifest
 
   my @row_ids;
   foreach my $row ( $manifest->all_rows ) {
@@ -177,6 +182,90 @@ sub get_manifest {
   my $m = Bio::Metadata::Manifest->new( config => $c, rows => $values );
 
   return $m;
+}
+
+#-------------------------------------------------------------------------------
+
+=head2 add_antimicrobial($name)
+
+Adds the specified antimicrobial to the database. Throws an exception if the
+named compound is already found in the database, or if the supplied name is
+invalid, e.g. contains non-word characters.
+
+=cut
+
+sub add_antimicrobial {
+  my ( $self, $name ) = @_;
+
+  return unless defined $name;
+
+  croak 'ERROR: invalid antimicrobial name'
+    unless $name =~ m/^[A-Z0-9\-\(\)\s]+$/i;
+
+  my $am = $self->resultset('Antimicrobial')
+                ->find_or_new( { name => $name },
+                               { key => 'primary' } );
+
+  croak 'ERROR: antimicrobial already exists' if $am->in_storage;
+
+  $am->insert;
+}
+
+#-------------------------------------------------------------------------------
+
+=head2 add_antimicrobial_resistance($args)
+
+Adds the specified antimicrobial resistance rest result to the database. Requires
+a single argument, a hash containing the parameters specifying the resistance
+test. The hash must contain the following five keys:
+
+=over
+
+=item C<sample_id> - the ID of an existing sample
+
+=item C<name> - the name of an existing antimicrobial
+
+=item C<susceptibility> - a susceptibility term; must be one of "S", "I" or "R"
+
+=item C<mic> - minimum inhibitor concentration, in microgrammes per millilitre; must be a valid integer
+=item C<diagnostic_centre> - name of the centre that carried out the susceptibility testing; optional
+
+=back
+
+Throws an exception if any of the parameters is invalid, or if the resistance
+test result is already present in the database.
+
+=cut
+
+sub add_antimicrobial_resistance {
+  my ( $self, %params ) = validated_hash(
+    \@_,
+    sample_id         => { isa => 'Int' },
+    name              => { isa => 'AntimicrobialName' },
+    susceptibility    => { isa => 'SIRTerm' },
+    mic               => { isa => 'Int' },
+    diagnostic_centre => { isa => 'Str' },
+  );
+
+  my $amr = $self->resultset('AntimicrobialResistance')->find_or_new(
+    {
+      sample_id          => $params{sample_id},
+      antimicrobial_name => $params{name},
+      susceptibility     => $params{susceptibility},
+      mic                => $params{mic},
+      diagnostic_centre  => $params{dc}
+    },
+    { key => 'primary' }
+  );
+
+  croak 'ERROR: antimicrobial resistance result already exists' if $amr->in_storage;
+
+  try {
+    $amr->insert;
+  }
+  catch ( DBIx::Class::Exception $e where { m/FOREIGN KEY constraint failed/ } ) {
+    croak "ERROR: both the antimicrobial and the sample must exist";
+  }
 }
 
 #-------------------------------------------------------------------------------

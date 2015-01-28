@@ -7,6 +7,7 @@ use File::Temp;
 use Test::DBIx::Class qw( :resultsets );
 use Test::CacheFile;
 use Test::Exception;
+use TryCatch;
 
 # load the pre-requisite data and THEN turn on foreign keys
 fixtures_ok 'main', 'installed fixtures';
@@ -90,6 +91,45 @@ throws_ok { Schema->load_manifest($m) } qr/the data in the manifest are not vali
 
 like( $m->row_errors->[0], qr/'location' is a required field/,
   'error in manifest shows "location" as a required field' );
+
+# adding antimicrobials
+lives_ok { Schema->add_antimicrobial('am3') } 'adding new antimicrobial succeeds';
+throws_ok { Schema->add_antimicrobial('am1') } qr/already exists/,
+  'exception when adding existing antimicrobial';
+throws_ok { Schema->add_antimicrobial('am1#') } qr/invalid antimicrobial name/,
+  'exception when adding invalid antimicrobial';
+
+# adding antimicrobial resistance test results
+my %amr_params = (
+  sample_id         => 1,
+  name              => 'am3',
+  susceptibility    => 'R',
+  mic               => 10,
+  diagnostic_centre => 'Peru',
+);
+lives_ok { Schema->add_antimicrobial_resistance(%amr_params) } 'no error when adding a new valid amr';
+
+$amr_params{sample_id} = 99;
+throws_ok { Schema->add_antimicrobial_resistance(%amr_params) }
+  qr/both the antimicrobial and the sample/,
+  'error when adding an amr with a missing sample ID';
+
+$amr_params{sample_id} = 1;
+$amr_params{name}      = 'x';
+throws_ok { Schema->add_antimicrobial_resistance(%amr_params) }
+  qr/both the antimicrobial and the sample/,
+  'error when adding an amr with a missing compound name';
+
+%amr_params = (
+  sample_id         => 1,
+  name              => 'am1',
+  susceptibility    => 'S',
+  mic               => 50,
+  diagnostic_centre => 'WTSI',
+);
+throws_ok { Schema->add_antimicrobial_resistance(%amr_params) }
+  qr/already exists/,
+  'error when adding an amr that already exists';
 
 done_testing;
 
