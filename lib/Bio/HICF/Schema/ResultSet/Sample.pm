@@ -35,6 +35,9 @@ sub load_row {
     $upload->{antimicrobial_resistances} = $amr;
   }
 
+  # TODO currently we're not taking any notice if a row already exists in the
+  # TODO database. Need to decide if that's the behaviour we want, or if this
+  # TODO method should throw an exception if the sample already exists
   my $rs = $self->find_or_create( $upload, { key => 'sample_uc' } );
 
   return $rs->sample_id;

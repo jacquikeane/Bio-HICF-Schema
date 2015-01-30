@@ -27,10 +27,10 @@ my $dump_path = './lib';
 
 #-------------------------------------------------------------------------------
 
-# we're adding two components to the ResultSets: "InflateColumn::DateTime" 
+# we're adding two components to the ResultSets: "InflateColumn::DateTime"
 # allows DBIC to inflate DATETIME columns to DateTime objects automatically;
 # "TimeStamp" allows DBIC automatically to update timestamp columns on update
-# or create. We have to explicitly add flags to the column definitions when 
+# or create. We have to explicitly add flags to the column definitions when
 # making the schema classes, which is done using the "custom_column_info"
 # hook. See the docs for DBIx::Class::TimeStamp for details.
 
