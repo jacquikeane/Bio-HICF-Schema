@@ -25,7 +25,7 @@ Test::CacheFile::cache( 'http://purl.obolibrary.org/obo/gaz.obo', 'gaz.obo' );
 Test::CacheFile::cache( 'http://www.brenda-enzymes.info/ontology/tissue/tree/update/update_files/BrendaTissueOBO', 'bto.obo' );
 
 # load new samples via a B::M::Manifest
-my $c = Bio::Metadata::Config->new( config_file => 't/data/01_manifest.conf' );
+my $c = Bio::Metadata::Config->new( config_file => 't/data/01_checklist.conf' );
 my $r = Bio::Metadata::Reader->new( config => $c );
 my $m = $r->read_csv('t/data/01_manifest.csv');
 
@@ -75,7 +75,7 @@ is_deeply( $set_of_values, $expected_set_of_values, 'got expected set of field v
 my $new_m = Schema->get_manifest($m->uuid);
 $new_m->md5($m->md5);
 $new_m->uuid($m->uuid);
-$new_m->config->{config_file} = 't/data/01_manifest.conf';
+$new_m->config->{config_file} = 't/data/01_checklist.conf';
 
 is_deeply( $m, $new_m, 'manifest generated from the DB matches original' );
 
