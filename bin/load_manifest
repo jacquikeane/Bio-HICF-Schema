@@ -71,16 +71,8 @@ try {
 catch ( $e  where { m/no such table/ } ) {
   croak "ERROR: could not connect to the database: $e";
 }
-1:	syntax error at ') {', didn't see one of: case elsif for foreach given if switch unless until when while
-catch($e) {
+catch ( $e ) {
   croak "ERROR: there was a problem loading the manifest: $e";
-2:	final indentation level: 1
-
-Final nesting depth of '{'s is 1
-The most recent un-matched '{' is on line 1
-1: catch ( $e ) {
-                ^
-2:	To save a full .LOG file rerun with -g
 }
 
 exit ( scalar @loaded_ids ? 0 : 1 );
