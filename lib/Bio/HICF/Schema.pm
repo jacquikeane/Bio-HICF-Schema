@@ -241,8 +241,8 @@ sub add_antimicrobial_resistance {
   my ( $self, %params ) = validated_hash(
     \@_,
     sample_id         => { isa => 'Int' },
-    name              => { isa => 'AntimicrobialName' },
-    susceptibility    => { isa => 'SIRTerm' },
+    name              => { isa => 'Bio::Metadata::Types::AntimicrobialName' },
+    susceptibility    => { isa => 'Bio::Metadata::Types::SIRTerm' },
     mic               => { isa => 'Int' },
     diagnostic_centre => { isa => 'Str' },
   );
@@ -253,7 +253,7 @@ sub add_antimicrobial_resistance {
       antimicrobial_name => $params{name},
       susceptibility     => $params{susceptibility},
       mic                => $params{mic},
-      diagnostic_centre  => $params{dc}
+      diagnostic_centre  => $params{diagnostic_centre}
     },
     { key => 'primary' }
   );
