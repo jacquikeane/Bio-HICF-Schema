@@ -8,6 +8,10 @@ package Bio::HICF::Schema::Result::AntimicrobialResistance;
 
 Bio::HICF::Schema::Result::AntimicrobialResistance
 
+=head1 DESCRIPTION
+
+Stores information about the antimicrobial resistance tests for a given sample. The antimicrobial compound must exist in the look-up table.
+
 =cut
 
 use strict;
@@ -185,8 +189,8 @@ __PACKAGE__->belongs_to(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07042 @ 2015-01-22 10:51:00
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:TDk24V7DMQCPOLYWa6fQ2Q
+# Created by DBIx::Class::Schema::Loader v0.07042 @ 2015-02-04 10:29:13
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:48d9zX9gwxeNT6gWPEn/aA
 
 #-------------------------------------------------------------------------------
 

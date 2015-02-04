@@ -8,6 +8,10 @@ package Bio::HICF::Schema::Result::Sample;
 
 Bio::HICF::Schema::Result::Sample
 
+=head1 DESCRIPTION
+
+Stores a single sample from a manifest. Every sample must belong to a manifest.
+
 =cut
 
 use strict;
@@ -76,11 +80,12 @@ __PACKAGE__->table("sample");
   extra: {list => ["WTSI","UCL","OXFORD"]}
   is_nullable: 1
 
-=head2 ncbi_taxid
+=head2 tax_id
 
   data_type: 'integer'
+  extra: {unsigned => 1}
   is_foreign_key: 1
-  is_nullable: 1
+  is_nullable: 0
 
 =head2 scientific_name
 
@@ -136,6 +141,12 @@ __PACKAGE__->table("sample");
   is_foreign_key: 1
   is_nullable: 1
   size: 11
+
+=head2 patient_location
+
+  data_type: 'enum'
+  extra: {list => ["inpatient","community"]}
+  is_nullable: 1
 
 =head2 isolation_source
 
@@ -213,8 +224,13 @@ __PACKAGE__->add_columns(
     extra => { list => ["WTSI", "UCL", "OXFORD"] },
     is_nullable => 1,
   },
-  "ncbi_taxid",
-  { data_type => "integer", is_foreign_key => 1, is_nullable => 1 },
+  "tax_id",
+  {
+    data_type => "integer",
+    extra => { unsigned => 1 },
+    is_foreign_key => 1,
+    is_nullable => 0,
+  },
   "scientific_name",
   { data_type => "varchar", is_nullable => 1, size => 45 },
   "collected_by",
@@ -241,6 +257,12 @@ __PACKAGE__->add_columns(
   },
   "host_isolation_source",
   { data_type => "varchar", is_foreign_key => 1, is_nullable => 1, size => 11 },
+  "patient_location",
+  {
+    data_type => "enum",
+    extra => { list => ["inpatient", "community"] },
+    is_nullable => 1,
+  },
   "isolation_source",
   { data_type => "varchar", is_foreign_key => 1, is_nullable => 1, size => 10 },
   "serovar",
@@ -374,26 +396,6 @@ __PACKAGE__->belongs_to(
   { is_deferrable => 1, on_delete => "NO ACTION", on_update => "NO ACTION" },
 );
 
-=head2 ncbi_taxid
-
-Type: belongs_to
-
-Related object: L<Bio::HICF::Schema::Result::Taxonomy>
-
-=cut
-
-__PACKAGE__->belongs_to(
-  "ncbi_taxid",
-  "Bio::HICF::Schema::Result::Taxonomy",
-  { ncbi_taxid => "ncbi_taxid" },
-  {
-    is_deferrable => 1,
-    join_type     => "LEFT",
-    on_delete     => "NO ACTION",
-    on_update     => "NO ACTION",
-  },
-);
-
 =head2 runs
 
 Type: has_many
@@ -409,9 +411,24 @@ __PACKAGE__->has_many(
   { cascade_copy => 0, cascade_delete => 0 },
 );
 
+=head2 tax
 
-# Created by DBIx::Class::Schema::Loader v0.07042 @ 2015-01-22 15:23:32
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:kMGVyN69F7U6eCAuB97nkg
+Type: belongs_to
+
+Related object: L<Bio::HICF::Schema::Result::Taxonomy>
+
+=cut
+
+__PACKAGE__->belongs_to(
+  "tax",
+  "Bio::HICF::Schema::Result::Taxonomy",
+  { tax_id => "tax_id" },
+  { is_deferrable => 1, on_delete => "NO ACTION", on_update => "NO ACTION" },
+);
+
+
+# Created by DBIx::Class::Schema::Loader v0.07042 @ 2015-02-04 10:52:08
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:Gw2FDp4AJYHmvUbqY77Yjw
 
 #-------------------------------------------------------------------------------
 
@@ -426,7 +443,7 @@ our @_field_order = qw(
   sample_accession
   sample_description
   collected_at
-  ncbi_taxid
+  tax_id
   scientific_name
   collected_by
   source
@@ -436,6 +453,7 @@ our @_field_order = qw(
   specific_host
   host_disease_status
   host_isolation_source
+  patient_location
   isolation_source
   serovar
   other_classification

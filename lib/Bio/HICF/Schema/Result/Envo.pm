@@ -8,6 +8,10 @@ package Bio::HICF::Schema::Result::Envo;
 
 Bio::HICF::Schema::Result::Envo
 
+=head1 DESCRIPTION
+
+Look-up table storing the terms from the environment ontology.
+
 =cut
 
 use strict;
@@ -91,8 +95,8 @@ __PACKAGE__->has_many(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07042 @ 2015-01-14 15:53:57
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:FgDv3hSMR36drErkAlugYg
+# Created by DBIx::Class::Schema::Loader v0.07042 @ 2015-02-04 10:29:13
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:w+aztwv3Xj2ELWrN62zAVQ
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration

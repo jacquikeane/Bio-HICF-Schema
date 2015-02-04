@@ -8,6 +8,10 @@ package Bio::HICF::Schema::Result::Brenda;
 
 Bio::HICF::Schema::Result::Brenda
 
+=head1 DESCRIPTION
+
+Look-up table storing the terms from the BRENDA tissue and enzymology ontology.
+
 =cut
 
 use strict;
@@ -91,8 +95,8 @@ __PACKAGE__->has_many(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07042 @ 2015-01-14 15:53:57
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:LgSlsdfOj9wwe5qxk7ROnA
+# Created by DBIx::Class::Schema::Loader v0.07042 @ 2015-02-04 10:29:13
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:sZXpGH3okqEtjmcaJF99qA
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration

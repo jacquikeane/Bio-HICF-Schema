@@ -6,7 +6,7 @@ package Bio::HICF::Schema::Result::ManifestConfig;
 
 =head1 NAME
 
-Bio::HICF::Schema::Result::ManifestConfig
+Bio::HICF::Schema::Result::ManifestConfig - Stores the configuration for a given manifest.
 
 =cut
 
@@ -141,8 +141,8 @@ __PACKAGE__->has_many(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07042 @ 2015-01-27 14:41:05
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:DnoiLP2mysmQkzFFsiI57g
+# Created by DBIx::Class::Schema::Loader v0.07042 @ 2015-02-04 10:29:14
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:fbQtBajxfZdjoBCM4PqpCg
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration

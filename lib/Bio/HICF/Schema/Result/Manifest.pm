@@ -6,7 +6,7 @@ package Bio::HICF::Schema::Result::Manifest;
 
 =head1 NAME
 
-Bio::HICF::Schema::Result::Manifest
+Bio::HICF::Schema::Result::Manifest - Stores details of a manifest containing multiple samples.
 
 =cut
 
@@ -163,8 +163,8 @@ __PACKAGE__->has_many(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07042 @ 2015-01-27 11:06:54
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:D2Wlx0CDrd1TenTarfDLEw
+# Created by DBIx::Class::Schema::Loader v0.07042 @ 2015-02-04 10:29:14
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:n5qpu26e0t0iq0pBlhXr4A
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration

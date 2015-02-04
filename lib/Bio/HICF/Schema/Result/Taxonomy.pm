@@ -8,6 +8,10 @@ package Bio::HICF::Schema::Result::Taxonomy;
 
 Bio::HICF::Schema::Result::Taxonomy
 
+=head1 DESCRIPTION
+
+Look-up table storing the NCBI tax IDs from the NCBI taxonomy tree.
+
 =cut
 
 use strict;
@@ -40,26 +44,61 @@ __PACKAGE__->table("taxonomy");
 
 =head1 ACCESSORS
 
-=head2 ncbi_taxid
+=head2 tax_id
 
   data_type: 'integer'
+  extra: {unsigned => 1}
+  is_nullable: 0
+
+=head2 name
+
+  data_type: 'text'
+  is_nullable: 0
+
+=head2 lft
+
+  data_type: 'integer'
+  extra: {unsigned => 1}
+  is_nullable: 0
+
+=head2 rgt
+
+  data_type: 'integer'
+  extra: {unsigned => 1}
+  is_nullable: 0
+
+=head2 parent_tax_id
+
+  data_type: 'integer'
+  extra: {unsigned => 1}
   is_nullable: 0
 
 =cut
 
-__PACKAGE__->add_columns("ncbi_taxid", { data_type => "integer", is_nullable => 0 });
+__PACKAGE__->add_columns(
+  "tax_id",
+  { data_type => "integer", extra => { unsigned => 1 }, is_nullable => 0 },
+  "name",
+  { data_type => "text", is_nullable => 0 },
+  "lft",
+  { data_type => "integer", extra => { unsigned => 1 }, is_nullable => 0 },
+  "rgt",
+  { data_type => "integer", extra => { unsigned => 1 }, is_nullable => 0 },
+  "parent_tax_id",
+  { data_type => "integer", extra => { unsigned => 1 }, is_nullable => 0 },
+);
 
 =head1 PRIMARY KEY
 
 =over 4
 
-=item * L</ncbi_taxid>
+=item * L</tax_id>
 
 =back
 
 =cut
 
-__PACKAGE__->set_primary_key("ncbi_taxid");
+__PACKAGE__->set_primary_key("tax_id");
 
 =head1 RELATIONS
 
@@ -74,13 +113,13 @@ Related object: L<Bio::HICF::Schema::Result::Sample>
 __PACKAGE__->has_many(
   "samples",
   "Bio::HICF::Schema::Result::Sample",
-  { "foreign.ncbi_taxid" => "self.ncbi_taxid" },
+  { "foreign.tax_id" => "self.tax_id" },
   { cascade_copy => 0, cascade_delete => 0 },
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07042 @ 2015-01-14 15:53:57
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:GmJ8rtcJG8ULfK3lcGowtA
+# Created by DBIx::Class::Schema::Loader v0.07042 @ 2015-02-04 10:29:14
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:pfaVo+Nr/m7pvNyFdWUX5g
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration

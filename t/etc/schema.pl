@@ -29,8 +29,8 @@
         [ qw( GAZ:00444180 Hinxton ) ],
       ],
       Taxonomy => [
-        [ qw( ncbi_taxid ) ],
-        [ qw( 9606 ) ],
+        [ qw( tax_id name lft rgt parent_tax_id ) ],
+        [ 9606, 'Homo sapiens', 1, 1, 1 ],
       ],
       Antimicrobial => [
         [ qw( name created_at ) ],
@@ -41,16 +41,17 @@
         [ qw( config_id config config name created_at ) ],
         [ 1,
           qw(<checklist hicf>
-  header_row "raw data accession,sample accession,sample description,collected_at,tax ID,scientific name,collected_by,collection_date,geo_loc_name,host_associated,specific_host,host_disease_status,isolation_source,isolation_source,serovar,other_classification,strain,isolate,antimicrobial resistance,,,,,,,,"
+  header_row "raw data accession,sample accession,sample description,collected at,tax ID,scientific name,collected by,collection date,location,host associated,specific host,host disease status,host isolation source,patient location,isolation source,serovar,other classification,strain,isolate,antimicrobial resistance,,,,,,,,"
   <dependencies>
     <if host_associated>
       then specific_host
       then host_disease_status
       then host_isolation_source
+      then patient_location
       else isolation_source
     </if>
     <some_of>
-      taxid_or_name ncbi_taxid
+      taxid_or_name tax_id
       taxid_or_name scientific_name
     </some_of>
     <one_of>
@@ -79,15 +80,15 @@
   </field>
   <field>
     name         collected_at
-    description  'ID of the institute that performed the study. Must be one of "WTSI", "UCL", or "OXFORD".'
+    description  'ID of the institute that performed the study. Must be one of "CAMBRIDGE", "UCL", or "OXFORD".'
     type         Enum
-    values       WTSI
+    values       CAMBRIDGE
     values       UCL
     values       OXFORD
     required     1
   </field>
   <field>
-    name         ncbi_taxid
+    name         tax_id
     description  'Taxonomy ID of the organism that provided the sequenced genetic material, e.g. "9606".'
     type         Int
   </field>
@@ -146,6 +147,13 @@
     path         .cached_test_files/bto.obo
   </field>
   <field>
+    name         patient_location
+    description  'Describes the health care situation of a human host when the sample was obtained. Must be one of "inpatient" or "community". For non-human host, use "community".'
+    type         Enum
+    values       inpatient
+    values       community
+  </field>
+  <field>
     name         isolation_source
     description  'Describes the physical, environmental and/or local geographical source of the biological sample from which the sample was derived. Must be a term from the EnvO ontology.'
     type         Ontology
@@ -194,7 +202,7 @@
               sample_accession
               sample_description
               collected_at
-              ncbi_taxid
+              tax_id
               scientific_name
               collected_by
               collection_date
@@ -203,6 +211,7 @@
               specific_host
               host_disease_status
               host_isolation_source
+              patient_location
               isolation_source
               serovar
               other_classification
@@ -216,7 +225,7 @@
           'data:1',
           'sample:1',
           'New sample',
-          'WTSI',
+          'CAMBRIDGE',
           9606,
           undef,
           'Tate JG',
@@ -226,6 +235,7 @@
           'Homo sapiens',
           'healthy',
           'BTO:0000645',
+          'inpatient',
           undef,
           'serovar',
           undef,

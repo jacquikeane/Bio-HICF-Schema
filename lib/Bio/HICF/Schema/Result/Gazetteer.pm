@@ -6,7 +6,7 @@ package Bio::HICF::Schema::Result::Gazetteer;
 
 =head1 NAME
 
-Bio::HICF::Schema::Result::Gazetteer
+Bio::HICF::Schema::Result::Gazetteer - Look-up table storing the terms from the gazetteer ontology.
 
 =cut
 
@@ -91,8 +91,8 @@ __PACKAGE__->has_many(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07042 @ 2015-01-22 10:51:00
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:AVv8UUK7VE0XvqLxJLQBKg
+# Created by DBIx::Class::Schema::Loader v0.07042 @ 2015-02-04 10:29:14
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:SQ+1V48ood9o7/3xGRN5XA
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration

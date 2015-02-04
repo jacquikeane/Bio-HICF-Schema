@@ -6,7 +6,7 @@ package Bio::HICF::Schema::Result::Antimicrobial;
 
 =head1 NAME
 
-Bio::HICF::Schema::Result::Antimicrobial
+Bio::HICF::Schema::Result::Antimicrobial - A curated list of antimicrobial compounds.
 
 =cut
 
@@ -123,8 +123,8 @@ __PACKAGE__->has_many(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07042 @ 2015-01-14 16:23:19
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:KUkZgmxD7H4ARaVKcT+PDA
+# Created by DBIx::Class::Schema::Loader v0.07042 @ 2015-02-04 10:29:13
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:GlJbfq7e3vq2izmTCCuo0g
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration
