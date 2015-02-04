@@ -7,7 +7,6 @@ use File::Temp;
 use Test::DBIx::Class qw( :resultsets );
 use Test::CacheFile;
 use Test::Exception;
-use TryCatch;
 
 # load the pre-requisite data and THEN turn on foreign keys
 fixtures_ok 'main', 'installed fixtures';
