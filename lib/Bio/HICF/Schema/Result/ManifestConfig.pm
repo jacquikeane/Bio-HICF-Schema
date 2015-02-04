@@ -43,6 +43,7 @@ __PACKAGE__->table("manifest_config");
 =head2 config_id
 
   data_type: 'integer'
+  extra: {unsigned => 1}
   is_auto_increment: 1
   is_nullable: 0
 
@@ -84,7 +85,12 @@ The name of a configuration in a multi-part configuration. Not required if the c
 
 __PACKAGE__->add_columns(
   "config_id",
-  { data_type => "integer", is_auto_increment => 1, is_nullable => 0 },
+  {
+    data_type => "integer",
+    extra => { unsigned => 1 },
+    is_auto_increment => 1,
+    is_nullable => 0,
+  },
   "config",
   { data_type => "mediumtext", is_nullable => 0 },
   "name",
@@ -141,8 +147,8 @@ __PACKAGE__->has_many(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07042 @ 2015-02-04 10:29:14
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:fbQtBajxfZdjoBCM4PqpCg
+# Created by DBIx::Class::Schema::Loader v0.07042 @ 2015-02-04 13:47:23
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:sQSdDb09rQAp3LItXzfUjA
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration

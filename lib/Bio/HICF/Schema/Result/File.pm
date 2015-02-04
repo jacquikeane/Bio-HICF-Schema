@@ -43,11 +43,14 @@ __PACKAGE__->table("file");
 =head2 file_id
 
   data_type: 'integer'
+  extra: {unsigned => 1}
+  is_auto_increment: 1
   is_nullable: 0
 
 =head2 run_id
 
   data_type: 'integer'
+  extra: {unsigned => 1}
   is_foreign_key: 1
   is_nullable: 0
 
@@ -87,9 +90,19 @@ __PACKAGE__->table("file");
 
 __PACKAGE__->add_columns(
   "file_id",
-  { data_type => "integer", is_nullable => 0 },
+  {
+    data_type => "integer",
+    extra => { unsigned => 1 },
+    is_auto_increment => 1,
+    is_nullable => 0,
+  },
   "run_id",
-  { data_type => "integer", is_foreign_key => 1, is_nullable => 0 },
+  {
+    data_type => "integer",
+    extra => { unsigned => 1 },
+    is_foreign_key => 1,
+    is_nullable => 0,
+  },
   "version",
   { data_type => "varchar", is_nullable => 1, size => 45 },
   "path",
@@ -148,8 +161,8 @@ __PACKAGE__->belongs_to(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07042 @ 2015-01-22 10:51:00
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:Oj8/gDssxZC3NDduDeB2wA
+# Created by DBIx::Class::Schema::Loader v0.07042 @ 2015-02-04 13:47:23
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:Fj2wip7TA1VoZaT1G8Bssw
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration

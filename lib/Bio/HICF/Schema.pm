@@ -31,6 +31,7 @@ __PACKAGE__->load_namespaces;
 
 use Carp qw( croak );
 use Bio::Metadata::Validator;
+use Bio::Metadata::TaxTree;
 use List::MoreUtils qw( mesh );
 use MooseX::Params::Validate;
 use TryCatch;
@@ -265,6 +266,76 @@ sub add_antimicrobial_resistance {
   }
   catch ( DBIx::Class::Exception $e where { m/FOREIGN KEY constraint failed/ } ) {
     croak "ERROR: both the antimicrobial and the sample must exist";
+  }
+}
+
+#-------------------------------------------------------------------------------
+
+=head2 load_tax_tree($tree, $?slice_size)
+
+load the given tree into the taxonomy table. Requires a reference to a
+L<Bio::Metadata::TaxTree> object containing the tree data. The rows
+representing the tree nodes are loaded in chunks of 1000 rows at a time
+(default). This "slice size" can be overridden with the C<$slice_size>
+parameter.
+
+B<Note> that the C<taxonomy> table will be truncated before loading.
+
+Throws DBIC exceptions if loading fails. If possible, the entire transaction,
+including the table truncation and any subsequent loading, will be rolled back.
+If roll back fails, the error message will contain the string C<roll back
+failed>.
+
+=cut
+
+sub load_tax_tree {
+  my ( $self, $tree, $slice_size ) = @_;
+
+  $slice_size ||= 1000;
+
+  # get a simple list of column values for all of the nodes in the tree
+  my $nodes = $tree->get_node_values;
+
+  # wrap this whole operation in a transaction
+  my $txn = sub {
+
+    # empty the table before we start
+    $self->resultset('Taxonomy')->delete;
+
+    # since the number of rows to insert will be very large, we'll use the fast
+    # insertion routines in DBIC and we'll load in chunks
+    for ( my $i = 0; $i < scalar @$nodes; $i = $i + $slice_size ) {
+
+      # the column names must be the first row
+      my $rows = [
+        [ qw( tax_id name lft rgt parent_tax_id ) ]
+      ];
+
+      # work out the bounds of the array slice
+      my $from = $i,
+      my $to   = $i + $slice_size - 1;
+
+      # add the slice to the list of rows, grepping out undefined rows (needed
+      # to avoid insertion errors when the last slice isn't full)
+      push @$rows, grep defined, @$nodes[$from..$to];
+
+      $self->resultset('Taxonomy')->populate($rows);
+    }
+
+  };
+
+  # execute the transaction
+  my $rs;
+  try {
+    $rs = $self->txn_do( $txn );
+  }
+  catch ( $e ) {
+    if ( $e =~ m/Rollback failed/ ) {
+      croak "ERROR: loading the tax tree failed but roll back failed ($e)";
+    }
+    else {
+      croak "ERROR: loading the tax tree failed and the changes were rolled back ($e)";
+    }
   }
 }
 

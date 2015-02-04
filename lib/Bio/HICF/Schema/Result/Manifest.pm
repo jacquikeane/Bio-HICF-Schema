@@ -51,6 +51,7 @@ A UUID that uniquely identifies the manifest.
 =head2 config_id
 
   data_type: 'integer'
+  extra: {unsigned => 1}
   is_foreign_key: 1
   is_nullable: 0
 
@@ -63,6 +64,7 @@ A UUID that uniquely identifies the manifest.
 =head2 ticket
 
   data_type: 'integer'
+  extra: {unsigned => 1}
   is_nullable: 1
 
 =head2 created_at
@@ -91,11 +93,16 @@ __PACKAGE__->add_columns(
   "manifest_id",
   { data_type => "char", is_nullable => 0, size => 36 },
   "config_id",
-  { data_type => "integer", is_foreign_key => 1, is_nullable => 0 },
+  {
+    data_type => "integer",
+    extra => { unsigned => 1 },
+    is_foreign_key => 1,
+    is_nullable => 0,
+  },
   "md5",
   { data_type => "char", is_nullable => 0, size => 32 },
   "ticket",
-  { data_type => "integer", is_nullable => 1 },
+  { data_type => "integer", extra => { unsigned => 1 }, is_nullable => 1 },
   "created_at",
   {
     data_type => "datetime",
@@ -163,8 +170,8 @@ __PACKAGE__->has_many(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07042 @ 2015-02-04 10:29:14
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:n5qpu26e0t0iq0pBlhXr4A
+# Created by DBIx::Class::Schema::Loader v0.07042 @ 2015-02-04 13:47:23
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:OznG1E2+66VXnINPzTLJ+A
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration

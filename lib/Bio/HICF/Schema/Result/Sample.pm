@@ -47,6 +47,7 @@ __PACKAGE__->table("sample");
 =head2 sample_id
 
   data_type: 'integer'
+  extra: {unsigned => 1}
   is_auto_increment: 1
   is_nullable: 0
 
@@ -84,7 +85,6 @@ __PACKAGE__->table("sample");
 
   data_type: 'integer'
   extra: {unsigned => 1}
-  is_foreign_key: 1
   is_nullable: 0
 
 =head2 scientific_name
@@ -209,7 +209,12 @@ __PACKAGE__->table("sample");
 
 __PACKAGE__->add_columns(
   "sample_id",
-  { data_type => "integer", is_auto_increment => 1, is_nullable => 0 },
+  {
+    data_type => "integer",
+    extra => { unsigned => 1 },
+    is_auto_increment => 1,
+    is_nullable => 0,
+  },
   "manifest_id",
   { data_type => "char", is_foreign_key => 1, is_nullable => 0, size => 36 },
   "raw_data_accession",
@@ -225,12 +230,7 @@ __PACKAGE__->add_columns(
     is_nullable => 1,
   },
   "tax_id",
-  {
-    data_type => "integer",
-    extra => { unsigned => 1 },
-    is_foreign_key => 1,
-    is_nullable => 0,
-  },
+  { data_type => "integer", extra => { unsigned => 1 }, is_nullable => 0 },
   "scientific_name",
   { data_type => "varchar", is_nullable => 1, size => 45 },
   "collected_by",
@@ -411,24 +411,9 @@ __PACKAGE__->has_many(
   { cascade_copy => 0, cascade_delete => 0 },
 );
 
-=head2 tax
 
-Type: belongs_to
-
-Related object: L<Bio::HICF::Schema::Result::Taxonomy>
-
-=cut
-
-__PACKAGE__->belongs_to(
-  "tax",
-  "Bio::HICF::Schema::Result::Taxonomy",
-  { tax_id => "tax_id" },
-  { is_deferrable => 1, on_delete => "NO ACTION", on_update => "NO ACTION" },
-);
-
-
-# Created by DBIx::Class::Schema::Loader v0.07042 @ 2015-02-04 10:52:08
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:Gw2FDp4AJYHmvUbqY77Yjw
+# Created by DBIx::Class::Schema::Loader v0.07042 @ 2015-02-04 13:47:23
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:41RcXQpdf0lDHFQYAKEzNQ
 
 #-------------------------------------------------------------------------------
 

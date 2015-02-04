@@ -40,16 +40,24 @@ __PACKAGE__->table("external_resources");
 
 =head1 ACCESSORS
 
-=head2 resource_id
+=head2 id
 
   data_type: 'integer'
+  extra: {unsigned => 1}
+  is_auto_increment: 1
   is_nullable: 0
+
+=head2 name
+
+  data_type: 'varchar'
+  is_nullable: 0
+  size: 45
 
 =head2 source
 
   data_type: 'varchar'
   is_nullable: 1
-  size: 45
+  size: 255
 
 =head2 retrieved_at
 
@@ -72,10 +80,17 @@ __PACKAGE__->table("external_resources");
 =cut
 
 __PACKAGE__->add_columns(
-  "resource_id",
-  { data_type => "integer", is_nullable => 0 },
+  "id",
+  {
+    data_type => "integer",
+    extra => { unsigned => 1 },
+    is_auto_increment => 1,
+    is_nullable => 0,
+  },
+  "name",
+  { data_type => "varchar", is_nullable => 0, size => 45 },
   "source",
-  { data_type => "varchar", is_nullable => 1, size => 45 },
+  { data_type => "varchar", is_nullable => 1, size => 255 },
   "retrieved_at",
   {
     data_type => "datetime",
@@ -92,17 +107,17 @@ __PACKAGE__->add_columns(
 
 =over 4
 
-=item * L</resource_id>
+=item * L</id>
 
 =back
 
 =cut
 
-__PACKAGE__->set_primary_key("resource_id");
+__PACKAGE__->set_primary_key("id");
 
 
-# Created by DBIx::Class::Schema::Loader v0.07042 @ 2015-01-14 15:53:57
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:XXsGwYF2OYO0wJyAWZFvvw
+# Created by DBIx::Class::Schema::Loader v0.07042 @ 2015-02-04 13:47:23
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:JvtOg3dxHzcKEQyWxNFMbA
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration

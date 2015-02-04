@@ -43,11 +43,13 @@ __PACKAGE__->table("run");
 =head2 run_id
 
   data_type: 'integer'
+  extra: {unsigned => 1}
   is_nullable: 0
 
 =head2 sample_id
 
   data_type: 'integer'
+  extra: {unsigned => 1}
   is_foreign_key: 1
   is_nullable: 0
 
@@ -99,9 +101,14 @@ __PACKAGE__->table("run");
 
 __PACKAGE__->add_columns(
   "run_id",
-  { data_type => "integer", is_nullable => 0 },
+  { data_type => "integer", extra => { unsigned => 1 }, is_nullable => 0 },
   "sample_id",
-  { data_type => "integer", is_foreign_key => 1, is_nullable => 0 },
+  {
+    data_type => "integer",
+    extra => { unsigned => 1 },
+    is_foreign_key => 1,
+    is_nullable => 0,
+  },
   "sequencing_centre",
   { data_type => "varchar", is_nullable => 1, size => 45 },
   "err_accession_number",
@@ -183,8 +190,8 @@ __PACKAGE__->belongs_to(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07042 @ 2015-01-22 10:51:00
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:mIsHR61qR5wp4Vv5fLb2oQ
+# Created by DBIx::Class::Schema::Loader v0.07042 @ 2015-02-04 13:47:23
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:8cBZHI2f8qmDibEw4gFn0w
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration

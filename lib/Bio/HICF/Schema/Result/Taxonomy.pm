@@ -100,26 +100,9 @@ __PACKAGE__->add_columns(
 
 __PACKAGE__->set_primary_key("tax_id");
 
-=head1 RELATIONS
 
-=head2 samples
-
-Type: has_many
-
-Related object: L<Bio::HICF::Schema::Result::Sample>
-
-=cut
-
-__PACKAGE__->has_many(
-  "samples",
-  "Bio::HICF::Schema::Result::Sample",
-  { "foreign.tax_id" => "self.tax_id" },
-  { cascade_copy => 0, cascade_delete => 0 },
-);
-
-
-# Created by DBIx::Class::Schema::Loader v0.07042 @ 2015-02-04 10:29:14
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:pfaVo+Nr/m7pvNyFdWUX5g
+# Created by DBIx::Class::Schema::Loader v0.07042 @ 2015-02-04 13:47:23
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:8QzNOzUtj7oJ1pz2CNrZdA
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration

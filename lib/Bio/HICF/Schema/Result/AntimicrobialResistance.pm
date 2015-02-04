@@ -47,6 +47,7 @@ __PACKAGE__->table("antimicrobial_resistance");
 =head2 sample_id
 
   data_type: 'integer'
+  extra: {unsigned => 1}
   is_foreign_key: 1
   is_nullable: 0
 
@@ -103,7 +104,12 @@ Minimum inhibitory concentration
 
 __PACKAGE__->add_columns(
   "sample_id",
-  { data_type => "integer", is_foreign_key => 1, is_nullable => 0 },
+  {
+    data_type => "integer",
+    extra => { unsigned => 1 },
+    is_foreign_key => 1,
+    is_nullable => 0,
+  },
   "antimicrobial_name",
   { data_type => "varchar", is_foreign_key => 1, is_nullable => 0, size => 100 },
   "susceptibility",
@@ -189,8 +195,8 @@ __PACKAGE__->belongs_to(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07042 @ 2015-02-04 10:29:13
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:48d9zX9gwxeNT6gWPEn/aA
+# Created by DBIx::Class::Schema::Loader v0.07042 @ 2015-02-04 13:47:23
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:5QIUENAs/yzOhleydY5Mvg
 
 #-------------------------------------------------------------------------------
 
