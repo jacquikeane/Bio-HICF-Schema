@@ -35,20 +35,7 @@ $tar->extract_file( 'names.dmp', '.cached_test_files/names.dmp' );
 
 my $c = Bio::Metadata::Config->new( config_file => 't/data/01_checklist.conf' );
 my $r = Bio::Metadata::Reader->new( config => $c );
-
-# test loading some invalid manifests
-my $m = $r->read_csv('t/data/01_invalid_manifest_tax.csv');
-throws_ok { Schema->load_manifest($m) } qr/error when loading the manifest/,
-  "error when loading invalid manifest (tax ID and scientific name don't match)";
-is( Sample->search( {}, {} )->count, 1, 'no rows loaded' );
-
-$m = $r->read_csv('t/data/01_invalid_manifest_host.csv');
-throws_ok { Schema->load_manifest($m) } qr/error when loading the manifest/,
-  "error when loading invalid manifest (specific_host not valid)";
-is( Sample->search( {}, {} )->count, 1, 'no rows loaded' );
-
-# load new samples via a valid B::M::Manifest
-$m = $r->read_csv('t/data/01_manifest.csv');
+my $m = $r->read_csv('t/data/01_manifest.csv');
 
 my @sample_ids;
 lives_ok { @sample_ids = Schema->load_manifest($m) } 'loading valid manifest works';

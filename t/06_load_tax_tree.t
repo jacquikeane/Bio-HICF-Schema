@@ -22,7 +22,7 @@ run_not_ok( $script, [ ], 'script exits with error status when run with no argum
 my ( $rv, $stdout, $stderr ) = run_script( $script, [] );
 like( $stderr, qr/ERROR: you must specify a configuration file/, 'got expected error message with no flags' );
 
-is( Taxonomy->count, 1, 'found one row in taxonomy table before loading' );
+is( Taxonomy->count, 2, 'found two rows in taxonomy table before loading' );
 
 ( $rv, $stdout, $stderr ) = run_script( $script, [ qw(-c t/data/06_script.conf) ] );
 unlike( $stderr, qr/ERROR/, 'no loading error with valid configs and manifest' );

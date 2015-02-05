@@ -76,23 +76,24 @@ sub _taxonomy_name_check {
   my $name   = $upload->{scientific_name};
 
   # we can only validate taxonomy ID/name if we have both
-  return if (    (     defined $tax_id and not defined $name )
-              or ( not defined $tax_id and     defined $name ) );
+  return unless ( defined $tax_id and defined $name );
 
   my $schema = $self->result_source->schema;
 
   # look up the tax ID and scientific name in the taxonomy table
-  my $lookup_tax_id = $schema->resultset('Taxonomy')
+  my $tax_id_lookup = $schema->resultset('Taxonomy')
                              ->find( { name => $name },
-                                     { key => 'name_uq' } )
-                             ->tax_id;
-  my $lookup_name   = $schema->resultset('Taxonomy')
-                             ->find( { tax_id => $tax_id },
-                                     { key => 'primary' } )
-                             ->name;
+                                     { key => 'name_uq' } );
 
-  if ( $tax_id != $lookup_tax_id or
-       $name   ne $lookup_name ) {
+  croak 'scientific name not found' unless defined $tax_id_lookup;
+
+  my $name_lookup   = $schema->resultset('Taxonomy')
+                             ->find( { tax_id => $tax_id },
+                                     { key => 'primary' } );
+  croak 'taxonomy ID not found' unless defined $name_lookup;
+
+  if ( $tax_id != $tax_id_lookup->tax_id or
+       $name   ne $tax_id_lookup->name ) {
     croak 'taxonomy ID and scientific name do not match';
   }
 }
