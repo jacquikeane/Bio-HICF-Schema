@@ -7,6 +7,9 @@ use File::Temp;
 use Test::DBIx::Class qw( :resultsets );
 use Test::CacheFile;
 use Test::Exception;
+use Archive::Tar;
+
+# set up the testing environment
 
 # load the pre-requisite data and THEN turn on foreign keys
 fixtures_ok 'main', 'installed fixtures';
@@ -18,15 +21,34 @@ my $preload = sub {
 
 lives_ok { Schema->storage->dbh_do($preload) } 'successfully turned on "foreign_keys" pragma';
 
-diag 'caching ontology files';
+diag 'caching ontology/taxonomy files';
 Test::CacheFile::cache( 'http://purl.obolibrary.org/obo/subsets/envo-basic.obo', 'envo-basic.obo' );
 Test::CacheFile::cache( 'http://purl.obolibrary.org/obo/gaz.obo', 'gaz.obo' );
 Test::CacheFile::cache( 'http://www.brenda-enzymes.info/ontology/tissue/tree/update/update_files/BrendaTissueOBO', 'bto.obo' );
+Test::CacheFile::cache( 'ftp://ftp.ncbi.nlm.nih.gov/pub/taxonomy/taxdump.tar.gz', 'taxdump.tar.gz' );
 
-# load new samples via a B::M::Manifest
+# extract the names.dmp from the taxdump archive
+my $tar = Archive::Tar->new('.cached_test_files/taxdump.tar.gz');
+$tar->extract_file( 'names.dmp', '.cached_test_files/names.dmp' );
+
+#-------------------------------------------------------------------------------
+
 my $c = Bio::Metadata::Config->new( config_file => 't/data/01_checklist.conf' );
 my $r = Bio::Metadata::Reader->new( config => $c );
-my $m = $r->read_csv('t/data/01_manifest.csv');
+
+# test loading some invalid manifests
+my $m = $r->read_csv('t/data/01_invalid_manifest_tax.csv');
+throws_ok { Schema->load_manifest($m) } qr/error when loading the manifest/,
+  "error when loading invalid manifest (tax ID and scientific name don't match)";
+is( Sample->search( {}, {} )->count, 1, 'no rows loaded' );
+
+$m = $r->read_csv('t/data/01_invalid_manifest_host.csv');
+throws_ok { Schema->load_manifest($m) } qr/error when loading the manifest/,
+  "error when loading invalid manifest (specific_host not valid)";
+is( Sample->search( {}, {} )->count, 1, 'no rows loaded' );
+
+# load new samples via a valid B::M::Manifest
+$m = $r->read_csv('t/data/01_manifest.csv');
 
 my @sample_ids;
 lives_ok { @sample_ids = Schema->load_manifest($m) } 'loading valid manifest works';
