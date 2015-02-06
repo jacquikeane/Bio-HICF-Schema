@@ -3,6 +3,7 @@ package Bio::HICF::Schema::ResultSet::Sample;
 
 use Moose;
 use MooseX::NonMoose;
+use MooseX::Params::Validate;
 use Carp qw ( croak );
 
 extends 'DBIx::Class::ResultSet';
@@ -44,16 +45,7 @@ sub load_row {
   # hash in a format that means they'll get inserted correctly in the child
   # table
   if ( my $amr_string = delete $upload->{antimicrobial_resistance} ) {
-    my $amr = [];
-    while ( $amr_string =~ m/(([A-Za-z\d\- ]+);([SIR]);(\d+)(;(\w+))?),? */g) {
-      push @$amr, {
-        antimicrobial_name => $2,
-        susceptibility     => $3,
-        mic                => $4,
-        diagnostic_centre  => $6
-      }
-    }
-    $upload->{antimicrobial_resistances} = $amr;
+    $upload->{antimicrobial_resistances} = $self->_parse_amr_string($amr_string);
   }
 
   # TODO currently we're not taking any notice if a row already exists in the
@@ -66,6 +58,31 @@ sub load_row {
 
 #-------------------------------------------------------------------------------
 #- private methods -------------------------------------------------------------
+#-------------------------------------------------------------------------------
+
+# validate the amr string using a pre-defined type, then parse it and return it
+# as a data structure to drop into sample data
+sub _parse_amr_string {
+  my $self = shift;
+  my ( $amr_string ) = pos_validated_list(
+    \@_,
+    { isa => 'Bio::Metadata::Types::AMRString' },
+  );
+
+  # TODO there must be a way to put a big regex like this into a common file
+  # TODO like the Types module, rather than having to cart it around like this
+  my $amr = [];
+  while ( $amr_string =~ m/(([A-Za-z0-9\-\/\(\)\s]+);([SIR]);(\d+)(;(\w+))?),?\s*/g) {
+    push @$amr, {
+      antimicrobial_name => $2,
+      susceptibility     => $3,
+      mic                => $4,
+      diagnostic_centre  => $6
+    }
+  }
+  return $amr;
+}
+
 #-------------------------------------------------------------------------------
 
 # taxonomy ID/scientific name consistency check

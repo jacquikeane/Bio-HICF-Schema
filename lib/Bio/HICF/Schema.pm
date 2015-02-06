@@ -33,7 +33,6 @@ use Carp qw( croak );
 use Bio::Metadata::Validator;
 use Bio::Metadata::TaxTree;
 use List::MoreUtils qw( mesh );
-use MooseX::Params::Validate;
 use TryCatch;
 
 #-------------------------------------------------------------------------------
@@ -114,6 +113,41 @@ sub load_manifest {
 
 #-------------------------------------------------------------------------------
 
+=head2 get_manifest($manifest_id)
+
+Returns a L<Bio::Metadata::Manifest> object for the specified manifest.
+
+=cut
+
+sub get_manifest {
+  my ( $self, $manifest_id ) = @_;
+
+  # create a B::M::Config object from the config string that we have stored for
+  # this manifest
+  my $config_rs = $self->resultset('Manifest')
+                       ->search( { manifest_id => $manifest_id },
+                                 { prefetch => [ 'config' ] } )
+                       ->single;
+
+  return unless $config_rs;
+
+  my %config_args = ( config_string => $config_rs->config->config );
+  if ( defined $config_rs->config->name ) {
+    $config_args{config_name} = $config_rs->config->name;
+  }
+
+  my $c = Bio::Metadata::Config->new(%config_args);
+
+  # get the values for the samples in the manifest and add them to a new
+  # B::M::Manifest
+  my $values = $self->get_samples($manifest_id);
+  my $m = Bio::Metadata::Manifest->new( config => $c, rows => $values );
+
+  return $m;
+}
+
+#-------------------------------------------------------------------------------
+
 =head2 get_sample($sample_id)
 
 Returns a reference to an array containing the field values for the specified
@@ -173,121 +207,46 @@ sub get_samples {
 
 #-------------------------------------------------------------------------------
 
-=head2 get_manifest($manifest_id)
+=head2 load_antimicrobial($name)
 
-Returns a L<Bio::Metadata::Manifest> object for the specified manifest.
-
-=cut
-
-sub get_manifest {
-  my ( $self, $manifest_id ) = @_;
-
-  # create a B::M::Config object from the config string that we have stored for
-  # this manifest
-  my $config_rs = $self->resultset('Manifest')
-                       ->search( { manifest_id => $manifest_id },
-                                 { prefetch => [ 'config' ] } )
-                       ->single;
-
-  return unless $config_rs;
-
-  my %config_args = ( config_string => $config_rs->config->config );
-  if ( defined $config_rs->config->name ) {
-    $config_args{config_name} = $config_rs->config->name;
-  }
-
-  my $c = Bio::Metadata::Config->new(%config_args);
-
-  # get the values for the samples in the manifest and add them to a new
-  # B::M::Manifest
-  my $values = $self->get_samples($manifest_id);
-  my $m = Bio::Metadata::Manifest->new( config => $c, rows => $values );
-
-  return $m;
-}
-
-#-------------------------------------------------------------------------------
-
-=head2 add_antimicrobial($name)
-
-Adds the specified antimicrobial to the database. Throws an exception if the
-named compound is already found in the database, or if the supplied name is
-invalid, e.g. contains non-word characters.
+Adds the specified antimicrobial compound name to the database. Throws an
+exception if the supplied name is invalid, e.g. contains non-word characters.
 
 =cut
 
-sub add_antimicrobial {
+sub load_antimicrobial {
   my ( $self, $name ) = @_;
+  $self->resultset('Antimicrobial')->load_antimicrobial($name);
+}
 
-  return unless defined $name;
+#---------------------------------------
 
-  croak 'ERROR: invalid antimicrobial name'
-    unless $name =~ m/^[A-Z0-9\-\(\)\s]+$/i;
+=head2 load_antimicrobials(@names)
 
-  my $am = $self->resultset('Antimicrobial')
-                ->find_or_new( { name => $name },
-                               { key => 'primary' } );
+Adds multiple antimicrobial compound names to the C<antimicrobial> table.
+Throws an exception if any of the supplied names is invalid, e.g. contains
+non-word characters.
 
-  croak 'ERROR: antimicrobial already exists' if $am->in_storage;
+=cut
 
-  $am->insert;
+sub load_antimicrobials {
+  my ( $self, @names ) = @_;
+  $self->resultset('Antimicrobial')->load_antimicrobial($_) for ( @names );
 }
 
 #-------------------------------------------------------------------------------
 
-=head2 add_antimicrobial_resistance($args)
+=head2 load_antimicrobial_resistance(%$amr)
 
-Adds the specified antimicrobial resistance rest result to the database. Requires
-a single argument, a hash containing the parameters specifying the resistance
-test. The hash must contain the following five keys:
-
-=over
-
-=item C<sample_id> - the ID of an existing sample
-
-=item C<name> - the name of an existing antimicrobial
-
-=item C<susceptibility> - a susceptibility term; must be one of "S", "I" or "R"
-
-=item C<mic> - minimum inhibitor concentration, in microgrammes per millilitre; must be a valid integer
-=item C<diagnostic_centre> - name of the centre that carried out the susceptibility testing; optional
-
-=back
-
-Throws an exception if any of the parameters is invalid, or if the resistance
-test result is already present in the database.
+Loads a new antimicrobial resistance test result into the database. See
+L<Bio::HICF::Schema::ResultSet::AntimicrobialResistance::load_antimicrobial_resistance>
+for details.
 
 =cut
 
-sub add_antimicrobial_resistance {
-  my ( $self, %params ) = validated_hash(
-    \@_,
-    sample_id         => { isa => 'Int' },
-    name              => { isa => 'Bio::Metadata::Types::AntimicrobialName' },
-    susceptibility    => { isa => 'Bio::Metadata::Types::SIRTerm' },
-    mic               => { isa => 'Int' },
-    diagnostic_centre => { isa => 'Str' },
-  );
-
-  my $amr = $self->resultset('AntimicrobialResistance')->find_or_new(
-    {
-      sample_id          => $params{sample_id},
-      antimicrobial_name => $params{name},
-      susceptibility     => $params{susceptibility},
-      mic                => $params{mic},
-      diagnostic_centre  => $params{diagnostic_centre}
-    },
-    { key => 'primary' }
-  );
-
-  croak 'ERROR: antimicrobial resistance result already exists' if $amr->in_storage;
-
-  try {
-    $amr->insert;
-  }
-  catch ( DBIx::Class::Exception $e where { m/FOREIGN KEY constraint failed/ } ) {
-    croak "ERROR: both the antimicrobial and the sample must exist";
-  }
+sub load_antimicrobial_resistance {
+  my ( $self, %amr ) = @_;
+  $self->resultset('AntimicrobialResistance')->load_antimicrobial_resistance(%amr);
 }
 
 #-------------------------------------------------------------------------------

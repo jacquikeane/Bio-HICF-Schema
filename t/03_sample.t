@@ -63,7 +63,7 @@ my $columns = {
   other_classification     => undef,
   strain                   => 'strain',
   isolate                  => undef,
-  antimicrobial_resistance => 'am1;S;50;WTSI',
+  antimicrobial_resistance => 'am1;S;50',
 };
 
 my $sample_id;
@@ -71,6 +71,11 @@ lives_ok { $sample_id = Sample->load_row($columns) } 'row loads ok';
 
 is( $sample_id, 2, '"load_row" returns expected sample_id for new row' );
 is( AntimicrobialResistance->search({},{})->count, 2, 'found expected row in antimicrobial_resistance table' );
+
+$columns->{antimicrobial_resistance} = 'am1;X;50';
+throws_ok { Sample->load_row($columns) } qr/did not pass the 'checking type constraint/,
+  "error loading invalid amr";
+$columns->{antimicrobial_resistance} = 'am1;S;50';
 
 $columns->{raw_data_accession} = 'data:3';
 $columns->{scientific_name}    = 'Not a real species';
