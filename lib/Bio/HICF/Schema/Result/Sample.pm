@@ -114,7 +114,6 @@ __PACKAGE__->table("sample");
 =head2 location
 
   data_type: 'varchar'
-  is_foreign_key: 1
   is_nullable: 0
   size: 12
 
@@ -138,7 +137,6 @@ __PACKAGE__->table("sample");
 =head2 host_isolation_source
 
   data_type: 'varchar'
-  is_foreign_key: 1
   is_nullable: 1
   size: 11
 
@@ -151,7 +149,6 @@ __PACKAGE__->table("sample");
 =head2 isolation_source
 
   data_type: 'varchar'
-  is_foreign_key: 1
   is_nullable: 1
   size: 10
 
@@ -244,7 +241,7 @@ __PACKAGE__->add_columns(
     is_nullable => 0,
   },
   "location",
-  { data_type => "varchar", is_foreign_key => 1, is_nullable => 0, size => 12 },
+  { data_type => "varchar", is_nullable => 0, size => 12 },
   "host_associated",
   { data_type => "tinyint", is_nullable => 0 },
   "specific_host",
@@ -256,7 +253,7 @@ __PACKAGE__->add_columns(
     is_nullable => 1,
   },
   "host_isolation_source",
-  { data_type => "varchar", is_foreign_key => 1, is_nullable => 1, size => 11 },
+  { data_type => "varchar", is_nullable => 1, size => 11 },
   "patient_location",
   {
     data_type => "enum",
@@ -264,7 +261,7 @@ __PACKAGE__->add_columns(
     is_nullable => 1,
   },
   "isolation_source",
-  { data_type => "varchar", is_foreign_key => 1, is_nullable => 1, size => 10 },
+  { data_type => "varchar", is_nullable => 1, size => 10 },
   "serovar",
   { data_type => "varchar", is_nullable => 1, size => 45 },
   "other_classification",
@@ -326,61 +323,6 @@ __PACKAGE__->has_many(
   { cascade_copy => 0, cascade_delete => 0 },
 );
 
-=head2 host_isolation_source
-
-Type: belongs_to
-
-Related object: L<Bio::HICF::Schema::Result::Brenda>
-
-=cut
-
-__PACKAGE__->belongs_to(
-  "host_isolation_source",
-  "Bio::HICF::Schema::Result::Brenda",
-  { brenda_id => "host_isolation_source" },
-  {
-    is_deferrable => 1,
-    join_type     => "LEFT",
-    on_delete     => "NO ACTION",
-    on_update     => "NO ACTION",
-  },
-);
-
-=head2 isolation_source
-
-Type: belongs_to
-
-Related object: L<Bio::HICF::Schema::Result::Envo>
-
-=cut
-
-__PACKAGE__->belongs_to(
-  "isolation_source",
-  "Bio::HICF::Schema::Result::Envo",
-  { envo_id => "isolation_source" },
-  {
-    is_deferrable => 1,
-    join_type     => "LEFT",
-    on_delete     => "NO ACTION",
-    on_update     => "NO ACTION",
-  },
-);
-
-=head2 location
-
-Type: belongs_to
-
-Related object: L<Bio::HICF::Schema::Result::Gazetteer>
-
-=cut
-
-__PACKAGE__->belongs_to(
-  "location",
-  "Bio::HICF::Schema::Result::Gazetteer",
-  { gaz_id => "location" },
-  { is_deferrable => 1, on_delete => "NO ACTION", on_update => "NO ACTION" },
-);
-
 =head2 manifest
 
 Type: belongs_to
@@ -412,8 +354,8 @@ __PACKAGE__->has_many(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07042 @ 2015-02-04 13:47:23
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:41RcXQpdf0lDHFQYAKEzNQ
+# Created by DBIx::Class::Schema::Loader v0.07042 @ 2015-02-06 16:55:07
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:hO+7kpOdretmx2oevtMSZw
 
 #-------------------------------------------------------------------------------
 

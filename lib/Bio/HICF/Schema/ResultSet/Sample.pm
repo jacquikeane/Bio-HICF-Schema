@@ -33,13 +33,14 @@ sub load_row {
 
   croak 'not a valid row' unless ref $upload eq 'HASH';
 
-  # check the taxonomy information
-
   # make sure the tax ID and scientific name agree
   $self->_taxonomy_name_check($upload);
 
-  # check that the "specific_host" is a valid scientific name
+  # check that "specific_host" contains a valid scientific name
   $self->_scientific_name_check($upload);
+
+  # check that the ontology terms exist
+  $self->_ontology_term_check($upload);
 
   # parse out the antimicrobial resistance data and put them back into the row
   # hash in a format that means they'll get inserted correctly in the child
@@ -133,6 +134,43 @@ sub _scientific_name_check {
 
   croak 'species name in "specific_host" is not found in the taxonomy tree'
     unless defined $rs;
+}
+
+#-------------------------------------------------------------------------------
+
+# check ontology terms are found
+sub _ontology_term_check {
+  my ( $self, $upload ) = @_;
+
+  my $gaz_id    = $upload->{location};
+  my $brenda_id = $upload->{host_isolation_source};
+  my $envo_id   = $upload->{isolation_source};
+
+  my $schema = $self->result_source->schema;
+
+  # the "location" field is mandatory, so we'll always check the gazetteer term
+  my $rs = $schema->resultset('Gazetteer')
+                  ->find( { id => $gaz_id },
+                          { key => 'primary' } );
+  croak 'term in "location" is not found in the gazetteer ontology'
+    unless defined $rs;
+
+  # check BRENDA and EnvO if found
+  if ( defined $brenda_id ) {
+    $rs = $schema->resultset('Brenda')
+                 ->find( { id => $brenda_id },
+                         { key => 'primary' } );
+    croak 'term in "host_isolation_source" is not found in the BRENDA ontology'
+      unless defined $rs;
+  }
+
+  if ( defined $envo_id ) {
+    $rs = $schema->resultset('Envo')
+                 ->find( { id => $envo_id },
+                         { key => 'primary' } );
+    croak 'term in "isolation_source" is not found in the EnvO ontology'
+      unless defined $rs;
+  }
 }
 
 #-------------------------------------------------------------------------------

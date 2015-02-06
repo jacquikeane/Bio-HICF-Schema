@@ -34,6 +34,7 @@ use Bio::Metadata::Validator;
 use Bio::Metadata::TaxTree;
 use List::MoreUtils qw( mesh );
 use TryCatch;
+use MooseX::Params::Validate;
 
 #-------------------------------------------------------------------------------
 
@@ -310,6 +311,71 @@ sub load_tax_tree {
       croak "ERROR: loading the tax tree failed and the changes were rolled back ($e)";
     }
   }
+}
+
+#-------------------------------------------------------------------------------
+
+sub load_ontology {
+  my $self = shift;
+  my ( $table, $file ) = pos_validated_list(
+    \@_,
+    { isa => 'Bio::Metadata::Types::OntologyName' },
+    { isa => 'Str' },
+  );
+  # TODO the error message that comes back from the validation call is dumb
+  # TODO and ugly. Just validate the ontology name ourselves and throw a
+  # TODO sensible error
+
+  croak "ERROR: ontology file not found ($file)"
+    unless ( defined $file and -f $file );
+
+  open ( FILE, $file )
+    or croak "ERROR: can't open ontology file ($file): $!";
+
+  # before we start, truncate the table
+  my $rs_name = ucfirst $table;
+  my $rs = $self->resultset($rs_name);
+  try {
+    $rs->delete;
+  }
+  catch ( DBIx::Class::Exception $e ) {
+    croak "ERROR: there was a problem emptying the '$table' table: $e";
+  }
+
+  # walk the file and load it in chunks
+  my $chunk = [ [ 'id', 'description' ] ];
+  my $term  = [];
+  my $n = 0;
+
+  while ( <FILE> ) {
+    if ( m/^id: (.*?)$/ ) {
+      push @$term, $1;
+    }
+    if ( m/^name: (.*)$/ ) {
+      push @$term, $1;
+      push @$chunk, $term;
+
+      # load every Nth term
+      if ( $n % 10 == 0 ) {
+        try {
+          $rs->populate($chunk);
+        }
+        catch ( $e where {  } ) {
+          croak "ERROR: there was a problem loading the '$table' table: $e";
+        }
+        # reset the chunk array
+        $chunk = [ [ 'id', 'description' ] ];
+      }
+      $n++;
+
+      $term = [];
+    }
+  }
+  # TODO maybe this should be in a transaction...
+
+  $DB::single = 1;
+
+  return;
 }
 
 #-------------------------------------------------------------------------------

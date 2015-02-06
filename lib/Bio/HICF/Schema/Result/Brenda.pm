@@ -44,7 +44,7 @@ __PACKAGE__->table("brenda");
 
 =head1 ACCESSORS
 
-=head2 brenda_id
+=head2 id
 
   data_type: 'varchar'
   is_nullable: 0
@@ -59,7 +59,7 @@ __PACKAGE__->table("brenda");
 =cut
 
 __PACKAGE__->add_columns(
-  "brenda_id",
+  "id",
   { data_type => "varchar", is_nullable => 0, size => 11 },
   "description",
   { data_type => "varchar", is_nullable => 1, size => 45 },
@@ -69,34 +69,17 @@ __PACKAGE__->add_columns(
 
 =over 4
 
-=item * L</brenda_id>
+=item * L</id>
 
 =back
 
 =cut
 
-__PACKAGE__->set_primary_key("brenda_id");
-
-=head1 RELATIONS
-
-=head2 samples
-
-Type: has_many
-
-Related object: L<Bio::HICF::Schema::Result::Sample>
-
-=cut
-
-__PACKAGE__->has_many(
-  "samples",
-  "Bio::HICF::Schema::Result::Sample",
-  { "foreign.host_isolation_source" => "self.brenda_id" },
-  { cascade_copy => 0, cascade_delete => 0 },
-);
+__PACKAGE__->set_primary_key("id");
 
 
-# Created by DBIx::Class::Schema::Loader v0.07042 @ 2015-02-04 10:29:13
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:sZXpGH3okqEtjmcaJF99qA
+# Created by DBIx::Class::Schema::Loader v0.07042 @ 2015-02-06 16:55:06
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:RZVY/Tp/tc3KJlWIgCHycw
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration

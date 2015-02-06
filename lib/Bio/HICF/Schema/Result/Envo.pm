@@ -44,7 +44,7 @@ __PACKAGE__->table("envo");
 
 =head1 ACCESSORS
 
-=head2 envo_id
+=head2 id
 
   data_type: 'varchar'
   is_nullable: 0
@@ -59,7 +59,7 @@ __PACKAGE__->table("envo");
 =cut
 
 __PACKAGE__->add_columns(
-  "envo_id",
+  "id",
   { data_type => "varchar", is_nullable => 0, size => 10 },
   "description",
   { data_type => "varchar", is_nullable => 1, size => 45 },
@@ -69,34 +69,17 @@ __PACKAGE__->add_columns(
 
 =over 4
 
-=item * L</envo_id>
+=item * L</id>
 
 =back
 
 =cut
 
-__PACKAGE__->set_primary_key("envo_id");
-
-=head1 RELATIONS
-
-=head2 samples
-
-Type: has_many
-
-Related object: L<Bio::HICF::Schema::Result::Sample>
-
-=cut
-
-__PACKAGE__->has_many(
-  "samples",
-  "Bio::HICF::Schema::Result::Sample",
-  { "foreign.isolation_source" => "self.envo_id" },
-  { cascade_copy => 0, cascade_delete => 0 },
-);
+__PACKAGE__->set_primary_key("id");
 
 
-# Created by DBIx::Class::Schema::Loader v0.07042 @ 2015-02-04 10:29:13
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:w+aztwv3Xj2ELWrN62zAVQ
+# Created by DBIx::Class::Schema::Loader v0.07042 @ 2015-02-06 16:55:06
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:NSehzbBt17KEEJR4VaM2Qw
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration

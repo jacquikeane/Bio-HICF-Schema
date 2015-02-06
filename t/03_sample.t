@@ -70,7 +70,7 @@ my $sample_id;
 lives_ok { $sample_id = Sample->load_row($columns) } 'row loads ok';
 
 is( $sample_id, 2, '"load_row" returns expected sample_id for new row' );
-is( AntimicrobialResistance->search({},{})->count, 2, 'found expected row in antimicrobial_resistance table' );
+is( AntimicrobialResistance->count, 2, 'found expected row in antimicrobial_resistance table' );
 
 $columns->{antimicrobial_resistance} = 'am1;X;50';
 throws_ok { Sample->load_row($columns) } qr/did not pass the 'checking type constraint/,
@@ -81,19 +81,37 @@ $columns->{raw_data_accession} = 'data:3';
 $columns->{scientific_name}    = 'Not a real species';
 throws_ok { Sample->load_row($columns) } qr/scientific name not found/,
   "error loading when tax ID and scientific name don't match";
-is( Sample->search( {}, {} )->count, 2, 'no rows loaded' );
+is( Sample->count, 2, 'no rows loaded' );
 
 $columns->{tax_id}          = 0;
 $columns->{scientific_name} = 'Homo sapiens';
 throws_ok { Sample->load_row($columns) } qr/taxonomy ID not found/,
   "error loading when tax ID and scientific name don't match";
-is( Sample->search( {}, {} )->count, 2, 'no rows loaded' );
+is( Sample->count, 2, 'no rows loaded' );
 
-$columns->{tax_id}          = '63221';
+$columns->{tax_id}          = 63221;
 $columns->{scientific_name} = 'Homo sapiens';
 throws_ok { Sample->load_row($columns) } qr/taxonomy ID and scientific name do not match/,
   "error loading when tax ID and scientific name don't match";
-is( Sample->search( {}, {} )->count, 2, 'no rows loaded' );
+is( Sample->count, 2, 'no rows loaded' );
+
+$columns->{tax_id}   = 9606;
+$columns->{location} = 'not a gaz term';
+throws_ok { Sample->load_row($columns) } qr/term in "location" is not found/,
+  "error loading when gazetteer term isn't found";
+is( Sample->count, 2, 'no rows loaded' );
+
+$columns->{location}              = 'GAZ:00444180';
+$columns->{host_isolation_source} = 'not a bto term';
+throws_ok { Sample->load_row($columns) } qr/term in "host_isolation_source" is not found/,
+  "error loading when BRENDA term isn't found";
+is( Sample->count, 2, 'no rows loaded' );
+
+$columns->{host_isolation_source} = 'BTO:0000645';
+$columns->{isolation_source}      = 'not an envo term';
+throws_ok { Sample->load_row($columns) } qr/term in "isolation_source" is not found/,
+  "error loading when EnvO term isn't found";
+is( Sample->count, 2, 'no rows loaded' );
 
 $DB::single = 1;
 

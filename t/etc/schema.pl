@@ -17,15 +17,15 @@
   fixture_sets => {
     main => [
       Brenda => [
-        [ qw( brenda_id description) ],
+        [ qw( id description) ],
         [ qw( BTO:0000645 Lung ) ],
       ],
       Envo => [
-        [ qw( envo_id description ) ],
+        [ qw( id description ) ],
         [ qw( ENVO:00002148 coarse beach sand ) ],
       ],
       Gazetteer => [
-        [ qw( gaz_id description ) ],
+        [ qw( id description ) ],
         [ qw( GAZ:00444180 Hinxton ) ],
       ],
       Taxonomy => [

@@ -54,94 +54,122 @@ is( $sample->antimicrobial_resistances->first->get_column('antimicrobial_name'),
 
 # make sure we can retrieve samples and manifests
 
-# using a single sample ID
-my $values;
-lives_ok { $values = Schema->get_sample(1) } 'got field values for sample ID 1';
+SKIP: {
+  skip 'sample/manifest retrieval', 5 if $ENV{SKIP_RETRIEVAL_TESTS};
 
-my $expected_values = [ 'data:1', 'sample:1', 'New sample', 'CAMBRIDGE', 9606, undef, 'Tate JG', undef, '2015-01-10T14:30:00', 'GAZ:00444180', 1, 'Homo sapiens', 'healthy', 'BTO:0000645', 'inpatient', undef, 'serovar', undef, 'strain', undef, 'am1;S;50;WTSI', ];
+  # using a single sample ID
+  my $values;
+  lives_ok { $values = Schema->get_sample(1) } 'got field values for sample ID 1';
 
-is_deeply($values, $expected_values, 'got expected values for sample 1');
+  my $expected_values = [ 'data:1', 'sample:1', 'New sample', 'CAMBRIDGE', 9606, undef, 'Tate JG', undef, '2015-01-10T14:30:00', 'GAZ:00444180', 1, 'Homo sapiens', 'healthy', 'BTO:0000645', 'inpatient', undef, 'serovar', undef, 'strain', undef, 'am1;S;50;WTSI', ];
 
-throws_ok { Schema->get_sample(99) } qr/no sample with that ID \(99\)/,
-  'exception when retrieving fields for non-existent sample';
+  is_deeply($values, $expected_values, 'got expected values for sample 1');
 
-# using multiple sample IDs
-my $set_of_values;
-lives_ok { $set_of_values = Schema->get_samples(1,2) } 'got values for multiple samples';
+  throws_ok { Schema->get_sample(99) } qr/no sample with that ID \(99\)/,
+    'exception when retrieving fields for non-existent sample';
 
-# using a manifest ID
-lives_ok { $set_of_values = Schema->get_samples($m->uuid) }
-  'got samples using a manifest ID';
+  # using multiple sample IDs
+  my $set_of_values;
+  lives_ok { $set_of_values = Schema->get_samples(1,2) } 'got values for multiple samples';
 
-my $expected_set_of_values = [
-  ['rda:2','sa:1','test sample','CAMBRIDGE',9606,undef,'Tate JG','BSACID:1','2014-01-10T11:20:30','GAZ:00444180',1,'Homo sapiens','healthy','BTO:0000645','inpatient',undef,'serovar',undef,'strain',undef,'am1;S;10,am2;I;20;WTSI'],
-  ['rda:3','sa:1','test sample','CAMBRIDGE',9606,undef,'Tate JG','BSACID:1','2014-01-10T11:20:30','GAZ:00444180',1,'Homo sapiens','healthy','BTO:0000645','inpatient',undef,'serovar',undef,'strain',undef,'am1;S;10,am2;I;20;WTSI'],
-];
+  # using a manifest ID
+  lives_ok { $set_of_values = Schema->get_samples($m->uuid) }
+    'got samples using a manifest ID';
 
-is_deeply( $set_of_values, $expected_set_of_values, 'got expected set of field values' );
+  my $expected_set_of_values = [
+    ['rda:2','sa:1','test sample','CAMBRIDGE',9606,undef,'Tate JG','BSACID:1','2014-01-10T11:20:30','GAZ:00444180',1,'Homo sapiens','healthy','BTO:0000645','inpatient',undef,'serovar',undef,'strain',undef,'am1;S;10,am2;I;20;WTSI'],
+    ['rda:3','sa:1','test sample','CAMBRIDGE',9606,undef,'Tate JG','BSACID:1','2014-01-10T11:20:30','GAZ:00444180',1,'Homo sapiens','healthy','BTO:0000645','inpatient',undef,'serovar',undef,'strain',undef,'am1;S;10,am2;I;20;WTSI'],
+  ];
 
-# generate a manifest from the DB and compare it to the one we used to load the
-# data. Spoof the MD5, UUID and config filename
-my $new_m = Schema->get_manifest($m->uuid);
-$new_m->md5($m->md5);
-$new_m->uuid($m->uuid);
-$new_m->config->{config_file} = 't/data/01_checklist.conf';
+  is_deeply( $set_of_values, $expected_set_of_values, 'got expected set of field values' );
 
-is_deeply( $m, $new_m, 'manifest generated from the DB matches original' );
+  # generate a manifest from the DB and compare it to the one we used to load the
+  # data. Spoof the MD5, UUID and config filename
+  my $new_m = Schema->get_manifest($m->uuid);
+  $new_m->md5($m->md5);
+  $new_m->uuid($m->uuid);
+  $new_m->config->{config_file} = 't/data/01_checklist.conf';
 
-is( Schema->get_manifest('x'), undef, '"get_manifest" returns undef with bad manifest ID' );
+  is_deeply( $m, $new_m, 'manifest generated from the DB matches original' );
 
-# test insert failure behaviour
-$m->rows->[0]->[0] = 'rda:99';
-$m->rows->[0]->[9] = undef;
+  is( Schema->get_manifest('x'), undef, '"get_manifest" returns undef with bad manifest ID' );
 
-# check for error messages in the manifest after a failure
-throws_ok { Schema->load_manifest($m) } qr/the data in the manifest are not valid/,
-  'got an exception when loading a manifest without a "location" value';
+  # test insert failure behaviour
+  $m->rows->[0]->[0] = 'rda:99';
+  $m->rows->[0]->[9] = undef;
 
-like( $m->row_errors->[0], qr/'location' is a required field/,
-  'error in manifest shows "location" as a required field' );
+  # check for error messages in the manifest after a failure
+  throws_ok { Schema->load_manifest($m) } qr/the data in the manifest are not valid/,
+    'got an exception when loading a manifest without a "location" value';
+
+  like( $m->row_errors->[0], qr/'location' is a required field/,
+    'error in manifest shows "location" as a required field' );
+}
 
 #-------------------------------------------------------------------------------
 
 # adding antimicrobials
 
-is( Antimicrobial->count, 2, 'found 2 antimicrobial names before load' );
-lives_ok { Schema->load_antimicrobial('am3') } 'adding new antimicrobial succeeds';
-is( Antimicrobial->count, 3, 'found 3 antimicrobial names after load' );
+SKIP: {
+  skip 'antimicrobial loading', 5 if $ENV{SKIP_AM_LOADING_TESTS};
 
-throws_ok { Schema->load_antimicrobial('am#') } qr/invalid antimicrobial compound name/,
-  'got expected error message with invalid compound name';
-is( Antimicrobial->count, 3, 'still 3 rows in table after load failure' );
+  is( Antimicrobial->count, 2, 'found 2 antimicrobial names before load' );
+  lives_ok { Schema->load_antimicrobial('am3') } 'adding new antimicrobial succeeds';
+  is( Antimicrobial->count, 3, 'found 3 antimicrobial names after load' );
+
+  throws_ok { Schema->load_antimicrobial('am#') } qr/invalid antimicrobial compound name/,
+    'got expected error message with invalid compound name';
+  is( Antimicrobial->count, 3, 'still 3 rows in table after load failure' );
+}
 
 #-------------------------------------------------------------------------------
 
 # adding antimicrobial resistance test results
-my %amr = (
-  sample_id         => 1,
-  name              => 'am3',
-  susceptibility    => 'R',
-  mic               => 10,
-  diagnostic_centre => 'Peru',
-);
-lives_ok { Schema->load_antimicrobial_resistance(%amr) }
-  'no error when adding a new valid amr';
 
-$amr{sample_id} = 99;
-throws_ok { Schema->load_antimicrobial_resistance(%amr) }
-  qr/both the antimicrobial and the sample/,
-  'error when adding an amr with a missing sample ID';
+SKIP: {
+  skip 'antimicrobial resistance result loading', 3 if $ENV{SKIP_AMR_LOADING_TESTS};
 
-%amr = (
-  sample_id         => 1,
-  name              => 'am1',
-  susceptibility    => 'S',
-  mic               => 50,
-  diagnostic_centre => 'WTSI',
-);
-throws_ok { Schema->load_antimicrobial_resistance(%amr) }
-  qr/already exists/,
-  'error when adding an amr that already exists';
+  my %amr = (
+    sample_id         => 1,
+    name              => 'am1',
+    susceptibility    => 'R',
+    mic               => 10,
+    diagnostic_centre => 'Peru',
+  );
+  lives_ok { Schema->load_antimicrobial_resistance(%amr) }
+    'no error when adding a new valid amr';
+
+  $amr{sample_id} = 99;
+  throws_ok { Schema->load_antimicrobial_resistance(%amr) }
+    qr/both the antimicrobial and the sample/,
+    'error when adding an amr with a missing sample ID';
+
+  %amr = (
+    sample_id         => 1,
+    name              => 'am1',
+    susceptibility    => 'S',
+    mic               => 50,
+    diagnostic_centre => 'WTSI',
+  );
+  throws_ok { Schema->load_antimicrobial_resistance(%amr) }
+    qr/already exists/,
+    'error when adding an amr that already exists';
+}
+
+#-------------------------------------------------------------------------------
+
+# ontologies
+
+throws_ok { Schema->load_ontology( 'not a real ontology', 't/data/08_gaz.obo' ) }
+  qr/did not pass/,
+  'error when trying to load ontology into non-existent table';
+
+throws_ok { Schema->load_ontology( 'gazetteer', 'non-existent file' ) }
+  qr/ontology file not found/,
+  'error when trying to load a non-existent file';
+
+lives_ok { Schema->load_ontology( 'gazetteer', 't/data/08_gaz.obo' ) }
+  'no error when loading valid ontology';
 
 done_testing;
 
