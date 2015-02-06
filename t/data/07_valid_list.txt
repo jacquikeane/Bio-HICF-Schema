@@ -1,0 +1,9 @@
+# comment
+
+amikacin
+amoxicillin-clavulanic acid
+penicillin
+piperacillin
+piperacillin-tazobactam
+piperacillin/tazobactam
+vancomycin

@@ -216,27 +216,20 @@ exception if the supplied name is invalid, e.g. contains non-word characters.
 
 sub load_antimicrobial {
   my ( $self, $name ) = @_;
-  $self->resultset('Antimicrobial')->load_antimicrobial($name);
-}
 
-#---------------------------------------
+  chomp $name;
 
-=head2 load_antimicrobials(@names)
-
-Adds multiple antimicrobial compound names to the C<antimicrobial> table.
-Throws an exception if any of the supplied names is invalid, e.g. contains
-non-word characters.
-
-=cut
-
-sub load_antimicrobials {
-  my ( $self, @names ) = @_;
-  $self->resultset('Antimicrobial')->load_antimicrobial($_) for ( @names );
+  try {
+    $self->resultset('Antimicrobial')->load_antimicrobial($name);
+  }
+  catch ( $e where { m/did not pass/ } ) {
+    croak "ERROR: couldn't load '$name'; invalid antimicrobial compound name";
+  }
 }
 
 #-------------------------------------------------------------------------------
 
-=head2 load_antimicrobial_resistance(%$amr)
+=head2 load_antimicrobial_resistance(%amr)
 
 Loads a new antimicrobial resistance test result into the database. See
 L<Bio::HICF::Schema::ResultSet::AntimicrobialResistance::load_antimicrobial_resistance>

@@ -33,16 +33,16 @@ is( $amr->get_amr_string, 'am1;S;50', 'got expected amr string after removing di
 
 # loading new antimicrobial compound names
 
-is( Antimicrobial->search({},{})->count, 2, 'found 2 antimicrobial before load' );
+is( Antimicrobial->count, 2, 'found 2 antimicrobial before load' );
 lives_ok { Antimicrobial->load_antimicrobial('am3') } 'loading "am3" succeeds';
-is( Antimicrobial->search({},{})->count, 3, 'found 3 antimicrobials after load' );
+is( Antimicrobial->count, 3, 'found 3 antimicrobials after load' );
 
 lives_ok { Antimicrobial->load_antimicrobial('am3') } 'loading "am3" again succeeds';
-is( Antimicrobial->search({},{})->count, 3, 'found 3 antimicrobials after loading duplicate' );
+is( Antimicrobial->count, 3, 'found 3 antimicrobials after loading duplicate' );
 
 throws_ok { Antimicrobial->load_antimicrobial('am#') } qr/did not pass the 'checking type constraint/,
   'loading invalid antimicrobial name fails';
-is( Antimicrobial->search({},{})->count, 3, 'found 3 antimicrobials after failed load' );
+is( Antimicrobial->count, 3, 'found 3 antimicrobials after failed load' );
 
 #-------------------------------------------------------------------------------
 

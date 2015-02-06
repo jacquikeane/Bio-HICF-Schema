@@ -14,7 +14,7 @@ use Test::DBIx::Class {
 # load the pre-requisite data
 fixtures_ok 'main', 'installed fixtures';
 
-my $script = 'bin/load_tax_tree.pl';
+my $script = 'bin/load_tax_tree';
 
 run_ok( $script, [ qw( -h ) ], 'script runs ok with help flag' );
 run_not_ok( $script, [ ], 'script exits with error status when run with no arguments' );
@@ -24,7 +24,7 @@ like( $stderr, qr/ERROR: you must specify a configuration file/, 'got expected e
 
 is( Taxonomy->count, 2, 'found two rows in taxonomy table before loading' );
 
-( $rv, $stdout, $stderr ) = run_script( $script, [ qw(-c t/data/06_script.conf) ] );
+( $rv, $stdout, $stderr ) = run_script( $script, [ qw(-c t/data/06_tax_tree.conf) ] );
 unlike( $stderr, qr/ERROR/, 'no loading error with valid configs and manifest' );
 
 is( Taxonomy->count, 12, 'got expected number of rows in taxonomy table after load' );

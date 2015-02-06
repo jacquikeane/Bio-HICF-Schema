@@ -1,0 +1,6 @@
+valid
+# comment
+
+some%thing
+some thing
+some[thing]

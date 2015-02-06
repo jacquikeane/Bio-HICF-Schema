@@ -32,6 +32,8 @@ sub load_antimicrobial {
     { isa => 'Bio::Metadata::Types::AntimicrobialName' },
   );
 
+  chomp $am_name;
+
   $self->find_or_create(
     { name => $am_name },
     { key => 'primary' }

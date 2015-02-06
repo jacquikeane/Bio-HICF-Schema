@@ -106,15 +106,13 @@ like( $m->row_errors->[0], qr/'location' is a required field/,
 
 # adding antimicrobials
 
-is( Antimicrobial->search({},{})->count, 2, 'found 2 antimicrobial names before load' );
+is( Antimicrobial->count, 2, 'found 2 antimicrobial names before load' );
 lives_ok { Schema->load_antimicrobial('am3') } 'adding new antimicrobial succeeds';
-is( Antimicrobial->search({},{})->count, 3, 'found 3 antimicrobial names after load' );
+is( Antimicrobial->count, 3, 'found 3 antimicrobial names after load' );
 
-lives_ok { Schema->load_antimicrobials('am4', 'am5') } 'adding multiple new antimicrobials succeeds';
-is( Antimicrobial->search({},{})->count, 5, 'found 5 antimicrobial names after load' );
-
-lives_ok { Schema->load_antimicrobials('am5', 'am6') } 'adding multiple new antimicrobials succeeds with a duplicate name';
-is( Antimicrobial->search({},{})->count, 6, 'found 6 antimicrobial names after load' );
+throws_ok { Schema->load_antimicrobial('am#') } qr/invalid antimicrobial compound name/,
+  'got expected error message with invalid compound name';
+is( Antimicrobial->count, 3, 'still 3 rows in table after load failure' );
 
 #-------------------------------------------------------------------------------
 
