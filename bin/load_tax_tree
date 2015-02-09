@@ -1,4 +1,4 @@
-# !env perl
+#!/usr/bin/env perl
 #
 # PODNAME: load_tax_tree
 # ABSTRACT: loads the NCBI taxonomy tree

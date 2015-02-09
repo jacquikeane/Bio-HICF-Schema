@@ -1,4 +1,4 @@
-#!env perl
+#!/usr/bin/env perl
 
 # PODNAME:  load_manifest
 # ABSTRACT: load a manifest CSV file into the database

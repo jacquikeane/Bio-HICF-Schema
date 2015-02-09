@@ -1,4 +1,4 @@
-# !env perl
+#!/usr/bin/env perl
 #
 # build_schema.pl
 # jt6 20141125 WTSI

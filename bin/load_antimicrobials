@@ -1,4 +1,4 @@
-#!env perl
+#!/usr/bin/env perl
 #
 # PODNAME: load_antimicrobials
 # ABSTRACT: loads one or more antimicrobial compound names
