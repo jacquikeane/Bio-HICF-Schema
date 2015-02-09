@@ -420,6 +420,67 @@ sub load_ontology {
 
 #-------------------------------------------------------------------------------
 
+=head2 add_external_resource($resource_spec}
+
+Add a record to the C<external_resources> table to record the addition of a new
+external resource. The C<$resource_spec> hash must contain the following five
+keys:
+
+=over 4
+
+=item name
+
+the name of the resource
+
+=item source
+
+the source of the resources, typically the canonical URL
+
+=item retrieved_at
+
+a L<DateTime> object giving the time that the resource file was retrieved from
+the canonical source
+
+=item checksum
+
+an MD5 checksum for the resource file, typically generated using
+L<Digest::MD5::md5sum>.
+
+=back
+
+=cut
+
+sub add_external_resource {
+  my ( $self, $resource_spec ) = @_;
+
+  croak 'ERROR: one of the required fields is missing'
+    unless ( defined $resource_spec->{name} and
+             defined $resource_spec->{source} and
+             defined $resource_spec->{retrieved_at} and
+             defined $resource_spec->{checksum} );
+
+  # format the retrieved at DateTime object
+  # (see https://metacpan.org/pod/DBIx::Class::Manual::Cookbook#Formatting-DateTime-objects-in-queries)
+  if ( ref $resource_spec->{retrieved_at} eq 'DateTime' ) {
+    my $ra = $resource_spec->{retrieved_at};
+    my $dtf = $self->storage->datetime_parser;
+    my $formatted_ra = $dtf->format_datetime($ra);
+    $resource_spec->{retrieved_at} = $formatted_ra;
+  }
+
+  my $resource = $self->resultset('ExternalResource')
+                      ->find_or_new( $resource_spec );
+
+  if ( $resource->in_storage ) {
+    croak 'ERROR: this resource already exists'
+  }
+  else {
+    $resource->insert;
+  }
+}
+
+#-------------------------------------------------------------------------------
+
 =head1 SEE ALSO
 
 L<Bio::Metadata::Validator>

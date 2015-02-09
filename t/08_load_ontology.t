@@ -66,5 +66,9 @@ unlike $stderr, qr/ERROR/,
 
 is( Gazetteer->count, 13, 'got expected number of rows in gazetteer table after loading' );
 
+is( ExternalResource->count, 1, 'found an external resource record' );
+my $r = ExternalResource->search( { name => 'gazetteer' }, {} )->first;
+is( $r->checksum, '87dfedf9bdfa65e70a735238738b778f', 'got expected checksum for resource' );
+
 done_testing;
 

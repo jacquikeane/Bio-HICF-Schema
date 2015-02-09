@@ -77,6 +77,13 @@ __PACKAGE__->table("external_resources");
   is_nullable: 1
   size: 45
 
+=head2 created_at
+
+  data_type: 'datetime'
+  datetime_undef_if_invalid: 1
+  is_nullable: 1
+  set_on_create: 1
+
 =cut
 
 __PACKAGE__->add_columns(
@@ -101,6 +108,13 @@ __PACKAGE__->add_columns(
   { data_type => "varchar", is_nullable => 0, size => 45 },
   "version",
   { data_type => "varchar", is_nullable => 1, size => 45 },
+  "created_at",
+  {
+    data_type => "datetime",
+    datetime_undef_if_invalid => 1,
+    is_nullable => 1,
+    set_on_create => 1,
+  },
 );
 
 =head1 PRIMARY KEY
@@ -116,8 +130,8 @@ __PACKAGE__->add_columns(
 __PACKAGE__->set_primary_key("id");
 
 
-# Created by DBIx::Class::Schema::Loader v0.07042 @ 2015-02-04 13:47:23
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:JvtOg3dxHzcKEQyWxNFMbA
+# Created by DBIx::Class::Schema::Loader v0.07042 @ 2015-02-09 14:40:10
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:v2KdyrdNf5xDXmunP6YIng
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration

@@ -18,12 +18,6 @@ use File::Slurp;
 
 use Bio::HICF::Schema;
 
-our %ONTOLOGY_NAMES = (
-  'gazetteer' => 1,
-  'brenda'    => 1,
-  'envo'      => 1,
-);
-
 #-------------------------------------------------------------------------------
 # boilerplate
 
@@ -48,14 +42,11 @@ my $file        = shift;
 _usage('ERROR: you must specify a configuration file')
   unless defined $config_file;
 
-_usage('ERROR: you must specify an ontology name')
-  unless defined $ontology;
-
 _usage("ERROR: no such configuration file ($config_file)")
   unless -f $config_file;
 
-_usage("ERROR: not a valid ontology name ($ontology)")
-  unless exists $ONTOLOGY_NAMES{$ontology};
+_usage('ERROR: you must specify an ontology name')
+  unless defined $ontology;
 
 _usage('ERROR: you must specify an input file')
   unless ( defined $file and -f $file );
@@ -73,11 +64,35 @@ catch ( $e ) {
 
 my %config = $cg->getall;
 
+# check that we have details for the specified ontology in the config
+_usage("ERROR: not a valid ontology name ($ontology)")
+  unless exists $config{ontology}->{$ontology};
+
 # get a database connection
 my $schema = Bio::HICF::Schema->connect(@{ $config{database}->{connect_info} });
 
 # load
 $schema->load_ontology( $ontology, $file);
+
+# record the dump file details
+
+# calculate the checksum first. Since we don't know how big the file is, we'll
+# generate the digest on-the-fly
+my $digest = Digest::MD5->new;
+open ( FILE, $file )
+  or croak "ERROR: couldn't read ontology file to calculate checksum: $!";
+while ( <FILE> ) { $digest->add($_); }
+close FILE;
+
+$schema->add_external_resource(
+  {
+    name         => $ontology,
+    source       => $config{ontology}->{$ontology},
+    retrieved_at => DateTime->now,
+    checksum     => $digest->hexdigest,
+  }
+);
+
 
 exit 0;
 
@@ -129,6 +144,25 @@ name of the ontology to load. Must be one of "gazetteer", "brenda", or "envo".
 Required.
 
 =back
+
+=head1 CONFIGURATION
+
+The configuration file is expected to contain two blocks, one detailing the
+database connection parameters, the other with ontology names and URLs:
+
+ <database>
+   connect_info dbi:mysql:name=hicf;port=3341;host=dbhost
+   connect_info "hicf"
+   connect_info "password"
+ </database>
+ <ontology>
+   gaz     http://purl.obolibrary.org/obo/gaz.obo
+   brenda  http://www.brenda-enzymes.info/ontology/tissue/tree/update/update_files/BrendaTissueOBO
+   envo    http://purl.obolibrary.org/obo/subsets/envo-basic.obo
+ </ontology>
+
+The ontology name (C<-o>) must be found in the C<ontology> block or an
+exception will be thrown.
 
 =head1 SEE ALSO
 

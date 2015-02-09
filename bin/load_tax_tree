@@ -14,6 +14,10 @@ use Pod::Usage;
 use Config::General;
 use TryCatch;
 use Carp qw( croak );
+use Archive::Tar;
+use File::Temp;
+use DateTime;
+use Digest::MD5;
 
 use Bio::HICF::Schema;
 use Bio::Metadata::TaxTree;
@@ -23,9 +27,9 @@ use Bio::Metadata::TaxTree;
 
 # define the accepted options
 my ( $opt, $usage ) = describe_options(
-  'load_tax_tree %o',
+  '$0 %o <filename>',
   [ 'config|c=s', 'path to the configuration file' ],
-  [ 'help|h',    'print usage message' ],
+  [ 'help|h',     'print usage message' ],
 );
 
 # show the POD as usage information
@@ -56,12 +60,28 @@ catch ( $e ) {
 my %config = $cg->getall;
 
 #-------------------------------------------------------------------------------
+# unpack the dump files
 
-# read the names.dmp and nodes.dmp to generate the tree nodes
-my $tt = Bio::Metadata::TaxTree->new( names_file => $config{taxdump}->{names},
-                                      nodes_file => $config{taxdump}->{nodes} );
+my $taxdump = $config{taxdump}->{file};
 
-# number the nodes to form the in-memory tree
+my $tar = Archive::Tar->new( $taxdump );
+my $temp_dir = File::Temp->newdir;
+
+my $names = "$temp_dir/names.dmp";
+my $nodes = "$temp_dir/nodes.dmp";
+
+my $status = $tar->extract_file( 'names.dmp', $names );
+croak 'ERROR: failed to extract "names.dmp" from the tardump.tar file'
+  unless $status;
+
+$status = $tar->extract_file( 'nodes.dmp', $nodes );
+croak 'ERROR: failed to extract "nodes.dmp" from the tardump.tar file'
+  unless $status;
+
+# build a tree
+my $tt = Bio::Metadata::TaxTree->new( names_file => $names,
+                                      nodes_file => $nodes );
+
 $tt->build_tree;
 
 # get a database connection
@@ -74,6 +94,25 @@ try {
 catch ( $e ) {
   croak "ERROR: there was a problem loading the tax tree:\n$e";
 }
+
+# record the dump file details
+
+# calculate the checksum first. Since we don't know how big the file is, we'll
+# generate the digest on-the-fly
+my $digest = Digest::MD5->new;
+open ( FILE, $config{taxdump}->{file} )
+  or croak "ERROR: couldn't read taxdump file to calculate checksum: $!";
+while ( <FILE> ) { $digest->add($_); }
+close FILE;
+
+$schema->add_external_resource(
+  {
+    name         => 'taxdump',
+    source       => $config{taxdump}->{url},
+    retrieved_at => DateTime->now,
+    checksum     => $digest->hexdigest,
+  }
+);
 
 exit 0;
 
@@ -102,18 +141,7 @@ __END__
 This script reads the NCBI taxonomy tree dump files (C<names.dmp> and
 C<nodes.dmp>) and loads the resulting tree into the C<taxonomy> table in the
 HICF sample database. The script requires one argument, the path to a
-configuration file. The config file must specify the database connection
-parameters (C<database>) and the paths to the two dump files (C<taxdump>), e.g.
-
- <database>
-   connect_info dbi:mysql:name=hicf;port=3341;host=dbhost
-   connect_info "hicf"
-   connect_info "password"
- </database>
- <taxdump>
-   names tree/names.dmp
-   nodes tree/nodes.dmp
- </taxdump>
+configuration file.
 
 Before loading the new taxonomy data, the C<taxonomy> table is first emptied.
 If there is an error during loading, the script tries to roll back the
@@ -132,6 +160,20 @@ display help text
 configuration file. Required.
 
 =back
+
+=head1 CONFIGURATION
+
+The configuration file must specify the database connection parameters
+(C<database>) and the canonical URL for the tax dump file (C<taxdump>).
+
+ <database>
+   connect_info dbi:mysql:name=hicf;port=3341;host=dbhost
+   connect_info "hicf"
+   connect_info "password"
+ </database>
+ <taxdump>
+   url ftp://ftp.ncbi.nlm.nih.gov/pub/taxonomy/taxdump.tar.gz
+ </taxdump>
 
 =head1 SEE ALSO
 

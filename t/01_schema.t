@@ -160,22 +160,45 @@ SKIP: {
 
 # ontologies
 
-throws_ok { Schema->load_ontology( 'not a real ontology', 't/data/01_gaz.obo' ) }
-  qr/did not pass/,
-  'error when trying to load ontology into non-existent table';
+SKIP: {
+  skip 'ontology loading', 7, if $ENV{SKIP_ONTOLOGY_TESTS};
 
-throws_ok { Schema->load_ontology( 'gazetteer', 'non-existent file' ) }
-  qr/ontology file not found/,
-  'error when trying to load a non-existent file';
+  throws_ok { Schema->load_ontology( 'not a real ontology', 't/data/01_gaz.obo' ) }
+    qr/did not pass/,
+    'error when trying to load ontology into non-existent table';
 
-is( Gazetteer->count, 1, 'one row in ontology before load' );
-lives_ok { Schema->load_ontology( 'gazetteer', 't/data/01_gaz.obo' ) }
-  'no error when loading valid ontology';
-is( Gazetteer->count, 13, '13 rows in ontology after load' );
+  throws_ok { Schema->load_ontology( 'gazetteer', 'non-existent file' ) }
+    qr/ontology file not found/,
+    'error when trying to load a non-existent file';
 
-lives_ok { Schema->load_ontology( 'gazetteer', 't/data/01_gaz.obo', 5 ) }
-  'no error when loading valid ontology';
-is( Gazetteer->count, 13, '13 rows in ontology after loading in multiple chunks' );
+  is( Gazetteer->count, 1, 'one row in ontology before load' );
+  lives_ok { Schema->load_ontology( 'gazetteer', 't/data/01_gaz.obo' ) }
+    'no error when loading valid ontology';
+  is( Gazetteer->count, 13, '13 rows in ontology after load' );
+
+  lives_ok { Schema->load_ontology( 'gazetteer', 't/data/01_gaz.obo', 5 ) }
+    'no error when loading valid ontology';
+  is( Gazetteer->count, 13, '13 rows in ontology after loading in multiple chunks' );
+}
+
+#-------------------------------------------------------------------------------
+
+# external resource tracking
+
+is( ExternalResource->count, 0, 'no resources before we begin' );
+throws_ok { Schema->add_external_resource( {} ) } qr/one of the required/,
+  'exception with missing fields';
+
+my $resource = {
+  name         => 'some resource',
+  source       => 'http://www.sanger.ac.uk/',
+  retrieved_at => DateTime->now,
+  checksum     => 'dfb3f67b349077ab39babb6931858788',
+};
+lives_ok { Schema->add_external_resource($resource) } 'no exception with valid resource';
+is( ExternalResource->count, 1, 'one resource after loading' );
+
+$DB::single = 1;
 
 done_testing;
 

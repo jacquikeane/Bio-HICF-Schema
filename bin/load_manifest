@@ -23,7 +23,7 @@ use TryCatch;
 
 # define the accepted options
 my ( $opt, $usage ) = describe_options(
-  'load_manifest %o <filename>',
+  '$0 %o <filename>',
   [ 'checklist|c=s', 'path to the checklist configuration file' ],
   [ 'dbconfig|d=s',  'path to the database configuration file' ],
   [ 'help|h',        'print usage message' ],
@@ -71,7 +71,7 @@ try {
   @loaded_ids = $schema->load_manifest($m);
   print 'manifest ', $m->uuid, " is loaded\n";
 }
-catch ( $e  where { m/no such table/ } ) {
+catch ( $e where { m/no such table/ } ) {
   croak "ERROR: could not connect to the database: $e";
 }
 catch ( $e ) {
