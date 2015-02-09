@@ -79,19 +79,19 @@ $columns->{antimicrobial_resistance} = 'am1;S;50';
 
 $columns->{raw_data_accession} = 'data:3';
 $columns->{scientific_name}    = 'Not a real species';
-throws_ok { Sample->load_row($columns) } qr/scientific name not found/,
+throws_ok { Sample->load_row($columns) } qr/not found for scientific name/,
   "error loading when tax ID and scientific name don't match";
 is( Sample->count, 2, 'no rows loaded' );
 
 $columns->{tax_id}          = 0;
 $columns->{scientific_name} = 'Homo sapiens';
-throws_ok { Sample->load_row($columns) } qr/taxonomy ID not found/,
+throws_ok { Sample->load_row($columns) } qr/not found for taxonomy ID/,
   "error loading when tax ID and scientific name don't match";
 is( Sample->count, 2, 'no rows loaded' );
 
 $columns->{tax_id}          = 63221;
 $columns->{scientific_name} = 'Homo sapiens';
-throws_ok { Sample->load_row($columns) } qr/taxonomy ID and scientific name do not match/,
+throws_ok { Sample->load_row($columns) } qr/taxonomy ID \(63221\) and scientific name \(Homo sapiens\) do not match/,
   "error loading when tax ID and scientific name don't match";
 is( Sample->count, 2, 'no rows loaded' );
 

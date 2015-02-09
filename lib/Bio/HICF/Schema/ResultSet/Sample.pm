@@ -33,11 +33,8 @@ sub load_row {
 
   croak 'not a valid row' unless ref $upload eq 'HASH';
 
-  # make sure the tax ID and scientific name agree
-  $self->_taxonomy_name_check($upload);
-
-  # check that "specific_host" contains a valid scientific name
-  $self->_scientific_name_check($upload);
+  # validate the various taxonomy fields
+  $self->_taxonomy_checks($upload);
 
   # check that the ontology terms exist
   $self->_ontology_term_check($upload);
@@ -86,9 +83,22 @@ sub _parse_amr_string {
 
 #-------------------------------------------------------------------------------
 
-# taxonomy ID/scientific name consistency check
-sub _taxonomy_name_check {
+sub _taxonomy_checks {
   my ( $self, $upload ) = @_;
+
+  my $rs = $self->result_source
+                ->schema
+                ->resultset('Taxonomy');
+
+  $self->_tax_id_name_check( $rs, $upload );
+  $self->_specific_host_check( $rs, $upload );
+}
+
+#-------------------------------------------------------------------------------
+
+# taxonomy ID/scientific name consistency check
+sub _tax_id_name_check {
+  my ( $self, $rs, $upload ) = @_;
 
   my $tax_id = $upload->{tax_id};
   my $name   = $upload->{scientific_name};
@@ -96,44 +106,41 @@ sub _taxonomy_name_check {
   # we can only validate taxonomy ID/name if we have both
   return unless ( defined $tax_id and defined $name );
 
-  my $schema = $self->result_source->schema;
+  # find tax ID using the given name
+  my $tax_id_lookup = $rs->find( { name => $name },
+                                 { key => 'name_uq' } );
 
-  # look up the tax ID and scientific name in the taxonomy table
-  my $tax_id_lookup = $schema->resultset('Taxonomy')
-                             ->find( { name => $name },
-                                     { key => 'name_uq' } );
+  croak "taxonomy ID not found for scientific name ($name)"
+    unless defined $tax_id_lookup;
 
-  croak 'scientific name not found' unless defined $tax_id_lookup;
+  # find scientific name using given tax ID
+  my $name_lookup = $rs->find( { tax_id => $tax_id },
+                               { key => 'primary' } );
 
-  my $name_lookup   = $schema->resultset('Taxonomy')
-                             ->find( { tax_id => $tax_id },
-                                     { key => 'primary' } );
-  croak 'taxonomy ID not found' unless defined $name_lookup;
+  croak "scientific name not found for taxonomy ID ($tax_id)"
+    unless defined $name_lookup;
 
-  if ( $tax_id != $tax_id_lookup->tax_id or
-       $name   ne $tax_id_lookup->name ) {
-    croak 'taxonomy ID and scientific name do not match';
-  }
+  # cross-check the name and tax ID
+  croak "taxonomy ID ($tax_id) and scientific name ($name) do not match"
+   unless ( $tax_id == $tax_id_lookup->tax_id and
+            $name   eq $name_lookup->name );
 }
 
 #-------------------------------------------------------------------------------
 
 # check specific host is a valid scientific name
-sub _scientific_name_check {
-  my ( $self, $upload ) = @_;
+sub _specific_host_check {
+  my ( $self, $rs, $upload ) = @_;
 
   my $name = $upload->{specific_host};
 
   return unless defined $name;
 
-  my $rs = $self->result_source
-                ->schema
-                ->resultset('Taxonomy')
-                ->find( { name => $name },
-                        { key => 'name_uq' } );
+  my $name_lookup = $rs->find( { name => $name },
+                               { key => 'name_uq' } );
 
-  croak 'species name in "specific_host" is not found in the taxonomy tree'
-    unless defined $rs;
+  croak "species name in 'specific_host' ($name) is not found in the taxonomy tree"
+    unless defined $name_lookup;
 }
 
 #-------------------------------------------------------------------------------
