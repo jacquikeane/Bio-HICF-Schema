@@ -1,0 +1,142 @@
+#!env perl
+#
+# PODNAME: load_ontology
+# ABSTRACT: loads an ontology file into the database
+# jt6 20150209 WTSI
+
+# vim: ft=perl :
+
+use strict;
+use warnings;
+
+use Getopt::Long::Descriptive;
+use Pod::Usage;
+use Config::General;
+use TryCatch;
+use Carp qw( croak );
+use File::Slurp;
+
+use Bio::HICF::Schema;
+
+our %ONTOLOGY_NAMES = (
+  'gazetteer' => 1,
+  'brenda'    => 1,
+  'envo'      => 1,
+);
+
+#-------------------------------------------------------------------------------
+# boilerplate
+
+# define the accepted options
+my ( $opt, $usage ) = describe_options(
+  '$0 %o <filename>',
+  [ 'ontology|o=s', 'name of the ontology to load' ],
+  [ 'config|c=s',   'path to the configuration file' ],
+  [ 'help|h',       'print usage message' ],
+);
+
+# show the POD as usage information
+pod2usage( { -verbose => 2, -exitval => 0 } )
+  if $opt->help;
+
+# take the paths to the config either from the options or from an environment
+# variable
+my $config_file = $opt->config || $ENV{HICF_CONFIG};
+my $ontology    = $opt->ontology;
+my $file        = shift;
+
+_usage('ERROR: you must specify a configuration file')
+  unless defined $config_file;
+
+_usage('ERROR: you must specify an ontology name')
+  unless defined $ontology;
+
+_usage("ERROR: no such configuration file ($config_file)")
+  unless -f $config_file;
+
+_usage("ERROR: not a valid ontology name ($ontology)")
+  unless exists $ONTOLOGY_NAMES{$ontology};
+
+_usage('ERROR: you must specify an input file')
+  unless ( defined $file and -f $file );
+
+#-------------------------------------------------------------------------------
+# load configuration
+
+my $cg;
+try {
+  $cg = Config::General->new($config_file);
+}
+catch ( $e ) {
+  croak "ERROR: there was a problem reading the config file ($config_file): $e";
+}
+
+my %config = $cg->getall;
+
+# get a database connection
+my $schema = Bio::HICF::Schema->connect(@{ $config{database}->{connect_info} });
+
+# load
+$schema->load_ontology( $ontology, $file);
+
+exit 0;
+
+#-------------------------------------------------------------------------------
+#- functions -------------------------------------------------------------------
+#-------------------------------------------------------------------------------
+
+sub _usage {
+  my $msg = shift;
+
+  print STDERR "$msg\n";
+  print $usage->text;
+  exit 1;
+}
+
+#-------------------------------------------------------------------------------
+
+__END__
+
+=head1 SYNOPSIS
+
+ shell% load_ontology -c hicf_script_configuration.conf -o gazetteer gaz.obo
+
+=head1 DESCRIPTION
+
+This script reads an ontology file and loads it into the HICF database. The
+name of the ontology must be given using the "-o" flag and the database
+connection parameters must be supplied in a configuration file (-c).
+
+Before loading the new ontology data, the specifies ontology table is first emptied.
+If there is an error during loading, the script tries to roll back the
+truncation and any subsequent loading.
+
+=head1 OPTIONS
+
+=over 4
+
+=item -h --help
+
+display help text
+
+=item -c --config
+
+configuration file giving database connection parameters. Required.
+
+=item -o --ontology
+
+name of the ontology to load. Must be one of "gazetteer", "brenda", or "envo".
+Required.
+
+=back
+
+=head1 SEE ALSO
+
+L<Bio::HICF::Schema>
+
+=head1 CONTACT
+
+path-help@sanger.ac.uk
+
+=cut
+

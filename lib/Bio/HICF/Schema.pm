@@ -368,7 +368,10 @@ sub load_ontology {
 
     while ( <FILE> ) {
       if ( m/^id: (.*?)$/ ) {
-        push @$term, $1;
+        my $id = $1;
+        croak "ERROR: found an invalid ontology term ID ($1)"
+          unless $id =~ m/^[A-Z]+:\d+$/;
+        push @$term, $id;
       }
       if ( m/^name: (.*)$/ ) {
         push @$term, $1;
