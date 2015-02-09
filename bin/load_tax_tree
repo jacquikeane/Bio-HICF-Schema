@@ -1,10 +1,10 @@
 # !env perl
 #
-# load_tax_tree
+# PODNAME: load_tax_tree
+# ABSTRACT: loads the NCBI taxonomy tree
 # jt6 20150204 WTSI
 
-# ABSTRACT: loads the NCBI taxonomy tree
-# PODNAME: load_tax_tree
+# vim: ft=perl :
 
 use strict;
 use warnings;
@@ -103,7 +103,17 @@ This script reads the NCBI taxonomy tree dump files (C<names.dmp> and
 C<nodes.dmp>) and loads the resulting tree into the C<taxonomy> table in the
 HICF sample database. The script requires one argument, the path to a
 configuration file. The config file must specify the database connection
-parameters (C<database>) and the paths to the two dump files (C<taxdump>).
+parameters (C<database>) and the paths to the two dump files (C<taxdump>), e.g.
+
+ <database>
+   connect_info dbi:mysql:name=hicf;port=3341;host=dbhost
+   connect_info "hicf"
+   connect_info "password"
+ </database>
+ <taxdump>
+   names tree/names.dmp
+   nodes tree/nodes.dmp
+ </taxdump>
 
 Before loading the new taxonomy data, the C<taxonomy> table is first emptied.
 If there is an error during loading, the script tries to roll back the

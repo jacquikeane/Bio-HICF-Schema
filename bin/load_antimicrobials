@@ -101,19 +101,20 @@ __END__
 
 =head1 SYNOPSIS
 
- shell% load_tax_tree -c hicf_script_configuration.conf
+ shell% load_antimicrobials -c hicf_script_configuration.conf
 
 =head1 DESCRIPTION
 
-This script reads the NCBI taxonomy tree dump files (C<names.dmp> and
-C<nodes.dmp>) and loads the resulting tree into the C<taxonomy> table in the
-HICF sample database. The script requires one argument, the path to a
-configuration file. The config file must specify the database connection
-parameters (C<database>) and the paths to the two dump files (C<taxdump>).
+This script takes a file containing a list of antimicrobial compound names and
+loads them into the HICF database.
 
-Before loading the new taxonomy data, the C<taxonomy> table is first emptied.
-If there is an error during loading, the script tries to roll back the
-truncation and any subsequent loading.
+The input file can include comment lines (lines beginning with a "#") or blank
+lines, which will both be ignored. The remaining lines in the file are assumed
+to have one compound name per line.
+
+If the file is found to contain any invalid compound names, loading is
+abandoned and any changes to the database are rolled back, i.e. the script
+loads the whole file or none of it.
 
 =head1 OPTIONS
 
@@ -125,13 +126,12 @@ display help text
 
 =item -c --config
 
-configuration file. Required.
+configuration file giving database connection parameters. Required.
 
 =back
 
 =head1 SEE ALSO
 
-L<Bio::Metadata::TaxTree>
 L<Bio::HICF::Schema>
 
 =head1 CONTACT
