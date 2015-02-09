@@ -423,8 +423,8 @@ sub load_ontology {
 =head2 add_external_resource($resource_spec}
 
 Add a record to the C<external_resources> table to record the addition of a new
-external resource. The C<$resource_spec> hash must contain the following five
-keys:
+external resource. The C<$resource_spec> hash must contain the four required
+keys plus, optionally, a version:
 
 =over 4
 
@@ -445,6 +445,10 @@ the canonical source
 
 an MD5 checksum for the resource file, typically generated using
 L<Digest::MD5::md5sum>.
+
+=item version
+
+a version number for the resource, if available. Optional.
 
 =back
 
