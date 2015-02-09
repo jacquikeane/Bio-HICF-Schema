@@ -160,7 +160,7 @@ SKIP: {
 
 # ontologies
 
-throws_ok { Schema->load_ontology( 'not a real ontology', 't/data/08_gaz.obo' ) }
+throws_ok { Schema->load_ontology( 'not a real ontology', 't/data/01_gaz.obo' ) }
   qr/did not pass/,
   'error when trying to load ontology into non-existent table';
 
@@ -168,8 +168,14 @@ throws_ok { Schema->load_ontology( 'gazetteer', 'non-existent file' ) }
   qr/ontology file not found/,
   'error when trying to load a non-existent file';
 
-lives_ok { Schema->load_ontology( 'gazetteer', 't/data/08_gaz.obo' ) }
+is( Gazetteer->count, 1, 'one row in ontology before load' );
+lives_ok { Schema->load_ontology( 'gazetteer', 't/data/01_gaz.obo' ) }
   'no error when loading valid ontology';
+is( Gazetteer->count, 13, '13 rows in ontology after load' );
+
+lives_ok { Schema->load_ontology( 'gazetteer', 't/data/01_gaz.obo', 5 ) }
+  'no error when loading valid ontology';
+is( Gazetteer->count, 13, '13 rows in ontology after loading in multiple chunks' );
 
 done_testing;
 

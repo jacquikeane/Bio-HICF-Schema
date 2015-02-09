@@ -270,11 +270,13 @@ sub load_tax_tree {
   # get a simple list of column values for all of the nodes in the tree
   my $nodes = $tree->get_node_values;
 
+  my $rs = $self->resultset('Taxonomy');
+
   # wrap this whole operation in a transaction
   my $txn = sub {
 
     # empty the table before we start
-    $self->resultset('Taxonomy')->delete;
+    $rs->delete;
 
     # since the number of rows to insert will be very large, we'll use the fast
     # insertion routines in DBIC and we'll load in chunks
@@ -293,15 +295,14 @@ sub load_tax_tree {
       # to avoid insertion errors when the last slice isn't full)
       push @$rows, grep defined, @$nodes[$from..$to];
 
-      $self->resultset('Taxonomy')->populate($rows);
+      $rs->populate($rows);
     }
 
   };
 
   # execute the transaction
-  my $rs;
   try {
-    $rs = $self->txn_do( $txn );
+    $self->txn_do( $txn );
   }
   catch ( $e ) {
     if ( $e =~ m/Rollback failed/ ) {
@@ -315,12 +316,30 @@ sub load_tax_tree {
 
 #-------------------------------------------------------------------------------
 
+=head2 load_ontology($table, $file, $?slice_size)
+
+load the given ontology file into the specified table. Requires the name of the
+table to load, which must be one of "gazetteer", "envo", or "brenda".  Requires
+the path to the ontology file to be loaded. Since the ontologies may be large,
+the terms are loaded in chunks of 10,000 at a time. This "slice size" can be
+overridden with the C<$slice_size> parameter.
+
+B<Note> that the specified table is emptied before loading.
+
+Throws exceptions if loading fails. If possible, the entire transaction,
+including the table truncation and any subsequent loading, will be rolled back.
+If roll back fails, the error message will contain the string C<roll back
+failed>.
+
+=cut
+
 sub load_ontology {
   my $self = shift;
-  my ( $table, $file ) = pos_validated_list(
+  my ( $table, $file, $slice_size ) = pos_validated_list(
     \@_,
     { isa => 'Bio::Metadata::Types::OntologyName' },
     { isa => 'Str' },
+    { isa => 'Bio::Metadata::Types::PositiveInt', optional => 1 },
   );
   # TODO the error message that comes back from the validation call is dumb
   # TODO and ugly. Just validate the ontology name ourselves and throw a
@@ -332,50 +351,68 @@ sub load_ontology {
   open ( FILE, $file )
     or croak "ERROR: can't open ontology file ($file): $!";
 
-  # before we start, truncate the table
+  $slice_size ||= 10_000;
   my $rs_name = ucfirst $table;
   my $rs = $self->resultset($rs_name);
-  try {
+
+  # wrap this whole operation in a transaction
+  my $txn = sub {
+
+    # before we start, truncate the table
     $rs->delete;
-  }
-  catch ( DBIx::Class::Exception $e ) {
-    croak "ERROR: there was a problem emptying the '$table' table: $e";
-  }
 
-  # walk the file and load it in chunks
-  my $chunk = [ [ 'id', 'description' ] ];
-  my $term  = [];
-  my $n = 0;
+    # walk the file and load it in chunks
+    my $chunk = [ [ 'id', 'description' ] ];
+    my $term  = [];
+    my $n = 1;
 
-  while ( <FILE> ) {
-    if ( m/^id: (.*?)$/ ) {
-      push @$term, $1;
-    }
-    if ( m/^name: (.*)$/ ) {
-      push @$term, $1;
-      push @$chunk, $term;
-
-      # load every Nth term
-      if ( $n % 10 == 0 ) {
-        try {
-          $rs->populate($chunk);
-        }
-        catch ( $e where {  } ) {
-          croak "ERROR: there was a problem loading the '$table' table: $e";
-        }
-        # reset the chunk array
-        $chunk = [ [ 'id', 'description' ] ];
+    while ( <FILE> ) {
+      if ( m/^id: (.*?)$/ ) {
+        push @$term, $1;
       }
-      $n++;
+      if ( m/^name: (.*)$/ ) {
+        push @$term, $1;
+        push @$chunk, $term;
 
-      $term = [];
+        # load the chunk every Nth term
+        if ( $n % $slice_size == 0 ) {
+          try {
+            $rs->populate($chunk);
+          }
+          catch ( $e ) {
+            croak "ERROR: there was a problem loading the '$table' table: $e";
+          }
+          # reset the chunk array
+          $chunk = [ [ 'id', 'description' ] ];
+        }
+        $n++;
+
+        $term = [];
+      }
+    }
+    # load the last chunk
+    if ( scalar @$chunk > 1 ) {
+      try {
+        $rs->populate($chunk);
+      }
+      catch ( $e ) {
+        croak "ERROR: there was a problem loading the '$table' table: $e";
+      }
+    }
+  };
+
+  # execute the transaction
+  try {
+    $self->txn_do( $txn );
+  }
+  catch ( $e ) {
+    if ( $e =~ m/Rollback failed/ ) {
+      croak "ERROR: loading the ontology failed but roll back failed ($e)";
+    }
+    else {
+      croak "ERROR: loading the ontology failed and the changes were rolled back ($e)";
     }
   }
-  # TODO maybe this should be in a transaction...
-
-  $DB::single = 1;
-
-  return;
 }
 
 #-------------------------------------------------------------------------------
