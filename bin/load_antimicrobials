@@ -23,7 +23,7 @@ use Bio::HICF::Schema;
 
 # define the accepted options
 my ( $opt, $usage ) = describe_options(
-  'load_antimicrobials %o <filename>',
+  '%c %o <filename>',
   [ 'config|c=s', 'path to the configuration file' ],
   [ 'help|h',    'print usage message' ],
 );

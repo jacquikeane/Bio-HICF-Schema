@@ -27,7 +27,7 @@ use Bio::Metadata::TaxTree;
 
 # define the accepted options
 my ( $opt, $usage ) = describe_options(
-  '$0 %o <filename>',
+  '%c %o <filename>',
   [ 'config|c=s', 'path to the configuration file' ],
   [ 'help|h',     'print usage message' ],
 );

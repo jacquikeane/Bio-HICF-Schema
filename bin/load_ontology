@@ -23,7 +23,7 @@ use Bio::HICF::Schema;
 
 # define the accepted options
 my ( $opt, $usage ) = describe_options(
-  '$0 %o <filename>',
+  '%c %o <filename>',
   [ 'ontology|o=s', 'name of the ontology to load' ],
   [ 'config|c=s',   'path to the configuration file' ],
   [ 'help|h',       'print usage message' ],

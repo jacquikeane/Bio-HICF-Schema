@@ -23,7 +23,7 @@ use TryCatch;
 
 # define the accepted options
 my ( $opt, $usage ) = describe_options(
-  '$0 %o <filename>',
+  '%c %o <filename>',
   [ 'checklist|c=s', 'path to the checklist configuration file' ],
   [ 'dbconfig|d=s',  'path to the database configuration file' ],
   [ 'help|h',        'print usage message' ],
