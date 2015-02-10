@@ -362,22 +362,30 @@ sub load_ontology {
     $rs->delete;
 
     # walk the file and load it in chunks
-    my $chunk = [ [ 'id', 'description' ] ];
-    my $term  = [];
-    my $n = 1;
+    my $chunk   = [ [ 'id', 'description' ] ];  # loading chunk
+    my $term    = [];                           # current term
+    my $is_term = 0;                            # is the current block a [Term] ?
+    my $n       = 1;                            # row counter
 
     while ( <FILE> ) {
-      if ( m/^id: (.*?)$/ ) {
+      # make sure we're working with a [Term] and not, for example, a
+      # [Typedef] block, which also have "id: ..." lines
+      if ( m/^\[Term\]/ ) {
+        $is_term = 1;
+      }
+      # if this *is* a [Term] block and we've found an ID, store it
+      if ( m/^id: (.*?)$/ and $is_term ) {
         my $id = $1;
         croak "ERROR: found an invalid ontology term ID ($1)"
           unless $id =~ m/^[A-Z]+:\d+$/;
         push @$term, $id;
       }
-      if ( m/^name: (.*)$/ ) {
+      # and if this is a [Term] and we've found a name for it, store that too
+      if ( m/^name: (.*)$/ and $is_term ) {
         push @$term, $1;
         push @$chunk, $term;
 
-        # load the chunk every Nth term
+        # load the current set of terms every Nth term
         if ( $n % $slice_size == 0 ) {
           try {
             $rs->populate($chunk);
@@ -390,7 +398,9 @@ sub load_ontology {
         }
         $n++;
 
+        # reset for the next [Term]
         $term = [];
+        $is_term = 0;
       }
     }
     # load the last chunk

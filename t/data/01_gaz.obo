@@ -145,3 +145,8 @@ relationship: located_in GAZ:00004832 ! Cambridge
 created_by: michaelashburner
 creation_date: 2011-07-02T11:28:09Z
 
+[Typedef]
+id: adjacent_to
+name: adjacent_to
+xref: RO:0002220
+is_symmetric: true
