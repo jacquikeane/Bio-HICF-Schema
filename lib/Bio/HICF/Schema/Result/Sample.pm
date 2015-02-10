@@ -91,13 +91,13 @@ __PACKAGE__->table("sample");
 
   data_type: 'varchar'
   is_nullable: 1
-  size: 45
+  size: 200
 
 =head2 collected_by
 
   data_type: 'varchar'
   is_nullable: 1
-  size: 45
+  size: 200
 
 =head2 source
 
@@ -115,7 +115,7 @@ __PACKAGE__->table("sample");
 
   data_type: 'varchar'
   is_nullable: 0
-  size: 12
+  size: 15
 
 =head2 host_associated
 
@@ -126,7 +126,7 @@ __PACKAGE__->table("sample");
 
   data_type: 'varchar'
   is_nullable: 1
-  size: 45
+  size: 200
 
 =head2 host_disease_status
 
@@ -138,7 +138,7 @@ __PACKAGE__->table("sample");
 
   data_type: 'varchar'
   is_nullable: 1
-  size: 11
+  size: 15
 
 =head2 patient_location
 
@@ -150,31 +150,27 @@ __PACKAGE__->table("sample");
 
   data_type: 'varchar'
   is_nullable: 1
-  size: 10
+  size: 15
 
 =head2 serovar
 
-  data_type: 'varchar'
+  data_type: 'text'
   is_nullable: 1
-  size: 45
 
 =head2 other_classification
 
-  data_type: 'varchar'
+  data_type: 'text'
   is_nullable: 1
-  size: 45
 
 =head2 strain
 
-  data_type: 'varchar'
+  data_type: 'text'
   is_nullable: 1
-  size: 45
 
 =head2 isolate
 
-  data_type: 'varchar'
+  data_type: 'text'
   is_nullable: 1
-  size: 45
 
 =head2 withdrawn
 
@@ -229,9 +225,9 @@ __PACKAGE__->add_columns(
   "tax_id",
   { data_type => "integer", extra => { unsigned => 1 }, is_nullable => 0 },
   "scientific_name",
-  { data_type => "varchar", is_nullable => 1, size => 45 },
+  { data_type => "varchar", is_nullable => 1, size => 200 },
   "collected_by",
-  { data_type => "varchar", is_nullable => 1, size => 45 },
+  { data_type => "varchar", is_nullable => 1, size => 200 },
   "source",
   { data_type => "varchar", is_nullable => 1, size => 45 },
   "collection_date",
@@ -241,11 +237,11 @@ __PACKAGE__->add_columns(
     is_nullable => 0,
   },
   "location",
-  { data_type => "varchar", is_nullable => 0, size => 12 },
+  { data_type => "varchar", is_nullable => 0, size => 15 },
   "host_associated",
   { data_type => "tinyint", is_nullable => 0 },
   "specific_host",
-  { data_type => "varchar", is_nullable => 1, size => 45 },
+  { data_type => "varchar", is_nullable => 1, size => 200 },
   "host_disease_status",
   {
     data_type => "enum",
@@ -253,7 +249,7 @@ __PACKAGE__->add_columns(
     is_nullable => 1,
   },
   "host_isolation_source",
-  { data_type => "varchar", is_nullable => 1, size => 11 },
+  { data_type => "varchar", is_nullable => 1, size => 15 },
   "patient_location",
   {
     data_type => "enum",
@@ -261,15 +257,15 @@ __PACKAGE__->add_columns(
     is_nullable => 1,
   },
   "isolation_source",
-  { data_type => "varchar", is_nullable => 1, size => 10 },
+  { data_type => "varchar", is_nullable => 1, size => 15 },
   "serovar",
-  { data_type => "varchar", is_nullable => 1, size => 45 },
+  { data_type => "text", is_nullable => 1 },
   "other_classification",
-  { data_type => "varchar", is_nullable => 1, size => 45 },
+  { data_type => "text", is_nullable => 1 },
   "strain",
-  { data_type => "varchar", is_nullable => 1, size => 45 },
+  { data_type => "text", is_nullable => 1 },
   "isolate",
-  { data_type => "varchar", is_nullable => 1, size => 45 },
+  { data_type => "text", is_nullable => 1 },
   "withdrawn",
   { data_type => "varchar", is_nullable => 1, size => 45 },
   "created_at",
@@ -354,8 +350,8 @@ __PACKAGE__->has_many(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07042 @ 2015-02-06 16:55:07
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:hO+7kpOdretmx2oevtMSZw
+# Created by DBIx::Class::Schema::Loader v0.07042 @ 2015-02-10 14:34:41
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:qGfpjeNlPcLzvaVPKscSJg
 
 #-------------------------------------------------------------------------------
 

@@ -48,7 +48,7 @@ __PACKAGE__->table("brenda");
 
   data_type: 'varchar'
   is_nullable: 0
-  size: 11
+  size: 15
 
 =head2 description
 
@@ -60,7 +60,7 @@ __PACKAGE__->table("brenda");
 
 __PACKAGE__->add_columns(
   "id",
-  { data_type => "varchar", is_nullable => 0, size => 11 },
+  { data_type => "varchar", is_nullable => 0, size => 15 },
   "description",
   { data_type => "varchar", is_nullable => 1, size => 45 },
 );
@@ -78,8 +78,8 @@ __PACKAGE__->add_columns(
 __PACKAGE__->set_primary_key("id");
 
 
-# Created by DBIx::Class::Schema::Loader v0.07042 @ 2015-02-06 16:55:06
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:RZVY/Tp/tc3KJlWIgCHycw
+# Created by DBIx::Class::Schema::Loader v0.07042 @ 2015-02-10 14:32:28
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:DS0JwTs8A2UdCndneFxFlg
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration
