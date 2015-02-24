@@ -31,7 +31,7 @@ fixtures_ok 'main', 'installed fixtures';
 
 #-------------------------------------------------------------------------------
 
-my $script = 'bin/set_passwd';
+my $script = 'bin/set_midas_password';
 
 run_ok( $script, [ qw( -h ) ], 'script runs ok with help flag' );
 run_not_ok( $script, [ ], 'script exits with error status when run with no arguments' );
