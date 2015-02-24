@@ -100,15 +100,14 @@ sub load_manifest {
   # run the transaction
   try {
     $self->txn_do( $txn );
-  }
-  catch ( $e ) {
+  } catch ( $e ) {
     if ( $e =~ m/Rollback failed/ ) {
       croak "ERROR: there was an error when loading the manifest but roll back failed: $e";
     }
     else {
       croak "ERROR: there was an error when loading the manifest; changes have been rolled back: $e";
     }
-  }
+  };
 
   return @row_ids;
 }
@@ -223,10 +222,9 @@ sub load_antimicrobial {
 
   try {
     $self->resultset('Antimicrobial')->load_antimicrobial($name);
-  }
-  catch ( $e where { m/did not pass/ } ) {
+  } catch ( $e where { m/did not pass/ } ) {
     croak "ERROR: couldn't load '$name'; invalid antimicrobial compound name";
-  }
+  };
 }
 
 #-------------------------------------------------------------------------------
@@ -304,15 +302,14 @@ sub load_tax_tree {
   # execute the transaction
   try {
     $self->txn_do( $txn );
-  }
-  catch ( $e ) {
+  } catch ( $e ) {
     if ( $e =~ m/Rollback failed/ ) {
       croak "ERROR: loading the tax tree failed but roll back failed ($e)";
     }
     else {
       croak "ERROR: loading the tax tree failed and the changes were rolled back ($e)";
     }
-  }
+  };
 }
 
 #-------------------------------------------------------------------------------
@@ -390,10 +387,9 @@ sub load_ontology {
         if ( $n % $slice_size == 0 ) {
           try {
             $rs->populate($chunk);
-          }
-          catch ( $e ) {
+          } catch ( $e ) {
             croak "ERROR: there was a problem loading the '$table' table: $e";
-          }
+          };
           # reset the chunk array
           $chunk = [ [ 'id', 'description' ] ];
         }
@@ -408,25 +404,23 @@ sub load_ontology {
     if ( scalar @$chunk > 1 ) {
       try {
         $rs->populate($chunk);
-      }
-      catch ( $e ) {
+      } catch ( $e ) {
         croak "ERROR: there was a problem loading the '$table' table: $e";
-      }
+      };
     }
   };
 
   # execute the transaction
   try {
     $self->txn_do( $txn );
-  }
-  catch ( $e ) {
+  } catch ( $e ) {
     if ( $e =~ m/Rollback failed/ ) {
       croak "ERROR: loading the ontology failed but roll back failed ($e)";
     }
     else {
       croak "ERROR: loading the ontology failed and the changes were rolled back ($e)";
     }
-  }
+  };
 }
 
 #-------------------------------------------------------------------------------
@@ -494,10 +488,10 @@ sub add_external_resource {
 
 #-------------------------------------------------------------------------------
 
-=head2 add_new_user
+=head2 add_new_user($user_details)
 
 Adds a new user to the database. Requires one argument, a reference to a hash
-containing three keys:
+containing the following keys:
 
 =over 4
 
@@ -506,6 +500,8 @@ containing three keys:
 =item displayname
 
 =item email
+
+=item passphrase [optional]
 
 =back
 
@@ -538,8 +534,8 @@ sub add_new_user {
     $column_values->{passphrase} = $fields->{passphrase}
   }
   else {
-    # generate a random password and store that
-    $generated_passphrase = ['0'..'9','A'..'Z','a'..'z']->[rand 52] for 1..8;
+    # generate a random passphrase and store that
+    $generated_passphrase = $self->generate_passphrase;
     $column_values->{passphrase} = $generated_passphrase;
   }
 
@@ -557,6 +553,30 @@ sub add_new_user {
 }
 
 #-------------------------------------------------------------------------------
+
+=head2 update_user($user_details)
+
+Update the details for the specified user. Requires a single argument, a
+reference to a hash containg the user details. The hash must contain the
+key C<username>, plus one or more other fields to update. An exception is
+thrown if the username is not supplied, if there are no fields to update,
+or if the user does not exist.
+
+These are the allowed fields:
+
+=over 4
+
+=item username
+
+=item displayname
+
+=item email
+
+=item passphrase
+
+=back
+
+=cut
 
 sub update_user {
   my ( $self, $fields ) = @_;
@@ -595,58 +615,75 @@ sub update_user {
 
 #-------------------------------------------------------------------------------
 
-sub set_password {
+=head2 set_passphrase($username,$passphrase)
+
+Set the passphrase for the specified user.
+
+=cut
+
+sub set_passphrase {
   my ( $self, $username, $passphrase ) = @_;
 
   croak 'ERROR: must supply a username and a passphrase'
     unless ( defined $username and defined $passphrase );
 
-  my $rs = $self->resultset('User')
-                ->update_or_create( {
-                  username   => $username,
-                  passphrase => $passphrase
-                } );
+  my $user = $self->resultset('User')
+                  ->find($username);
 
-  croak "ERROR: failed to set password for '$username'"
-    unless defined $rs;
+  croak "ERROR: user '$username' does not exist; use 'add_user' to add"
+    unless defined $user;
+
+  $user->update( {
+    username   => $username,
+    passphrase => $passphrase
+  } );
 }
 
 #-------------------------------------------------------------------------------
 
-# sub reset_password {
-#   my ( $self, $username ) = @_;
-#
-#   croak 'ERROR: must supply a username' unless defined $username;
-#
-#   my $user = $self->resultset('User')->find($username);
-#
-#   croak "ERROR: user '$username' does not exist; use 'add_user' to add"
-#     unless defined $user;
-# }
+=head2 reset_passphrase($username)
+
+Resets the password for the specified user. The reset password is automatically
+generated and is returned to the caller.
+
+=cut
+
+sub reset_passphrase {
+  my ( $self, $username ) = @_;
+
+  croak 'ERROR: must supply a username' unless defined $username;
+
+  my $generated_passphrase = $self->generate_passphrase;
+
+  my $user = $self->resultset('User')->find($username);
+
+  croak "ERROR: user '$username' does not exist; use 'add_user' to add"
+    unless defined $user;
+
+  $user->update( { passphrase => $generated_passphrase } );
+
+  return $generated_passphrase;
+}
 
 #-------------------------------------------------------------------------------
-#- private methods -------------------------------------------------------------
-#-------------------------------------------------------------------------------
 
-sub _get_password {
-  my $prompt = shift;
-  print $prompt || 'password: ';
+=head2 generate_passphrase($length?)
 
-  ReadMode('cbreak');
-  $SIG{INT} = sub { ReadMode('restore'); die 'ERROR: interrupted' };
+Generates a random passphrase string. If C<$length> is supplied, the passphrase
+will contain C<$length> characters from the set C<[A-Za-z0-9]>. If C<$length>
+is not specified, the passphrase will contain 8 characters.
 
-  my $password = '';
-  while (1) {
-    my $c;
-    1 until defined ( $c = ReadKey(-1) );
-    last if $c eq "\n";
-    print "•";
-    $password .= $c;
-  }
-  print "\n";
-  ReadMode('restore');
+=cut
 
-  return $password;
+sub generate_passphrase {
+  my ( $self, $length ) = @_;
+
+  $length ||= 8;
+
+  my $generated_passphrase = '';
+  $generated_passphrase .= ['0'..'9','A'..'Z','a'..'z']->[rand 52] for 1..$length;
+
+  return $generated_passphrase;
 }
 
 #-------------------------------------------------------------------------------
