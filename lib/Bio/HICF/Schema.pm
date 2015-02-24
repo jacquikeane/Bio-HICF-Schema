@@ -530,7 +530,8 @@ sub add_new_user {
   };
 
   my $generated_passphrase;
-  if ( defined $fields->{passphrase} ) {
+  if ( defined $fields->{passphrase} and
+       $fields->{passphrase} ne '' ) {
     $column_values->{passphrase} = $fields->{passphrase}
   }
   else {
@@ -670,8 +671,9 @@ sub reset_passphrase {
 =head2 generate_passphrase($length?)
 
 Generates a random passphrase string. If C<$length> is supplied, the passphrase
-will contain C<$length> characters from the set C<[A-Za-z0-9]>. If C<$length>
-is not specified, the passphrase will contain 8 characters.
+will contain C<$length> characters from the set C<[A-NP-Za-z1-9]> i.e. omitting
+zero and the capital letter "O", for clarity. If C<$length> is not specified, the
+passphrase will contain 8 characters.
 
 =cut
 
@@ -681,7 +683,7 @@ sub generate_passphrase {
   $length ||= 8;
 
   my $generated_passphrase = '';
-  $generated_passphrase .= ['0'..'9','A'..'Z','a'..'z']->[rand 52] for 1..$length;
+  $generated_passphrase .= ['1'..'9','A'..'N','P'..'Z','a'..'z']->[rand 52] for 1..$length;
 
   return $generated_passphrase;
 }

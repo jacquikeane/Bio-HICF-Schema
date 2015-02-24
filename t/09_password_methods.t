@@ -62,10 +62,27 @@ throws_ok { Schema->add_new_user($user_details) }
 
 $user_details->{username} = 'user2';
 
-lives_ok { Schema->add_new_user($user_details) }
+my $returned_passphrase;
+lives_ok { $returned_passphrase = Schema->add_new_user($user_details) }
   'no error when adding second new user';
 
+ok( $returned_passphrase eq '', 'returned passphrase is empty' );
+
 is( User->count, 2, 'two users after loading second user' );
+
+User->find('user2')->delete;
+
+$user_details->{passphrase} = undef;
+
+$returned_passphrase = Schema->add_new_user($user_details);
+like( $returned_passphrase, qr/^[A-Za-z0-9]{8}$/, "returned passphrase ($returned_passphrase) looks sensible" );
+
+User->find('user2')->delete;
+
+$user_details->{passphrase} = '';
+
+$returned_passphrase = Schema->add_new_user($user_details);
+like( $returned_passphrase, qr/^[A-Za-z0-9]{8}$/, "returned passphrase ($returned_passphrase) looks sensible when passing in '' for passphrase" );
 
 $user_details->{displayname} = 'A User';
 lives_ok { Schema->update_user($user_details) }

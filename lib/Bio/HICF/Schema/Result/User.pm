@@ -67,7 +67,7 @@ __PACKAGE__->table("user");
 =head2 email
 
   data_type: 'varchar'
-  is_nullable: 1
+  is_nullable: 0
   size: 128
 
 =cut
@@ -88,7 +88,7 @@ __PACKAGE__->add_columns(
   "displayname",
   { data_type => "varchar", is_nullable => 1, size => 64 },
   "email",
-  { data_type => "varchar", is_nullable => 1, size => 128 },
+  { data_type => "varchar", is_nullable => 0, size => 128 },
 );
 
 =head1 PRIMARY KEY
@@ -121,8 +121,8 @@ __PACKAGE__->has_many(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07042 @ 2015-02-24 16:17:36
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:WvlobA2hp/DPg+E6a3Rx7Q
+# Created by DBIx::Class::Schema::Loader v0.07042 @ 2015-02-24 22:13:25
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:vLWL0D7NdUtfLAxcs4yb0g
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration

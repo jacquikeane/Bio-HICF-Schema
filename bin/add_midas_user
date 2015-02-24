@@ -1,0 +1,237 @@
+#!/usr/bin/env perl
+#
+# add_midas_user
+# jt6 20150224 WTSI
+#
+# add a new MIDAS website user
+
+# ABSTRACT: add a new MIDAS website user
+# PODNAME: add_midas_user
+
+use strict;
+use warnings;
+
+use utf8;
+use Config::General;
+use Getopt::Long::Descriptive;
+use Pod::Usage;
+use Bio::HICF::Schema;
+use Term::ReadKey;
+use open qw( :std :utf8 );
+use TryCatch;
+use Carp qw( croak );
+
+#-------------------------------------------------------------------------------
+# configuration
+
+my ( $opt, $usage ) = describe_options(
+  '%c %o',
+  [ 'dbconfig|d=s',   'path to the database configuration file' ],
+  [ 'username|u=s',   'the username for the new user' ],
+  [ 'passphrase|p:s', 'set a password for the user' ],
+  [ 'email|e=s',      "the email address for the user" ],
+  [ 'name|n=s',       "the display name for the user" ],
+  [ 'help|h',         'print usage message' ],
+);
+
+pod2usage( { -verbose => 2, -exitval => 0 } ) if $opt->help;
+
+my $config_file = $opt->dbconfig || $ENV{HICF_CONFIG};
+my $username    = $opt->username;
+my $passphrase  = $opt->passphrase;
+my $email       = $opt->email;
+my $displayname = $opt->name;
+
+_usage('ERROR: you must specify a script configuration file')
+  unless defined $config_file;
+
+_usage('ERROR: you must specify a username')
+  unless defined $username;
+
+_usage('ERROR: you must specify an email address')
+  unless defined $email;
+
+my $cg;
+try {
+  $cg = Config::General->new($config_file);
+}
+catch ($e) {
+  croak "ERROR: there was a problem reading the configuration file: $e";
+}
+
+my %config = $cg->getall;
+
+my $schema = Bio::HICF::Schema->connect( @{ $config{database}->{connect_info} } );
+
+#-------------------------------------------------------------------------------
+
+# if "-p" wasn't specified on the command line, we'll let the schema set a
+# password and we'll print that in the script output
+
+# if "-p" was specified on the command line and a value was given, $passphrase
+# will be defined and have a value; we'll just use that
+
+# if "-p" was specified but no value was given, $passphrase will be defined but
+# have no value. In that case we'll ask the user to provide a passphrase
+if ( defined $passphrase and $passphrase eq '' ) {
+  my $np1 = _get_password('enter password: ');
+  my $np2 = _get_password('re-enter password: ');
+  croak 'ERROR: passwords do not match' unless $np1 eq $np2;
+  $passphrase = $np1;
+}
+
+my $user_details = {
+  username    => $username,
+  passphrase  => $passphrase,
+  email       => $email,
+  displayname => $displayname,
+};
+
+# if a passphrase is provided, the return value is the empty string. If no
+# passphrase is provided, the schema sets a random passphrase and returns it.
+my $returned_passphrase = $schema->add_new_user($user_details);
+
+print "user '$username' has been created";
+print $returned_passphrase
+      ? ". The password was set to '$returned_passphrase'\n"
+      : "\n";
+
+exit;
+
+#-------------------------------------------------------------------------------
+#- functions -------------------------------------------------------------------
+#-------------------------------------------------------------------------------
+
+sub _get_password {
+  my $prompt = shift;
+  print $prompt || 'password: ';
+
+  ReadMode('cbreak');
+  $SIG{INT} = sub { ReadMode('restore'); die 'ERROR: interrupted' };
+
+  my $password = '';
+  while (1) {
+    my $c;
+    1 until defined ( $c = ReadKey(-1) );
+    last if $c eq "\n";
+    print "•";
+    $password .= $c;
+  }
+  print "\n";
+  ReadMode('restore');
+
+  return $password;
+}
+
+#-------------------------------------------------------------------------------
+
+sub _usage {
+  my $msg = shift;
+
+  print STDERR "$msg\n";
+  print $usage->text;
+  exit 1;
+}
+
+#-------------------------------------------------------------------------------
+
+__END__
+
+=head1 SYNOPSIS
+
+ shell% add_midas_user -d db.conf -u abc -e 'user@example.com' -n 'User Name' -p ABCpass0
+ user 'abc' has been created
+
+Passwords can be set in several ways. Either specify the password on the
+command line:
+
+ shell% add_midas_user -d db.conf -u abc -e 'user@example.com' -p ABCpass0
+ user 'abc' has been created
+
+or give the C<-p> flag but don't provide a value, and let the script prompt
+for a password:
+
+ shell% add_midas_user -d db.conf -u abc -e 'user@example.com' -p
+ enter password:
+ re-enter password:
+ user 'abc' has been created
+
+or let the script generate a random password for the user:
+
+ shell% add_midas_user -d db.conf -u abc -e 'user@example.com'
+ user 'abc' has been created. The password was set to 'jF8TADoH'
+
+=head1 DESCRIPTION
+
+This script creates a new user in the MIDAS user database.
+The database connection parameters are obtained from the configuration file
+specified using C<--dbconfig>.
+
+The username and email address are required parameters. The password can be
+set in three ways:
+
+=over 4
+
+=item on the command line
+
+use the C<-p> option and provide a password
+
+=item interactively
+
+use the C<-p> option but don't provide a password; the script will prompt
+you to enter the password twice
+
+=item set automatically
+
+don't give the C<-p> flag; the script will set a random password for the
+user and return it
+
+=back
+
+If any of the arguments have spaces in them, be sure to put the value in quotes
+('User Name') or escape the space character (User\ name). Similarly, quote or
+escape the username to avoid problems with shell expansion (user\@example.com
+or 'user@example.com').
+
+=head1 OPTIONS
+
+=over 4
+
+=item -d --dbconfig
+
+configuration file with database connection parameters. B<Required>.
+
+=item -u --username
+
+username for the new user. B<Required>.
+
+=item -e --email
+
+the email address for the new user. B<Required>.
+
+=item -p --password
+
+the password to set for the user. If no value is given the script will prompt
+for a password
+
+=item -n --name
+
+the "display name" of the user
+
+=item -h --help
+
+display help text
+
+=back
+
+=head1 SEE ALSO
+
+C<Bio::HICF::Schema>
+C<set_midas_password>
+
+=head1 CONTACT
+
+path-help@sanger.ac.uk
+
+=cut
+
