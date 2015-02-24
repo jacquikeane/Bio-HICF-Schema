@@ -1,0 +1,111 @@
+#!/usr/bin/env perl
+#
+# set_password
+# jt6 20150224 WTSI
+#
+# set the password for the user
+
+# ABSTRACT: set the password for the given user
+# PODNAME: set_password
+
+use strict;
+use warnings;
+
+use utf8;
+use Config::General;
+use Getopt::Long::Descriptive;
+use Pod::Usage;
+use Bio::HICF::Schema;
+use Term::ReadKey;
+use open qw( :std :utf8 );
+use TryCatch;
+use Carp qw( croak );
+
+#-------------------------------------------------------------------------------
+# configuration
+
+my ( $opt, $usage ) = describe_options(
+  '%c %o',
+  [ 'dbconfig|d=s', 'path to the database configuration file' ],
+  [ 'username|u=s', 'the username whose password will be changed' ],
+  [ 'help|h',       'print usage message' ],
+);
+
+pod2usage( { -verbose => 2, -exitval => 0 } ) if $opt->help;
+
+my $config_file = $opt->dbconfig || $ENV{HICF_CONFIG};
+my $username    = $opt->username;
+
+_usage('ERROR: you must specify a script configuration file')
+  unless defined $config_file;
+
+_usage('ERROR: you must specify a username')
+  unless defined $username;
+
+my $cg;
+try {
+  $cg = Config::General->new($config_file);
+}
+catch ($e) {
+  croak "ERROR: there was a problem reading the configuration file: $e";
+}
+
+my %config = $cg->getall;
+
+my $schema = Bio::HICF::Schema->connect( @{ $config{database}->{connect_info} } );
+
+#-------------------------------------------------------------------------------
+
+# get the new password. Twice.
+
+my $np1 = _get_password('enter password: ');
+my $np2 = _get_password('re-enter password: ');
+
+print "|$np1|$np2|\n";
+
+croak 'ERROR: passwords do not match' unless $np1 eq $np2;
+
+my $rs = $schema->resultset('User')
+                ->update_or_create( { username => $username, passphrase => $np1 } );
+
+exit;
+
+#-------------------------------------------------------------------------------
+#- functions -------------------------------------------------------------------
+#-------------------------------------------------------------------------------
+
+sub _get_password {
+  my $prompt = shift;
+  print $prompt || 'password: ';
+
+  ReadMode('cbreak');
+  $SIG{INT} = sub { ReadMode('restore'); die 'ERROR: interrupted' };
+
+  my $password = '';
+  while (1) {
+    my $c;
+    1 until defined ( $c = ReadKey(-1) );
+    last if $c eq "\n";
+    print "•";
+    $password .= $c;
+  }
+  print "\n";
+  ReadMode('restore');
+
+  return $password;
+}
+
+#-------------------------------------------------------------------------------
+
+sub _usage {
+  my $msg = shift;
+
+  print STDERR "$msg\n";
+  print $usage->text;
+  exit 1;
+}
+
+#-------------------------------------------------------------------------------
+
+__END__
+
