@@ -30,11 +30,13 @@ extends 'DBIx::Class::Core';
 
 =item * L<DBIx::Class::TimeStamp>
 
+=item * L<DBIx::Class::PassphraseColumn>
+
 =back
 
 =cut
 
-__PACKAGE__->load_components("InflateColumn::DateTime", "TimeStamp");
+__PACKAGE__->load_components("InflateColumn::DateTime", "TimeStamp", "PassphraseColumn");
 
 =head1 TABLE: C<antimicrobial_resistance>
 
@@ -195,8 +197,8 @@ __PACKAGE__->belongs_to(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07042 @ 2015-02-04 13:47:23
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:5QIUENAs/yzOhleydY5Mvg
+# Created by DBIx::Class::Schema::Loader v0.07042 @ 2015-02-24 13:54:24
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:4+OIXlx0+bWEowp4D0053A
 
 #-------------------------------------------------------------------------------
 

@@ -30,11 +30,13 @@ extends 'DBIx::Class::Core';
 
 =item * L<DBIx::Class::TimeStamp>
 
+=item * L<DBIx::Class::PassphraseColumn>
+
 =back
 
 =cut
 
-__PACKAGE__->load_components("InflateColumn::DateTime", "TimeStamp");
+__PACKAGE__->load_components("InflateColumn::DateTime", "TimeStamp", "PassphraseColumn");
 
 =head1 TABLE: C<brenda>
 
@@ -78,8 +80,8 @@ __PACKAGE__->add_columns(
 __PACKAGE__->set_primary_key("id");
 
 
-# Created by DBIx::Class::Schema::Loader v0.07042 @ 2015-02-10 14:32:28
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:DS0JwTs8A2UdCndneFxFlg
+# Created by DBIx::Class::Schema::Loader v0.07042 @ 2015-02-24 13:54:24
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:3Ir/WuG9Ka+BZ9OdvgBskA
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration

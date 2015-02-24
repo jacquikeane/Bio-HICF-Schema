@@ -26,11 +26,13 @@ extends 'DBIx::Class::Core';
 
 =item * L<DBIx::Class::TimeStamp>
 
+=item * L<DBIx::Class::PassphraseColumn>
+
 =back
 
 =cut
 
-__PACKAGE__->load_components("InflateColumn::DateTime", "TimeStamp");
+__PACKAGE__->load_components("InflateColumn::DateTime", "TimeStamp", "PassphraseColumn");
 
 =head1 TABLE: C<antimicrobial>
 
@@ -123,8 +125,8 @@ __PACKAGE__->has_many(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07042 @ 2015-02-04 10:29:13
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:GlJbfq7e3vq2izmTCCuo0g
+# Created by DBIx::Class::Schema::Loader v0.07042 @ 2015-02-24 13:54:24
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:S/gjfVh47baP6ToHz7l8CQ
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration

@@ -30,11 +30,13 @@ extends 'DBIx::Class::Core';
 
 =item * L<DBIx::Class::TimeStamp>
 
+=item * L<DBIx::Class::PassphraseColumn>
+
 =back
 
 =cut
 
-__PACKAGE__->load_components("InflateColumn::DateTime", "TimeStamp");
+__PACKAGE__->load_components("InflateColumn::DateTime", "TimeStamp", "PassphraseColumn");
 
 =head1 TABLE: C<taxonomy>
 
@@ -101,8 +103,8 @@ __PACKAGE__->add_columns(
 __PACKAGE__->set_primary_key("tax_id");
 
 
-# Created by DBIx::Class::Schema::Loader v0.07042 @ 2015-02-04 13:47:23
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:8QzNOzUtj7oJ1pz2CNrZdA
+# Created by DBIx::Class::Schema::Loader v0.07042 @ 2015-02-24 13:54:25
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:6Qhe80y8F33FnwAsdF2dcg
 
 
 __PACKAGE__->add_unique_constraint( 'name_uq', [ 'name' ] );

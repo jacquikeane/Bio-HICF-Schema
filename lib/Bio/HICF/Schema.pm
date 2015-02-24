@@ -35,6 +35,7 @@ use Bio::Metadata::TaxTree;
 use List::MoreUtils qw( mesh );
 use TryCatch;
 use MooseX::Params::Validate;
+use Email::Valid;
 
 #-------------------------------------------------------------------------------
 
@@ -485,12 +486,167 @@ sub add_external_resource {
   my $resource = $self->resultset('ExternalResource')
                       ->find_or_new( $resource_spec );
 
-  if ( $resource->in_storage ) {
-    croak 'ERROR: this resource already exists'
+  croak 'ERROR: this resource already exists'
+    if $resource->in_storage;
+
+  $resource->insert;
+}
+
+#-------------------------------------------------------------------------------
+
+=head2 add_new_user
+
+Adds a new user to the database. Requires one argument, a reference to a hash
+containing three keys:
+
+=over 4
+
+=item username
+
+=item displayname
+
+=item email
+
+=back
+
+If the key C<passphrase> is present in the hash, its value will be used to
+set the passphrase for the user. If there is no supplied passphrase, a
+random passphrase will be generated and returned.
+
+=cut
+
+sub add_new_user {
+  my ( $self, $fields ) = @_;
+
+  croak 'ERROR: one of the required fields is missing'
+    unless ( defined $fields->{username} and
+             defined $fields->{displayname} and
+             defined $fields->{email} );
+
+  # make sure the email address is at least well-formed
+  croak "ERROR: not a valid email address ($fields->{email})"
+    unless Email::Valid->address($fields->{email});
+
+  my $column_values = {
+    username    => $fields->{username},
+    displayname => $fields->{displayname},
+    email       => $fields->{email},
+  };
+
+  my $generated_passphrase;
+  if ( defined $fields->{passphrase} ) {
+    $column_values->{passphrase} = $fields->{passphrase}
   }
   else {
-    $resource->insert;
+    # generate a random password and store that
+    $generated_passphrase = ['0'..'9','A'..'Z','a'..'z']->[rand 52] for 1..8;
+    $column_values->{passphrase} = $generated_passphrase;
   }
+
+  # TODO maybe implement roles
+
+  my $user = $self->resultset('User')
+                  ->find_or_new( $column_values );
+
+  croak 'ERROR: user already exists; use "update_user" to update'
+    if $user->in_storage;
+
+  $user->insert;
+
+  return $generated_passphrase;
+}
+
+#-------------------------------------------------------------------------------
+
+sub update_user {
+  my ( $self, $fields ) = @_;
+
+  croak 'ERROR: must supply a username'
+    unless defined $fields->{username};
+
+  # we need something to update...
+  croak 'ERROR: must supply fields to update'
+    unless scalar( keys %$fields ) > 1;
+
+  my $column_values = {
+    username => $fields->{username},
+  };
+
+  if ( defined $fields->{email} ) {
+    # make sure the email address is at least well-formed
+    croak "ERROR: not a valid email address ($fields->{email})"
+      unless Email::Valid->address($fields->{email});
+    $column_values->{email} = $fields->{email};
+  }
+
+  $column_values->{displayname} = $fields->{displayname} if defined $fields->{displayname};
+  $column_values->{passphrase}  = $fields->{passphrase}  if defined $fields->{passphrase};
+
+  # TODO maybe implement roles
+
+  my $user = $self->resultset('User')
+                  ->find( $column_values->{username} );
+
+  croak "ERROR: user '$fields->{username}' does not exist; use 'add_user' to add"
+    unless defined $user;
+
+  $user->update( $column_values );
+}
+
+#-------------------------------------------------------------------------------
+
+sub set_password {
+  my ( $self, $username, $passphrase ) = @_;
+
+  croak 'ERROR: must supply a username and a passphrase'
+    unless ( defined $username and defined $passphrase );
+
+  my $rs = $self->resultset('User')
+                ->update_or_create( {
+                  username   => $username,
+                  passphrase => $passphrase
+                } );
+
+  croak "ERROR: failed to set password for '$username'"
+    unless defined $rs;
+}
+
+#-------------------------------------------------------------------------------
+
+# sub reset_password {
+#   my ( $self, $username ) = @_;
+#
+#   croak 'ERROR: must supply a username' unless defined $username;
+#
+#   my $user = $self->resultset('User')->find($username);
+#
+#   croak "ERROR: user '$username' does not exist; use 'add_user' to add"
+#     unless defined $user;
+# }
+
+#-------------------------------------------------------------------------------
+#- private methods -------------------------------------------------------------
+#-------------------------------------------------------------------------------
+
+sub _get_password {
+  my $prompt = shift;
+  print $prompt || 'password: ';
+
+  ReadMode('cbreak');
+  $SIG{INT} = sub { ReadMode('restore'); die 'ERROR: interrupted' };
+
+  my $password = '';
+  while (1) {
+    my $c;
+    1 until defined ( $c = ReadKey(-1) );
+    last if $c eq "\n";
+    print "•";
+    $password .= $c;
+  }
+  print "\n";
+  ReadMode('restore');
+
+  return $password;
 }
 
 #-------------------------------------------------------------------------------
