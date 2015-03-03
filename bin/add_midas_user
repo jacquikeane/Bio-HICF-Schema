@@ -42,13 +42,13 @@ my $passphrase  = $opt->passphrase;
 my $email       = $opt->email;
 my $displayname = $opt->name;
 
-_usage('ERROR: you must specify a script configuration file')
+_usage($usage, 'ERROR: you must specify a script configuration file')
   unless defined $config_file;
 
-_usage('ERROR: you must specify a username')
+_usage($usage, 'ERROR: you must specify a username')
   unless defined $username;
 
-_usage('ERROR: you must specify an email address')
+_usage($usage, 'ERROR: you must specify an email address')
   unless defined $email;
 
 my $cg;
@@ -133,7 +133,7 @@ sub _get_password {
 #-------------------------------------------------------------------------------
 
 sub _usage {
-  my $msg = shift;
+  my ( $usage, $msg ) = @_;
 
   print STDERR "$msg\n";
   print $usage->text;

@@ -39,16 +39,16 @@ my $config_file = $opt->config || $ENV{HICF_CONFIG};
 my $ontology    = $opt->ontology;
 my $file        = shift;
 
-_usage('ERROR: you must specify a configuration file')
+_usage($usage, 'ERROR: you must specify a configuration file')
   unless defined $config_file;
 
-_usage("ERROR: no such configuration file ($config_file)")
+_usage($usage, "ERROR: no such configuration file ($config_file)")
   unless -f $config_file;
 
-_usage('ERROR: you must specify an ontology name')
+_usage($usage, 'ERROR: you must specify an ontology name')
   unless defined $ontology;
 
-_usage('ERROR: you must specify an input file')
+_usage($usage, 'ERROR: you must specify an input file')
   unless ( defined $file and -f $file );
 
 #-------------------------------------------------------------------------------
@@ -65,7 +65,7 @@ catch ( $e ) {
 my %config = $cg->getall;
 
 # check that we have details for the specified ontology in the config
-_usage("ERROR: not a valid ontology name ($ontology)")
+_usage($usage, "ERROR: not a valid ontology name ($ontology)")
   unless exists $config{ontology}->{$ontology};
 
 # get a database connection
@@ -101,7 +101,7 @@ exit 0;
 #-------------------------------------------------------------------------------
 
 sub _usage {
-  my $msg = shift;
+  my ( $usage, $msg ) = @_;
 
   print STDERR "$msg\n";
   print $usage->text;
