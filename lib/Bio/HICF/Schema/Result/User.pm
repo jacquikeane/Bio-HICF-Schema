@@ -70,6 +70,19 @@ __PACKAGE__->table("user");
   is_nullable: 0
   size: 128
 
+=head2 roles
+
+  data_type: 'varchar'
+  default_value: 'user'
+  is_nullable: 1
+  size: 128
+
+=head2 api_key
+
+  data_type: 'char'
+  is_nullable: 1
+  size: 32
+
 =cut
 
 __PACKAGE__->add_columns(
@@ -89,6 +102,15 @@ __PACKAGE__->add_columns(
   { data_type => "varchar", is_nullable => 1, size => 64 },
   "email",
   { data_type => "varchar", is_nullable => 0, size => 128 },
+  "roles",
+  {
+    data_type => "varchar",
+    default_value => "user",
+    is_nullable => 1,
+    size => 128,
+  },
+  "api_key",
+  { data_type => "char", is_nullable => 1, size => 32 },
 );
 
 =head1 PRIMARY KEY
@@ -121,10 +143,59 @@ __PACKAGE__->has_many(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07042 @ 2015-02-24 22:13:25
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:vLWL0D7NdUtfLAxcs4yb0g
+# Created by DBIx::Class::Schema::Loader v0.07042 @ 2015-03-02 15:24:03
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:E4Jd4aSgHG6j3SzJyqYsKg
 
+=head2 set_passphrase($passphrase)
 
-# You can replace this text with custom code or comments, and it will be preserved on regeneration
+Sets the passphrase for this user.
+
+=cut
+
+sub set_passphrase {
+  my ( $self, $passphrase ) = @_;
+
+  $self->update( { passphrase => $passphrase } );
+}
+
+#-------------------------------------------------------------------------------
+
+=head2 reset_passphrase
+
+Generates a new passphrase for the current user. The passphrase is set on the
+row and returned to the caller.
+
+=cut
+
+sub reset_passphrase {
+  my $self = shift;
+
+  my $generated_passphrase = $self->result_source->schema->generate_passphrase;
+
+  $self->update( { passphrase => $generated_passphrase } );
+
+  return $generated_passphrase;
+}
+
+#-------------------------------------------------------------------------------
+
+=head2 reset_api_key
+
+Resets the API key for this user and returns it.
+
+=cut
+
+sub reset_api_key {
+  my $self = shift;
+
+  my $api_key = $self->result_source->schema->generate_passphrase(32);
+
+  $self->update( { api_key => $api_key } );
+
+  return $api_key;
+}
+
+#-------------------------------------------------------------------------------
+
 __PACKAGE__->meta->make_immutable;
 1;

@@ -128,5 +128,28 @@ is( length $passphrase, 8, 'default passphrase contains 8 characters' );
 ok( $passphrase = Schema->generate_passphrase(32), 'password generation works with length specified' );
 like( $passphrase, qr/^[A-Za-z0-9]{32}$/, 'passphrase has sensible content' );
 
+
+
+
+
+is( $user->api_key, undef, 'no API key for user before setting it' );
+my $key;
+lives_ok { $key = $user->reset_api_key } 'no error when resetting API key';
+like( $key, qr/^[A-za-z0-9]{32}$/, "key looks sensible ('$key')" );
+
+my $new_key;
+lives_ok { $new_key = $user->reset_api_key } 'no error when resetting a second time';
+like( $new_key, qr/^[A-za-z0-9]{32}$/, "new key looks sensible ('$new_key')" );
+isnt( $key, $new_key, 'key has changed' );
+
+throws_ok { Schema->reset_api_key() }
+  qr/must supply a username/,
+  'error when trying to reset API key while not supplying username';
+throws_ok { Schema->reset_api_key('nonexistentuser') }
+  qr/does not exist/,
+  'error when trying to reset API key for non-existent user';
+lives_ok { $key = Schema->reset_api_key('user1') } 'can reset password via schema';
+isnt( $key, $new_key, 'key has changed' );
+
 done_testing;
 

@@ -246,70 +246,15 @@ sub load_antimicrobial_resistance {
 
 =head2 load_tax_tree($tree, $?slice_size)
 
-load the given tree into the taxonomy table. Requires a reference to a
-L<Bio::Metadata::TaxTree> object containing the tree data. The rows
-representing the tree nodes are loaded in chunks of 1000 rows at a time
-(default). This "slice size" can be overridden with the C<$slice_size>
-parameter.
-
-B<Note> that the C<taxonomy> table will be truncated before loading.
-
-Throws DBIC exceptions if loading fails. If possible, the entire transaction,
-including the table truncation and any subsequent loading, will be rolled back.
-If roll back fails, the error message will contain the string C<roll back
-failed>.
+load the given tree into the taxonomy table. 
+See L<Bio::HICF::Schema::ResultSet::Taxonomy::load_tax_tree>.
 
 =cut
 
 sub load_tax_tree {
   my ( $self, $tree, $slice_size ) = @_;
 
-  $slice_size ||= 1000;
-
-  # get a simple list of column values for all of the nodes in the tree
-  my $nodes = $tree->get_node_values;
-
-  my $rs = $self->resultset('Taxonomy');
-
-  # wrap this whole operation in a transaction
-  my $txn = sub {
-
-    # empty the table before we start
-    $rs->delete;
-
-    # since the number of rows to insert will be very large, we'll use the fast
-    # insertion routines in DBIC and we'll load in chunks
-    for ( my $i = 0; $i < scalar @$nodes; $i = $i + $slice_size ) {
-
-      # the column names must be the first row
-      my $rows = [
-        [ qw( tax_id name lft rgt parent_tax_id ) ]
-      ];
-
-      # work out the bounds of the array slice
-      my $from = $i,
-      my $to   = $i + $slice_size - 1;
-
-      # add the slice to the list of rows, grepping out undefined rows (needed
-      # to avoid insertion errors when the last slice isn't full)
-      push @$rows, grep defined, @$nodes[$from..$to];
-
-      $rs->populate($rows);
-    }
-
-  };
-
-  # execute the transaction
-  try {
-    $self->txn_do( $txn );
-  } catch ( $e ) {
-    if ( $e =~ m/Rollback failed/ ) {
-      croak "ERROR: loading the tax tree failed but roll back failed ($e)";
-    }
-    else {
-      croak "ERROR: loading the tax tree failed and the changes were rolled back ($e)";
-    }
-  };
+  $self->resultset('Taxonomy')->load_tree($tree, $slice_size);
 }
 
 #-------------------------------------------------------------------------------
@@ -634,10 +579,7 @@ sub set_passphrase {
   croak "ERROR: user '$username' does not exist; use 'add_user' to add"
     unless defined $user;
 
-  $user->update( {
-    username   => $username,
-    passphrase => $passphrase
-  } );
+  $user->set_passphrase($passphrase);
 }
 
 #-------------------------------------------------------------------------------
@@ -654,16 +596,37 @@ sub reset_passphrase {
 
   croak 'ERROR: must supply a username' unless defined $username;
 
-  my $generated_passphrase = $self->generate_passphrase;
-
   my $user = $self->resultset('User')->find($username);
 
   croak "ERROR: user '$username' does not exist; use 'add_user' to add"
     unless defined $user;
 
-  $user->update( { passphrase => $generated_passphrase } );
+  return $user->reset_passphrase;
+}
 
-  return $generated_passphrase;
+#-------------------------------------------------------------------------------
+
+=head2 set_api_key($username)
+
+Reset the API key for the specified user. The API key cannot be supplied; it
+will be generated automatically and returned to the caller.
+
+=cut
+
+sub reset_api_key {
+  my ( $self, $username ) = @_;
+
+  croak 'ERROR: must supply a username' unless defined $username;
+
+  my $user = $self->resultset('User')
+                  ->find($username);
+
+  croak "ERROR: user '$username' does not exist; use 'add_user' to add"
+    unless defined $user;
+
+  $user->reset_api_key;
+
+  return $user->api_key;
 }
 
 #-------------------------------------------------------------------------------
@@ -676,6 +639,8 @@ zero and the capital letter "O", for clarity. If C<$length> is not specified, th
 passphrase will contain 8 characters.
 
 =cut
+
+# TODO this should be moved into a base class that everything else inherits from
 
 sub generate_passphrase {
   my ( $self, $length ) = @_;
