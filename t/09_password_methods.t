@@ -49,12 +49,12 @@ my $user;
 ok( $user = User->find('user1'), 'got row using username' );
 is( $user->email, $user_details->{email}, 'got expected email address from DB' );
 
-ok( $user->check_passphrase('user1_passphrase'), 'passphrase checks out' );
+ok( $user->check_password('user1_passphrase'), 'passphrase checks out' );
 
 isa_ok( $user->passphrase, 'Authen::Passphrase' );
 
 ok( $user->passphrase('new_passphrase'), 'successfully reset passphrase for user' );
-ok( $user->check_passphrase('new_passphrase'), 'new passphrase checks out' );
+ok( $user->check_password('new_passphrase'), 'new passphrase checks out' );
 
 throws_ok { Schema->add_new_user($user_details) }
   qr/user already exists/,
@@ -102,7 +102,7 @@ throws_ok { Schema->update_user({username => 'nosuchuser', displayname => 'User'
 lives_ok { Schema->set_passphrase( 'user1', 'new_passphrase' ) }
   'set passphrase successfully';
 
-ok( User->find('user1')->check_passphrase('new_passphrase'), 'new passphrase is correct' );
+ok( User->find('user1')->check_password('new_passphrase'), 'new passphrase is correct' );
 
 throws_ok { Schema->set_passphrase( 'nosuchuser', 'new_passphrase' ) }
   qr/does not exist/,
@@ -119,7 +119,7 @@ lives_ok { $new_passphrase = Schema->reset_passphrase('user1') }
 ok( $new_passphrase, 'got a new passphrase' );
 
 $user = User->find('user1');
-ok( $user->check_passphrase($new_passphrase), 'new passphrase checks out' );
+ok( $user->check_password($new_passphrase), 'new passphrase checks out' );
 
 my $passphrase;
 ok( $passphrase = Schema->generate_passphrase, 'password generation works' );

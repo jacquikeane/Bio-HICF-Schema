@@ -54,7 +54,7 @@ __PACKAGE__->table("user");
   is_nullable: 0
   passphrase: 'rfc2307'
   passphrase_args: {algorithm => "SHA-1",salt_random => 20}
-  passphrase_check_method: 'check_passphrase'
+  passphrase_check_method: 'check_password'
   passphrase_class: 'SaltedDigest'
   size: 128
 
@@ -81,7 +81,7 @@ __PACKAGE__->add_columns(
     is_nullable => 0,
     passphrase => "rfc2307",
     passphrase_args => { algorithm => "SHA-1", salt_random => 20 },
-    passphrase_check_method => "check_passphrase",
+    passphrase_check_method => "check_password",
     passphrase_class => "SaltedDigest",
     size => 128,
   },
