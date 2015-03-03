@@ -246,7 +246,7 @@ sub load_antimicrobial_resistance {
 
 =head2 load_tax_tree($tree, $?slice_size)
 
-load the given tree into the taxonomy table. 
+load the given tree into the taxonomy table.
 See L<Bio::HICF::Schema::ResultSet::Taxonomy::load_tax_tree>.
 
 =cut

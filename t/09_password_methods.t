@@ -128,10 +128,6 @@ is( length $passphrase, 8, 'default passphrase contains 8 characters' );
 ok( $passphrase = Schema->generate_passphrase(32), 'password generation works with length specified' );
 like( $passphrase, qr/^[A-Za-z0-9]{32}$/, 'passphrase has sensible content' );
 
-
-
-
-
 is( $user->api_key, undef, 'no API key for user before setting it' );
 my $key;
 lives_ok { $key = $user->reset_api_key } 'no error when resetting API key';
