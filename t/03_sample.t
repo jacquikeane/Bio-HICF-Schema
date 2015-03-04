@@ -12,9 +12,6 @@ fixtures_ok 'main', 'installed fixtures';
 lives_ok { Schema->storage->dbh_do( sub { $_[1]->do('PRAGMA foreign_keys = ON') } ) }
   'successfully turned on "foreign_keys" pragma';
 
-my $values;
-lives_ok { $values = Sample->find(1)->get_field_values(1) } 'got field values for sample ID 1';
-
 my $expected_values = [
   'data:1',
   'sample:1',
@@ -39,7 +36,39 @@ my $expected_values = [
   'am1;S;50;WTSI',
 ];
 
+my $expected_hash = {
+  antimicrobial_resistance => "am1;S;50;WTSI",
+  collected_at             => "CAMBRIDGE",
+  collected_by             => "Tate JG",
+  collection_date          => "2015-01-10T14:30:00",
+  host_associated          => 1,
+  host_disease_status      => "healthy",
+  host_isolation_source    => "BTO:0000645",
+  isolate                  => undef,
+  isolation_source         => undef,
+  location                 => "GAZ:00444180",
+  other_classification     => undef,
+  patient_location         => "inpatient",
+  raw_data_accession       => "data:1",
+  sample_accession         => "sample:1",
+  sample_description       => "New sample",
+  scientific_name          => undef,
+  serovar                  => "serovar",
+  source                   => undef,
+  specific_host            => "Homo sapiens",
+  strain                   => "strain",
+  tax_id                   => 9606
+};
+
+my $sample;
+lives_ok { $sample = Sample->find(1) } 'retrieved row for sample ID 1';
+
+my $values;
+lives_ok { $values = $sample->get_field_values } 'got field values for sample ID 1';
 is_deeply($values, $expected_values, 'got expected values for sample 1');
+
+lives_ok { $values = $sample->get_fields } 'got field values hash for sample ID 1';
+is_deeply($values, $expected_hash, 'got expected values for sample 1');
 
 my $columns = {
   manifest_id              => '4162F712-1DD2-11B2-B17E-C09EFE1DC403',

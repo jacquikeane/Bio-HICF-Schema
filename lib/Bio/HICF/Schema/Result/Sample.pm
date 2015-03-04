@@ -388,6 +388,24 @@ our @_field_order = qw(
 
 #-------------------------------------------------------------------------------
 
+sub get_fields {
+  my $self = shift;
+
+  my %values;
+  foreach my $field ( @_field_order ) {
+    $values{$field} = $self->get_column($field);
+  }
+  my @amr_strings;
+  foreach my $amr ( $self->antimicrobial_resistances ) {
+    push @amr_strings, $amr->get_amr_string;
+  }
+  $values{antimicrobial_resistance} = join ',', @amr_strings;
+
+  return \%values;
+}
+
+#-------------------------------------------------------------------------------
+
 sub get_field_values {
   my $self = shift;
 
