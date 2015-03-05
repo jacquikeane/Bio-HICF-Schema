@@ -363,36 +363,19 @@ __PACKAGE__->add_unique_constraint(
 
 #-------------------------------------------------------------------------------
 
-our @_field_order = qw(
-  raw_data_accession
-  sample_accession
-  sample_description
-  collected_at
-  tax_id
-  scientific_name
-  collected_by
-  source
-  collection_date
-  location
-  host_associated
-  specific_host
-  host_disease_status
-  host_isolation_source
-  patient_location
-  isolation_source
-  serovar
-  other_classification
-  strain
-  isolate
-);
+=head1 METHODS
 
-#-------------------------------------------------------------------------------
+=head2 fields
 
-sub get_fields {
+Returns a reference to a hash containing field values, keyed on field name.
+
+=cut
+
+sub fields {
   my $self = shift;
 
   my %values;
-  foreach my $field ( @_field_order ) {
+  foreach my $field ( @{ $self->field_names } ) {
     $values{$field} = $self->get_column($field);
   }
   my @amr_strings;
@@ -406,11 +389,18 @@ sub get_fields {
 
 #-------------------------------------------------------------------------------
 
-sub get_field_values {
+=head2 field_values
+
+Returns a reference to an array containing field values, in the order that they
+are found in the checklist.
+
+=cut
+
+sub field_values {
   my $self = shift;
 
   my $values;
-  foreach my $field ( @_field_order ) {
+  foreach my $field ( @{ $self->field_names } ) {
     push @$values, $self->get_column($field);
   }
   my @amr_strings;
@@ -424,5 +414,41 @@ sub get_field_values {
 
 #-------------------------------------------------------------------------------
 
+=head2 field_names
+
+Returns a list of the fields in a sample, in the order in which they appear in
+the checklist.
+
+=cut
+
+sub field_names {
+  return [ qw(
+    raw_data_accession
+    sample_accession
+    sample_description
+    collected_at
+    tax_id
+    scientific_name
+    collected_by
+    source
+    collection_date
+    location
+    host_associated
+    specific_host
+    host_disease_status
+    host_isolation_source
+    patient_location
+    isolation_source
+    serovar
+    other_classification
+    strain
+    isolate
+  ) ];
+}
+
+#-------------------------------------------------------------------------------
+
 __PACKAGE__->meta->make_immutable;
+
 1;
+

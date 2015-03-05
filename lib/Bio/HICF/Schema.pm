@@ -164,7 +164,7 @@ sub get_sample {
   croak "ERROR: no sample with that ID ($sample_id)"
     unless defined $sample;
 
-  my $values = $sample->get_field_values;
+  my $values = $sample->field_values;
   croak "ERROR: couldn't get values for sample $sample_id"
     unless ( defined $values and scalar @$values );
 
@@ -193,7 +193,7 @@ sub get_samples {
     my $rs = $self->resultset('Sample')
                   ->search( { manifest_id => $args[0] },
                             { prefetch => 'antimicrobial_resistances' } );
-    push @$samples, $_->get_field_values for ( $rs->all );
+    push @$samples, $_->field_values for ( $rs->all );
   }
   else {
     my $sample_ids = ( ref $args[0] eq 'ARRAY' )

@@ -64,10 +64,10 @@ my $sample;
 lives_ok { $sample = Sample->find(1) } 'retrieved row for sample ID 1';
 
 my $values;
-lives_ok { $values = $sample->get_field_values } 'got field values for sample ID 1';
+lives_ok { $values = $sample->field_values } 'got field values for sample ID 1';
 is_deeply($values, $expected_values, 'got expected values for sample 1');
 
-lives_ok { $values = $sample->get_fields } 'got field values hash for sample ID 1';
+lives_ok { $values = $sample->fields } 'got field values hash for sample ID 1';
 is_deeply($values, $expected_hash, 'got expected values for sample 1');
 
 my $columns = {
