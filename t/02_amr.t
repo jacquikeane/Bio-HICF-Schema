@@ -40,7 +40,7 @@ is( Antimicrobial->count, 3, 'found 3 antimicrobials after load' );
 lives_ok { Antimicrobial->load_antimicrobial('am3') } 'loading "am3" again succeeds';
 is( Antimicrobial->count, 3, 'found 3 antimicrobials after loading duplicate' );
 
-throws_ok { Antimicrobial->load_antimicrobial('am#') } qr/did not pass the 'checking type constraint/,
+throws_ok { Antimicrobial->load_antimicrobial('am#') } qr/Not a valid antimicrobial compound name/,
   'loading invalid antimicrobial name fails';
 is( Antimicrobial->count, 3, 'found 3 antimicrobials after failed load' );
 
