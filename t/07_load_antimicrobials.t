@@ -58,7 +58,7 @@ like $stderr, qr/ERROR: there was a problem reading the config file/,
 is( Antimicrobial->count, 2, 'found 2 names before loading' );
 
 ( $rv, $stdout, $stderr ) = run_script( $script, [ qw(-c t/data/07_antimicrobials.conf t/data/07_invalid_list.txt) ] );
-like $stderr, qr/ERROR: 'some%thing' is not a valid compound name/,
+like $stderr, qr/Not a valid antimicrobial compound name/,
   'got expected error message with invalid list';
 
 is( Antimicrobial->count, 2, 'found 2 names after failed loading' );

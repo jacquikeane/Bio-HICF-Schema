@@ -102,7 +102,7 @@ is( $sample_id, 2, '"load_row" returns expected sample_id for new row' );
 is( AntimicrobialResistance->count, 2, 'found expected row in antimicrobial_resistance table' );
 
 $columns->{antimicrobial_resistance} = 'am1;X;50';
-throws_ok { Sample->load_row($columns) } qr/did not pass the 'checking type constraint/,
+throws_ok { Sample->load_row($columns) } qr/Not a valid antimicrobial resistance test result/,
   "error loading invalid amr";
 $columns->{antimicrobial_resistance} = 'am1;S;50';
 

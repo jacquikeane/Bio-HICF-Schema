@@ -117,7 +117,7 @@ SKIP: {
   lives_ok { Schema->load_antimicrobial('am3') } 'adding new antimicrobial succeeds';
   is( Antimicrobial->count, 3, 'found 3 antimicrobial names after load' );
 
-  throws_ok { Schema->load_antimicrobial('am#') } qr/invalid antimicrobial compound name/,
+  throws_ok { Schema->load_antimicrobial('am#') } qr/Not a valid antimicrobial compound name/,
     'got expected error message with invalid compound name';
   is( Antimicrobial->count, 3, 'still 3 rows in table after load failure' );
 }
@@ -164,7 +164,7 @@ SKIP: {
   skip 'ontology loading', 7, if $ENV{SKIP_ONTOLOGY_TESTS};
 
   throws_ok { Schema->load_ontology( 'not a real ontology', 't/data/01_gaz.obo' ) }
-    qr/did not pass/,
+    qr/Validation failed for 'Bio::Metadata::Types::OntologyName'/,
     'error when trying to load ontology into non-existent table';
 
   throws_ok { Schema->load_ontology( 'gazetteer', 'non-existent file' ) }
