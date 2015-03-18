@@ -101,6 +101,12 @@ lives_ok { $sample_id = Sample->load_row($columns) } 'row loads ok';
 is( $sample_id, 2, '"load_row" returns expected sample_id for new row' );
 is( AntimicrobialResistance->count, 2, 'found expected row in antimicrobial_resistance table' );
 
+is( Sample->all_rs->count, 2, '"all" returns a ResultSet with 2 rows' );
+my $samples = Sample->all_rs;
+is( $samples->next->sample_id, 1, 'got first sample via "all"' );
+is( $samples->next->sample_id, 2, 'got second sample via "all"' );
+is( $samples->next, undef, 'got expected number of samples via "all"' );
+
 $columns->{antimicrobial_resistance} = 'am1;X;50';
 throws_ok { Sample->load_row($columns) } qr/Not a valid antimicrobial resistance test result/,
   "error loading invalid amr";

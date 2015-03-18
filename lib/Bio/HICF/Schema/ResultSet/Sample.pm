@@ -55,6 +55,24 @@ sub load_row {
 }
 
 #-------------------------------------------------------------------------------
+
+=head2 all_rs
+
+Returns a L<DBIx::Class::ResultSet|ResultSet> containing all samples, sorted
+by sample ID and created date.
+
+=cut
+
+sub all_rs {
+  my ( $self ) = @_;
+
+  return $self->search(
+    {},
+    { order_by => { -asc => [qw( sample_id created_at )] } }
+  );
+}
+
+#-------------------------------------------------------------------------------
 #- private methods -------------------------------------------------------------
 #-------------------------------------------------------------------------------
 

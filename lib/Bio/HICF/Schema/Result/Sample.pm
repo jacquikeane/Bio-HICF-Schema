@@ -374,17 +374,20 @@ Returns a reference to a hash containing field values, keyed on field name.
 sub fields {
   my $self = shift;
 
-  my %values;
-  foreach my $field ( @{ $self->field_names } ) {
-    $values{$field} = $self->get_column($field);
-  }
-  my @amr_strings;
-  foreach my $amr ( $self->antimicrobial_resistances ) {
-    push @amr_strings, $amr->get_amr_string;
-  }
-  $values{antimicrobial_resistance} = join ',', @amr_strings;
+  my ( $values_list, $values_hash ) = $self->_get_values;
+  return $values_hash;
 
-  return \%values;
+  # my %values;
+  # foreach my $field ( @{ $self->field_names } ) {
+  #   $values{$field} = $self->get_column($field);
+  # }
+  # my @amr_strings;
+  # foreach my $amr ( $self->antimicrobial_resistances ) {
+  #   push @amr_strings, $amr->get_amr_string;
+  # }
+  # $values{antimicrobial_resistance} = join ',', @amr_strings;
+  #
+  # return \%values;
 }
 
 #-------------------------------------------------------------------------------
@@ -399,17 +402,20 @@ are found in the checklist.
 sub field_values {
   my $self = shift;
 
-  my $values;
-  foreach my $field ( @{ $self->field_names } ) {
-    push @$values, $self->get_column($field);
-  }
-  my @amr_strings;
-  foreach my $amr ( $self->antimicrobial_resistances ) {
-    push @amr_strings, $amr->get_amr_string;
-  }
-  push @$values, join ',', @amr_strings;
+  my ( $values_list, $values_hash ) = $self->_get_values;
+  return $values_list;
 
-  return $values;
+  # my $values;
+  # foreach my $field ( @{ $self->field_names } ) {
+  #   push @$values, $self->get_column($field);
+  # }
+  # my @amr_strings;
+  # foreach my $amr ( $self->antimicrobial_resistances ) {
+  #   push @amr_strings, $amr->get_amr_string;
+  # }
+  # push @$values, join ',', @amr_strings;
+  #
+  # return $values;
 }
 
 #-------------------------------------------------------------------------------
@@ -444,6 +450,30 @@ sub field_names {
     strain
     isolate
   ) ];
+}
+
+#-------------------------------------------------------------------------------
+#- private methods -------------------------------------------------------------
+#-------------------------------------------------------------------------------
+
+sub _get_values {
+  my $self = shift;
+
+  my $values_list = [];
+  my $values_hash = {};
+  foreach my $field ( @{ $self->field_names } ) {
+    my $value = $self->get_column($field);
+    push @$values_list, $value;
+    $values_hash->{$field} = $value;
+  }
+  my @amr_strings;
+  foreach my $amr ( $self->antimicrobial_resistances ) {
+    push @amr_strings, $amr->get_amr_string;
+  }
+  push @$values_list, join ',', @amr_strings;
+  $values_hash->{antimicrobial_resistance} = join ',', @amr_strings;
+
+  return ( $values_list, $values_hash );
 }
 
 #-------------------------------------------------------------------------------
