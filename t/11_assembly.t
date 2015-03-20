@@ -12,6 +12,14 @@ fixtures_ok 'main', 'installed fixtures';
 lives_ok { Schema->storage->dbh_do( sub { $_[1]->do('PRAGMA foreign_keys = ON') } ) }
   'successfully turned on "foreign_keys" pragma';
 
+is( Assembly->count, 1, 'one assembly loaded' );
+
+$DB::single = 1;
+
+done_testing;
+
+__END__
+
 my $expected_values = [
   'data:1',
   'ERS123456',

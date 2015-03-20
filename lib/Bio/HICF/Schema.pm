@@ -36,6 +36,7 @@ use List::MoreUtils qw( mesh );
 use TryCatch;
 use MooseX::Params::Validate;
 use Email::Valid;
+use File::Basename;
 
 #-------------------------------------------------------------------------------
 
@@ -652,6 +653,33 @@ sub generate_passphrase {
 
   return $generated_passphrase;
 }
+
+#-------------------------------------------------------------------------------
+
+# sub load_assembly {
+#   my ( $self, $path ) = @_;
+#
+#   croak 'ERROR: no path given' unless defined $path;
+#   croak 'ERROR: no such file'  unless -e $path; # TODO do we need to check for that here?
+#
+#   my ( $filename, $dirs, $suffix ) = fileparse( $path, qr/\.[^.]*/ );
+#
+#   croak "ERROR: couldn't parse file path"
+#     unless ( defined $filename and $filename != '' and
+#              defined $dirs     and $dirs     != '' and
+#              defined $suffix   and $suffix   != '' );
+#
+#   croak 'ERROR: must be a FASTA file (suffix ".fa")' unless $suffix eq '.fa';
+#   croak 'ERROR: must be a full path' unless $dirs =~ m|^/|;
+#
+#   croak "ERROR: can't find ERS number and MD5 in filename"
+#     unless $filename =~ m/^(ERS\d{6})_([a-f0-9]{32})$/i;
+#
+#   my $ers = $1;
+#   my $md5 = $2;
+#
+#   
+# }
 
 #-------------------------------------------------------------------------------
 

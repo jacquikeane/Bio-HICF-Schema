@@ -125,26 +125,9 @@ __PACKAGE__->add_columns(
 
 __PACKAGE__->set_primary_key("username");
 
-=head1 RELATIONS
 
-=head2 roles
-
-Type: has_many
-
-Related object: L<Bio::HICF::Schema::Result::Role>
-
-=cut
-
-__PACKAGE__->has_many(
-  "roles",
-  "Bio::HICF::Schema::Result::Role",
-  { "foreign.user_username" => "self.username" },
-  { cascade_copy => 0, cascade_delete => 0 },
-);
-
-
-# Created by DBIx::Class::Schema::Loader v0.07042 @ 2015-03-02 15:24:03
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:E4Jd4aSgHG6j3SzJyqYsKg
+# Created by DBIx::Class::Schema::Loader v0.07042 @ 2015-03-19 15:11:13
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:XFKtHemFVcwdXtHth13kww
 
 =head2 set_passphrase($passphrase)
 

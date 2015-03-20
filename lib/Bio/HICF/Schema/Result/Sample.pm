@@ -304,6 +304,20 @@ __PACKAGE__->add_columns(
 
 __PACKAGE__->set_primary_key("sample_id");
 
+=head1 UNIQUE CONSTRAINTS
+
+=head2 C<sample_accession_UNIQUE>
+
+=over 4
+
+=item * L</sample_accession>
+
+=back
+
+=cut
+
+__PACKAGE__->add_unique_constraint("sample_accession_UNIQUE", ["sample_accession"]);
+
 =head1 RELATIONS
 
 =head2 antimicrobial_resistances
@@ -318,6 +332,21 @@ __PACKAGE__->has_many(
   "antimicrobial_resistances",
   "Bio::HICF::Schema::Result::AntimicrobialResistance",
   { "foreign.sample_id" => "self.sample_id" },
+  { cascade_copy => 0, cascade_delete => 0 },
+);
+
+=head2 assemblies
+
+Type: has_many
+
+Related object: L<Bio::HICF::Schema::Result::Assembly>
+
+=cut
+
+__PACKAGE__->has_many(
+  "assemblies",
+  "Bio::HICF::Schema::Result::Assembly",
+  { "foreign.accession" => "self.sample_accession" },
   { cascade_copy => 0, cascade_delete => 0 },
 );
 
@@ -336,26 +365,18 @@ __PACKAGE__->belongs_to(
   { is_deferrable => 1, on_delete => "NO ACTION", on_update => "NO ACTION" },
 );
 
-=head2 runs
 
-Type: has_many
-
-Related object: L<Bio::HICF::Schema::Result::Run>
-
-=cut
-
-__PACKAGE__->has_many(
-  "runs",
-  "Bio::HICF::Schema::Result::Run",
-  { "foreign.sample_id" => "self.sample_id" },
-  { cascade_copy => 0, cascade_delete => 0 },
-);
-
-
-# Created by DBIx::Class::Schema::Loader v0.07042 @ 2015-02-24 13:54:25
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:gTvSSOox971co3NJex2IlA
+# Created by DBIx::Class::Schema::Loader v0.07042 @ 2015-03-20 15:33:25
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:hN/wxguIkjXvdxVOL4iNmA
 
 #-------------------------------------------------------------------------------
+
+__PACKAGE__->might_have(
+  "assembly",
+  "Bio::HICF::Schema::Result::Assembly",
+  { "foreign.accession" => "self.sample_accession" },
+  { cascade_copy => 0, cascade_delete => 0 },
+);
 
 __PACKAGE__->add_unique_constraint(
   sample_uc => [ qw( manifest_id raw_data_accession sample_accession ) ]

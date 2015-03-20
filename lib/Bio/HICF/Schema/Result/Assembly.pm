@@ -1,12 +1,12 @@
 use utf8;
-package Bio::HICF::Schema::Result::File;
+package Bio::HICF::Schema::Result::Assembly;
 
 # Created by DBIx::Class::Schema::Loader
 # DO NOT MODIFY THE FIRST PART OF THIS FILE
 
 =head1 NAME
 
-Bio::HICF::Schema::Result::File
+Bio::HICF::Schema::Result::Assembly
 
 =cut
 
@@ -34,45 +34,33 @@ extends 'DBIx::Class::Core';
 
 __PACKAGE__->load_components("InflateColumn::DateTime", "TimeStamp", "PassphraseColumn");
 
-=head1 TABLE: C<file>
+=head1 TABLE: C<assembly>
 
 =cut
 
-__PACKAGE__->table("file");
+__PACKAGE__->table("assembly");
 
 =head1 ACCESSORS
 
-=head2 file_id
+=head2 assembly_id
 
   data_type: 'integer'
   extra: {unsigned => 1}
   is_auto_increment: 1
   is_nullable: 0
 
-=head2 assembly_id
-
-  data_type: 'integer'
-  extra: {unsigned => 1}
-  is_foreign_key: 1
-  is_nullable: 0
-
-=head2 version
-
-  data_type: 'integer'
-  extra: {unsigned => 1}
-  is_nullable: 0
-
-=head2 path
+=head2 accession
 
   data_type: 'varchar'
+  is_foreign_key: 1
   is_nullable: 0
-  size: 45
+  size: 20
 
-=head2 md5
+=head2 type
 
-  data_type: 'char'
-  is_nullable: 0
-  size: 32
+  data_type: 'enum'
+  extra: {list => ["ERS"]}
+  is_nullable: 1
 
 =head2 created_at
 
@@ -97,26 +85,17 @@ __PACKAGE__->table("file");
 =cut
 
 __PACKAGE__->add_columns(
-  "file_id",
+  "assembly_id",
   {
     data_type => "integer",
     extra => { unsigned => 1 },
     is_auto_increment => 1,
     is_nullable => 0,
   },
-  "assembly_id",
-  {
-    data_type => "integer",
-    extra => { unsigned => 1 },
-    is_foreign_key => 1,
-    is_nullable => 0,
-  },
-  "version",
-  { data_type => "integer", extra => { unsigned => 1 }, is_nullable => 0 },
-  "path",
-  { data_type => "varchar", is_nullable => 0, size => 45 },
-  "md5",
-  { data_type => "char", is_nullable => 0, size => 32 },
+  "accession",
+  { data_type => "varchar", is_foreign_key => 1, is_nullable => 0, size => 20 },
+  "type",
+  { data_type => "enum", extra => { list => ["ERS"] }, is_nullable => 1 },
   "created_at",
   {
     data_type => "datetime",
@@ -143,74 +122,49 @@ __PACKAGE__->add_columns(
 
 =over 4
 
-=item * L</file_id>
-
-=back
-
-=cut
-
-__PACKAGE__->set_primary_key("file_id");
-
-=head1 UNIQUE CONSTRAINTS
-
-=head2 C<file_version_UNIQUE>
-
-=over 4
-
-=item * L</version>
-
 =item * L</assembly_id>
 
 =back
 
 =cut
 
-__PACKAGE__->add_unique_constraint("file_version_UNIQUE", ["version", "assembly_id"]);
-
-=head2 C<md5_UNIQUE>
-
-=over 4
-
-=item * L</md5>
-
-=back
-
-=cut
-
-__PACKAGE__->add_unique_constraint("md5_UNIQUE", ["md5"]);
-
-=head2 C<path_UNIQUE>
-
-=over 4
-
-=item * L</path>
-
-=back
-
-=cut
-
-__PACKAGE__->add_unique_constraint("path_UNIQUE", ["path"]);
+__PACKAGE__->set_primary_key("assembly_id");
 
 =head1 RELATIONS
 
-=head2 assembly
+=head2 accession
 
 Type: belongs_to
 
-Related object: L<Bio::HICF::Schema::Result::Assembly>
+Related object: L<Bio::HICF::Schema::Result::Sample>
 
 =cut
 
 __PACKAGE__->belongs_to(
-  "assembly",
-  "Bio::HICF::Schema::Result::Assembly",
-  { assembly_id => "assembly_id" },
+  "accession",
+  "Bio::HICF::Schema::Result::Sample",
+  { sample_accession => "accession" },
   { is_deferrable => 1, on_delete => "NO ACTION", on_update => "NO ACTION" },
 );
 
+=head2 files
 
-# Created by DBIx::Class::Schema::Loader v0.07042 @ 2015-03-20 15:45:22
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:E+7bmeVBvhts6yLB1f5+rg
+Type: has_many
+
+Related object: L<Bio::HICF::Schema::Result::File>
+
+=cut
+
+__PACKAGE__->has_many(
+  "files",
+  "Bio::HICF::Schema::Result::File",
+  { "foreign.assembly_id" => "self.assembly_id" },
+  { cascade_copy => 0, cascade_delete => 0 },
+);
+
+
+# Created by DBIx::Class::Schema::Loader v0.07042 @ 2015-03-20 15:44:33
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:bb7WHqEpmYMrnMrb2JrTcw
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration

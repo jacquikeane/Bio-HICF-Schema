@@ -46,48 +46,27 @@ __PACKAGE__->table("midas_session");
 
   data_type: 'varchar'
   is_nullable: 0
-  size: 32
+  size: 72
 
 =head2 session_data
 
   data_type: 'longtext'
   is_nullable: 1
 
-=head2 created_at
+=head2 expires
 
-  data_type: 'datetime'
-  datetime_undef_if_invalid: 1
+  data_type: 'integer'
   is_nullable: 1
-  set_on_create: 1
-
-=head2 updated_at
-
-  data_type: 'datetime'
-  datetime_undef_if_invalid: 1
-  is_nullable: 1
-  set_on_update: 1
 
 =cut
 
 __PACKAGE__->add_columns(
   "id",
-  { data_type => "varchar", is_nullable => 0, size => 32 },
+  { data_type => "varchar", is_nullable => 0, size => 72 },
   "session_data",
   { data_type => "longtext", is_nullable => 1 },
-  "created_at",
-  {
-    data_type => "datetime",
-    datetime_undef_if_invalid => 1,
-    is_nullable => 1,
-    set_on_create => 1,
-  },
-  "updated_at",
-  {
-    data_type => "datetime",
-    datetime_undef_if_invalid => 1,
-    is_nullable => 1,
-    set_on_update => 1,
-  },
+  "expires",
+  { data_type => "integer", is_nullable => 1 },
 );
 
 =head1 PRIMARY KEY
@@ -103,8 +82,8 @@ __PACKAGE__->add_columns(
 __PACKAGE__->set_primary_key("id");
 
 
-# Created by DBIx::Class::Schema::Loader v0.07042 @ 2015-02-24 13:54:25
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:UurXHq+S+fiD6qYxWUGn1Q
+# Created by DBIx::Class::Schema::Loader v0.07042 @ 2015-03-19 15:11:13
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:sqf3hY4qTZKqPrnbqpEwgA
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration

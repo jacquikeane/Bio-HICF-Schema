@@ -3,8 +3,10 @@
   resultsets => [ qw(
     Antimicrobial
     AntimicrobialResistance
+    Assembly
     Brenda
     Envo
+    File
     Gazetteer
     Manifest
     ManifestConfig
@@ -12,8 +14,6 @@
     Taxonomy
   ) ],
     # ExternalResource
-    # File
-    # Run
   fixture_sets => {
     main => [
       Brenda => [
@@ -224,7 +224,7 @@
               deleted_at ) ],
         [ '4162F712-1DD2-11B2-B17E-C09EFE1DC403',
           'data:1',
-          'sample:1',
+          'ERS123456',
           'New sample',
           'CAMBRIDGE',
           9606,
@@ -255,6 +255,16 @@
               diagnostic_centre
               created_at ) ],
         [ qw( 1 am1 S 50 WTSI 2014-12-02T16:55:00 ) ],
+      ],
+      Assembly => [
+        [ qw( assembly_id accession type ) ],
+        [ qw( 1 ERS123456 ERS ) ],
+        [ qw( 2 ERS654321 ERS ) ],
+      ],
+      File => [
+        [ qw( file_id assembly_id version path md5 ) ],
+        [ qw( 1 1 1 /home/testuser/ERS123456_123456789a123456789b123456789cda.fa 123456789a123456789b123456789cda ) ],
+        [ qw( 2 1 2 /home/testuser/ERS123456_123456789a123456789b123456789cdb.fa 123456789a123456789b123456789cdb ) ],
       ],
     ],
   },
