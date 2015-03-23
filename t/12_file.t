@@ -41,27 +41,27 @@ throws_ok { $file = File->load_file($assembly, '/home/testuser/ERS123456_1234567
 
 # variously broken filenames
 throws_ok { $file = File->load_file() }
-  qr/no assembly given/,
-  'failed to load file with no assembly';
+  qr/must supply both/,
+  'loading fails with no arguments';
 
 throws_ok { $file = File->load_file($assembly) }
-  qr/no path given/,
+  qr/must supply both/,
   'failed to load file with no path';
 
 throws_ok { $file = File->load_file($assembly, 'ERS123456_123456789a123456789b123456789cdc.fa') }
-  qr/no path given/,
+  qr/must be a full path/,
   'failed to load file without a full path';
 
 throws_ok { $file = File->load_file($assembly, '/home/testuser/ERS123456_123456789a123456789b123456789cdc') }
-  qr/must be a FASTA file/,
+  qr/couldn't parse file path/,
   'failed to load file with no suffix';
 
 throws_ok { $file = File->load_file($assembly, '/home/testuser/123456_123456789a123456789b123456789cdc') }
-  qr/find ERS number and MD5/,
-  'failed to load file with no bad ERS number';
+  qr/couldn't parse file path/,
+  'failed to load file with bad ERS number';
 
 throws_ok { $file = File->load_file($assembly, '/home/testuser/ERS123456_23456789a123456789b123456789cdc') }
-  qr/find ERS number and MD5/,
+  qr/couldn't parse file path/,
   'failed to load file with no bad MD5';
 
 # load a file for an assembly with no files

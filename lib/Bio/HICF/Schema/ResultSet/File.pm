@@ -40,6 +40,9 @@ Returns the created row.
 sub load_file {
   my ( $self, $assembly, $path ) = @_;
 
+  croak 'ERROR: must supply both assembly and path'
+    unless ( defined $assembly and defined $path );
+
   croak 'ERROR: no assembly given' unless defined $assembly;
 
   croak 'ERROR: no path given' unless defined $path;

@@ -54,19 +54,13 @@ sub load_assembly {
 
   croak "ERROR: no such sample (accession '$accession')" unless defined $sample;
 
-  my $assembly = $self->find_or_create( { accession => $accession, type => 'ERS' } );
+  # get a row for the assembly...
+  my $assembly_row = $self->find_or_create( { accession => $accession, type => 'ERS' } );
 
-  my $file_row = $schema->resultset('File')->load_file($path);
+  # ... and for the file
+  my $file_row = $schema->resultset('File')->load_file($assembly_row, $path);
 
-  # how many versions do we have so far ?
-  my $files = $assembly->related_resultset('files');
-  my $version = ( defined $files )
-              ? ( $files->count + 1 )
-              : 1;
-
-  $assembly->version( $version );
-
-  $DB::single = 1;
+  return $assembly_row;
 }
 
 #-------------------------------------------------------------------------------
