@@ -371,13 +371,6 @@ __PACKAGE__->belongs_to(
 
 #-------------------------------------------------------------------------------
 
-__PACKAGE__->might_have(
-  "assembly",
-  "Bio::HICF::Schema::Result::Assembly",
-  { "foreign.accession" => "self.sample_accession" },
-  { cascade_copy => 0, cascade_delete => 0 },
-);
-
 __PACKAGE__->add_unique_constraint(
   sample_uc => [ qw( manifest_id raw_data_accession sample_accession ) ]
 );
@@ -397,18 +390,6 @@ sub fields {
 
   my ( $values_list, $values_hash ) = $self->_get_values;
   return $values_hash;
-
-  # my %values;
-  # foreach my $field ( @{ $self->field_names } ) {
-  #   $values{$field} = $self->get_column($field);
-  # }
-  # my @amr_strings;
-  # foreach my $amr ( $self->antimicrobial_resistances ) {
-  #   push @amr_strings, $amr->get_amr_string;
-  # }
-  # $values{antimicrobial_resistance} = join ',', @amr_strings;
-  #
-  # return \%values;
 }
 
 #-------------------------------------------------------------------------------
@@ -425,18 +406,6 @@ sub field_values {
 
   my ( $values_list, $values_hash ) = $self->_get_values;
   return $values_list;
-
-  # my $values;
-  # foreach my $field ( @{ $self->field_names } ) {
-  #   push @$values, $self->get_column($field);
-  # }
-  # my @amr_strings;
-  # foreach my $amr ( $self->antimicrobial_resistances ) {
-  #   push @amr_strings, $amr->get_amr_string;
-  # }
-  # push @$values, join ',', @amr_strings;
-  #
-  # return $values;
 }
 
 #-------------------------------------------------------------------------------

@@ -14,7 +14,7 @@ lives_ok { Schema->storage->dbh_do( sub { $_[1]->do('PRAGMA foreign_keys = ON') 
 
 my $expected_values = [
   'data:1',
-  'ERS123456',
+  'ERS111111',
   'New sample',
   'CAMBRIDGE',
   9606,
@@ -50,7 +50,7 @@ my $expected_hash = {
   other_classification     => undef,
   patient_location         => 'inpatient',
   raw_data_accession       => 'data:1',
-  sample_accession         => 'ERS123456',
+  sample_accession         => 'ERS111111',
   sample_description       => 'New sample',
   scientific_name          => undef,
   serovar                  => 'serovar',
