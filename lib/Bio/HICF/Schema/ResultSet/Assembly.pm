@@ -17,7 +17,7 @@ sub BUILDARGS { $_[2] }
 
 =head1 METHODS
 
-=head2 load_assembly
+=head2 load
 
 Given a path to an assembly file, this method stores the file location in the
 L<Bio::HICF::Schema::Result::File|File> and
@@ -25,7 +25,7 @@ L<Bio::HICF::Schema::Result::Assembly|Assembly> tables.
 
 =cut
 
-sub load_assembly {
+sub load {
   my ( $self, $path ) = @_;
 
   croak 'ERROR: no path given' unless defined $path;
@@ -49,16 +49,17 @@ sub load_assembly {
   # check that the sample exists
   my $schema = $self->result_source->schema;
   my $sample = $schema->resultset('Sample')
-                      ->find( { sample_accession => $accession },
-                              { key => 'sample_accession_UNIQUE' } );
+                      ->search( { sample_accession => $accession },
+                                { order_by => { -desc => [ qw( sample_id ) ] } } );
 
-  croak "ERROR: no such sample (accession '$accession')" unless defined $sample;
+  croak "ERROR: no such sample (accession '$accession')"
+    unless ( defined $sample and $sample->count > 0 );
 
   # get a row for the assembly...
   my $assembly_row = $self->find_or_create( { accession => $accession, type => 'ERS' } );
 
   # ... and for the file
-  my $file_row = $schema->resultset('File')->load_file($assembly_row, $path);
+  my $file_row = $schema->resultset('File')->load($assembly_row, $path);
 
   return $assembly_row;
 }

@@ -196,6 +196,10 @@
           1,
           '8fb372b3d14392b8a21dd296dc7d9f5a',
           '2015-01-29T09_30_00' ],
+        [ '0162F712-1DD2-11B2-B17E-C09EFE1DC403',
+          1,
+          '0fb372b3d14392b8a21dd296dc7d9f5a',
+          '2015-01-29T09_30_00' ],
       ],
       Sample => [
         [ qw( manifest_id
@@ -252,9 +256,10 @@
               antimicrobial_name
               susceptibility
               mic
+              equality
               diagnostic_centre
               created_at ) ],
-        [ qw( 1 am1 S 50 WTSI 2014-12-02T16:55:00 ) ],
+        [ qw( 1 am1 S 50 eq WTSI 2014-12-02T16:55:00 ) ],
       ],
       Assembly => [
         [ qw( assembly_id accession type ) ],

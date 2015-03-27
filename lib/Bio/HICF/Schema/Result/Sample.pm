@@ -70,7 +70,7 @@ __PACKAGE__->table("sample");
 
   data_type: 'varchar'
   is_nullable: 0
-  size: 45
+  size: 20
 
 =head2 sample_description
 
@@ -215,7 +215,7 @@ __PACKAGE__->add_columns(
   "raw_data_accession",
   { data_type => "varchar", is_nullable => 0, size => 45 },
   "sample_accession",
-  { data_type => "varchar", is_nullable => 0, size => 45 },
+  { data_type => "varchar", is_nullable => 0, size => 20 },
   "sample_description",
   { data_type => "tinytext", is_nullable => 1 },
   "collected_at",
@@ -304,20 +304,6 @@ __PACKAGE__->add_columns(
 
 __PACKAGE__->set_primary_key("sample_id");
 
-=head1 UNIQUE CONSTRAINTS
-
-=head2 C<sample_accession_UNIQUE>
-
-=over 4
-
-=item * L</sample_accession>
-
-=back
-
-=cut
-
-__PACKAGE__->add_unique_constraint("sample_accession_UNIQUE", ["sample_accession"]);
-
 =head1 RELATIONS
 
 =head2 antimicrobial_resistances
@@ -366,8 +352,8 @@ __PACKAGE__->belongs_to(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07042 @ 2015-03-20 15:33:25
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:hN/wxguIkjXvdxVOL4iNmA
+# Created by DBIx::Class::Schema::Loader v0.07042 @ 2015-03-27 09:59:23
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:BaBfJMLztlKCw7NMXINtnw
 
 #-------------------------------------------------------------------------------
 

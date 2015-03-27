@@ -17,7 +17,7 @@ sub BUILDARGS { $_[2] }
 
 =head1 METHODS
 
-=head2 load_file
+=head2 load
 
 Loads the details of an assembly file. Takes two arguments:
 
@@ -37,7 +37,7 @@ Returns the created row.
 
 =cut
 
-sub load_file {
+sub load {
   my ( $self, $assembly, $path ) = @_;
 
   croak 'ERROR: must supply both assembly and path'
@@ -66,9 +66,7 @@ sub load_file {
 
   # check that the sample exists
   my $schema = $self->result_source->schema;
-  my $sample = $schema->resultset('Sample')
-                      ->find( { sample_accession => $accession },
-                              { key => 'sample_accession_UNIQUE' } );
+  my $sample = $schema->get_sample($accession);
 
   croak "ERROR: no such sample (accession '$accession')" unless defined $sample;
 

@@ -59,26 +59,26 @@ SKIP: {
 
   # using a single sample ID
   my $values;
-  lives_ok { $values = Schema->get_sample(1) } 'got field values for sample ID 1';
+  lives_ok { $values = Schema->get_sample_values(1) } 'got field values for sample ID 1';
 
   my $expected_values = [ 'data:1', 'ERS111111', 'New sample', 'CAMBRIDGE', 9606, undef, 'Tate JG', undef, '2015-01-10T14:30:00', 'GAZ:00444180', 1, 'Homo sapiens', 'healthy', 'BTO:0000645', 'inpatient', undef, 'serovar', undef, 'strain', undef, 'am1;S;50;WTSI', ];
 
   is_deeply($values, $expected_values, 'got expected values for sample 1');
 
-  throws_ok { Schema->get_sample(99) } qr/no sample with that ID \(99\)/,
+  throws_ok { Schema->get_sample_values(99) } qr/no sample with that ID \(99\)/,
     'exception when retrieving fields for non-existent sample';
 
   # using multiple sample IDs
   my $set_of_values;
-  lives_ok { $set_of_values = Schema->get_samples(1,2) } 'got values for multiple samples';
+  lives_ok { $set_of_values = Schema->get_samples_values(1,2) } 'got values for multiple samples';
 
   # using a manifest ID
-  lives_ok { $set_of_values = Schema->get_samples($m->uuid) }
+  lives_ok { $set_of_values = Schema->get_samples_values($m->uuid) }
     'got samples using a manifest ID';
 
   my $expected_set_of_values = [
     ['rda:2','ERS333333','test sample','CAMBRIDGE',9606,undef,'Tate JG','BSACID:1','2014-01-10T11:20:30','GAZ:00444180',1,'Homo sapiens','healthy','BTO:0000645','inpatient',undef,'serovar',undef,'strain',undef,'am1;S;10,am2;I;20;WTSI'],
-    ['rda:3','ERS444444','test sample','CAMBRIDGE',9606,undef,'Tate JG','BSACID:1','2014-01-10T11:20:30','GAZ:00444180',1,'Homo sapiens','healthy','BTO:0000645','inpatient',undef,'serovar',undef,'strain',undef,'am1;S;10,am2;I;20;WTSI'],
+    ['rda:3','ERS444444','test sample','CAMBRIDGE',9606,undef,'Tate JG','BSACID:1','2014-01-10T11:20:30','GAZ:00444180',1,'Homo sapiens','healthy','BTO:0000645','inpatient',undef,'serovar',undef,'strain',undef,'am1;S;le10,am2;I;20;WTSI'],
   ];
 
   is_deeply( $set_of_values, $expected_set_of_values, 'got expected set of field values' );
@@ -149,6 +149,7 @@ SKIP: {
     name              => 'am1',
     susceptibility    => 'S',
     mic               => 50,
+    equality          => 'eq',
     diagnostic_centre => 'WTSI',
   );
   throws_ok { Schema->load_antimicrobial_resistance(%amr) }

@@ -33,7 +33,7 @@ use Carp qw( croak );
 use Bio::Metadata::Validator;
 use Bio::Metadata::TaxTree;
 use List::MoreUtils qw( mesh );
-use TryCatch;
+use Try::Tiny;
 use MooseX::Params::Validate;
 use Email::Valid;
 use File::Basename;
@@ -41,6 +41,12 @@ use File::Basename;
 #-------------------------------------------------------------------------------
 
 =head1 METHODS
+
+=cut
+
+#-------------------------------------------------------------------------------
+#- manifests -------------------------------------------------------------------
+#-------------------------------------------------------------------------------
 
 =head2 load_manifest($manifest)
 
@@ -101,12 +107,12 @@ sub load_manifest {
   # run the transaction
   try {
     $self->txn_do( $txn );
-  } catch ( $e ) {
-    if ( $e =~ m/Rollback failed/ ) {
-      croak "ERROR: there was an error when loading the manifest but roll back failed: $e";
+  } catch {
+    if ( m/Rollback failed/ ) {
+      croak "ERROR: there was an error when loading the manifest but roll back failed: $_";
     }
     else {
-      croak "ERROR: there was an error when loading the manifest; changes have been rolled back: $e";
+      croak "ERROR: there was an error when loading the manifest; changes have been rolled back: $_";
     }
   };
 
@@ -142,22 +148,24 @@ sub get_manifest {
 
   # get the values for the samples in the manifest and add them to a new
   # B::M::Manifest
-  my $values = $self->get_samples($manifest_id);
+  my $values = $self->get_samples_values($manifest_id);
   my $m = Bio::Metadata::Manifest->new( config => $c, rows => $values );
 
   return $m;
 }
 
 #-------------------------------------------------------------------------------
+#- samples ---------------------------------------------------------------------
+#-------------------------------------------------------------------------------
 
-=head2 get_sample($sample_id)
+=head2 get_sample_values($sample_id)
 
 Returns a reference to an array containing the field values for the specified
 sample.
 
 =cut
 
-sub get_sample {
+sub get_sample_values {
   my ( $self, $sample_id ) = @_;
 
   my $sample = $self->resultset('Sample')
@@ -174,7 +182,7 @@ sub get_sample {
 
 #-------------------------------------------------------------------------------
 
-=head2 get_samples(@args)
+=head2 get_samples_values(@args)
 
 Returns a reference to an array containing the field values for the specified
 samples, one sample per row. If the first element of C<@args> looks like a UUID,
@@ -184,7 +192,7 @@ IDs and the field data for each is return.
 
 =cut
 
-sub get_samples {
+sub get_samples_values {
   my ( $self, @args ) = @_;
 
   my $samples;
@@ -201,12 +209,74 @@ sub get_samples {
                    ? $args[0]
                    : \@args;
     # we were handed a list of sample IDs
-    push @$samples, $self->get_sample($_) for @$sample_ids;
+    push @$samples, $self->get_sample_values($_) for @$sample_ids;
   }
 
   return $samples;
 }
 
+#-------------------------------------------------------------------------------
+
+=head2 get_sample($accession)
+
+Given a sample accession, returns the most recent version of a
+L<Bio::HICF::Schema::Result::Sample> with that accession, i.e. the most
+recently uploaded sample.
+
+=cut
+
+sub get_sample {
+  my ( $self, $acc ) = @_;
+
+  croak 'ERROR: must supply a sample accession' unless defined $acc;
+
+  $self->get_samples($acc)->first;
+}
+
+#-------------------------------------------------------------------------------
+
+=head2 get_samples($accession)
+
+Given a sample accesion, returns a L<DBIx::Class::ResultSet|ResultSet> with
+all of the samples matching that accession. Samples are ordered with the most
+recent sample first, i.e. the most recently uploaded version of the sample metadata
+can be retrieved something like
+
+ my $latest = $schema->get_samples_rs('ERS123456')->first;
+
+=cut
+
+sub get_samples {
+  my ( $self, $acc ) = @_;
+
+  croak 'ERROR: must supply a sample accession' unless defined $acc;
+
+  $self->resultset('Sample')->search(
+    { sample_accession => $acc },
+    { order_by         => { -desc => ['sample_id'] } }
+  );
+}
+
+#-------------------------------------------------------------------------------
+#- assemblies ------------------------------------------------------------------
+#-------------------------------------------------------------------------------
+
+=head2 load_assembly
+
+Given a path to an assembly file, this method stores the file location in the
+L<Bio::HICF::Schema::Result::File|File> and
+L<Bio::HICF::Schema::Result::Assembly|Assembly> tables.
+
+=cut
+
+sub load_assembly {
+  my ( $self, $path ) = @_;
+
+  $self->resultset('Assembly')->load($path);
+}
+
+#-------------------------------------------------------------------------------
+#- antimicrobial resistance methods --------------------------------------------
 #-------------------------------------------------------------------------------
 
 =head2 load_antimicrobial($name)
@@ -223,8 +293,11 @@ sub load_antimicrobial {
 
   try {
     $self->resultset('Antimicrobial')->load_antimicrobial($name);
-  } catch ( $e where { m/did not pass/ } ) {
-    croak "ERROR: couldn't load '$name'; invalid antimicrobial compound name";
+  } catch {
+    if ( m/did not pass/ ) {
+      croak "ERROR: couldn't load '$name'; invalid antimicrobial compound name";
+    }
+    default { die $_ }
   };
 }
 
@@ -243,6 +316,8 @@ sub load_antimicrobial_resistance {
   $self->resultset('AntimicrobialResistance')->load_antimicrobial_resistance(%amr);
 }
 
+#-------------------------------------------------------------------------------
+#- taxonomy and ontology methods -----------------------------------------------
 #-------------------------------------------------------------------------------
 
 =head2 load_tax_tree($tree, $?slice_size)
@@ -333,8 +408,8 @@ sub load_ontology {
         if ( $n % $slice_size == 0 ) {
           try {
             $rs->populate($chunk);
-          } catch ( $e ) {
-            croak "ERROR: there was a problem loading the '$table' table: $e";
+          } catch {
+            croak "ERROR: there was a problem loading the '$table' table: $_";
           };
           # reset the chunk array
           $chunk = [ [ 'id', 'description' ] ];
@@ -350,8 +425,8 @@ sub load_ontology {
     if ( scalar @$chunk > 1 ) {
       try {
         $rs->populate($chunk);
-      } catch ( $e ) {
-        croak "ERROR: there was a problem loading the '$table' table: $e";
+      } catch {
+        croak "ERROR: there was a problem loading the '$table' table: $_";
       };
     }
   };
@@ -359,16 +434,18 @@ sub load_ontology {
   # execute the transaction
   try {
     $self->txn_do( $txn );
-  } catch ( $e ) {
-    if ( $e =~ m/Rollback failed/ ) {
-      croak "ERROR: loading the ontology failed but roll back failed ($e)";
+  } catch {
+    if ( m/Rollback failed/ ) {
+      croak "ERROR: loading the ontology failed but roll back failed ($_)";
     }
     else {
-      croak "ERROR: loading the ontology failed and the changes were rolled back ($e)";
+      croak "ERROR: loading the ontology failed and the changes were rolled back ($_)";
     }
   };
 }
 
+#-------------------------------------------------------------------------------
+#- user account handling methods -----------------------------------------------
 #-------------------------------------------------------------------------------
 
 =head2 add_external_resource($resource_spec}

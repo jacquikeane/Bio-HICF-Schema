@@ -7,7 +7,7 @@ use MooseX::Params::Validate;
 
 use Carp qw ( croak );
 use Bio::Metadata::Types;
-use TryCatch;
+use Try::Tiny;
 
 extends 'DBIx::Class::ResultSet';
 
@@ -52,6 +52,9 @@ sub load_antimicrobial_resistance {
     name              => { isa => 'Bio::Metadata::Types::AntimicrobialName' },
     susceptibility    => { isa => 'Bio::Metadata::Types::SIRTerm' },
     mic               => { isa => 'Int' },
+    equality          => { isa => 'Bio::Metadata::Types::AMREquality',
+                           default => 'eq',
+                           optional => 1 },
     diagnostic_centre => { isa => 'Str' },
   );
 
@@ -61,6 +64,7 @@ sub load_antimicrobial_resistance {
       antimicrobial_name => $params{name},
       susceptibility     => $params{susceptibility},
       mic                => $params{mic},
+      equality           => $params{equality},
       diagnostic_centre  => $params{diagnostic_centre}
     },
     { key => 'primary' }
@@ -70,10 +74,14 @@ sub load_antimicrobial_resistance {
 
   try {
     $amr->insert;
-  }
-  catch ( DBIx::Class::Exception $e where { m/FOREIGN KEY constraint failed/ } ) {
-    croak 'ERROR: both the antimicrobial and the sample must exist';
-  }
+  } catch {
+    if ( m/FOREIGN KEY constraint failed/ ) {
+      croak 'ERROR: both the antimicrobial and the sample must exist';
+    }
+    else {
+      die $_;
+    }
+  };
 }
 
 #-------------------------------------------------------------------------------

@@ -70,8 +70,10 @@ is_deeply($values, $expected_values, 'got expected values for sample 1');
 lives_ok { $values = $sample->fields } 'got field values hash for sample ID 1';
 is_deeply($values, $expected_hash, 'got expected values for sample 1');
 
+my $manifest_id       = '4162F712-1DD2-11B2-B17E-C09EFE1DC403';
+my $other_manifest_id = '0162F712-1DD2-11B2-B17E-C09EFE1DC403';
 my $columns = {
-  manifest_id              => '4162F712-1DD2-11B2-B17E-C09EFE1DC403',
+  manifest_id              => $manifest_id,
   raw_data_accession       => 'data:2',
   sample_accession         => 'ERS123456',
   sample_description       => 'New sample',
@@ -107,6 +109,28 @@ is( $samples->next->sample_id, 1, 'got first sample via "all"' );
 is( $samples->next->sample_id, 2, 'got second sample via "all"' );
 is( $samples->next, undef, 'got expected number of samples via "all"' );
 
+# load the same sample again
+throws_ok { $sample_id = Sample->load_row($columns) } qr/UNIQUE constraint failed/,
+  'error when loading same sample with same manifest ID';
+$columns->{manifest_id} = $other_manifest_id;
+lives_ok { $sample_id = Sample->load_row($columns) } 'row loads ok a second time';
+is( Sample->all_rs->count, 3, '"all" returns a ResultSet with 3 rows' );
+
+my $sample;
+lives_ok { $sample = Schema->get_sample('ERS123456') }
+  'successfully retrieved a single sample row by accession';
+is( $sample->sample_id, 3, 'sample has correct ID');
+
+my $rs;
+lives_ok { $rs = Schema->get_samples('ERS123456') }
+  'got rs with returned samples';
+is( $rs->count, 2, 'got two samples for accession' );
+
+# test errors
+
+# reset the manifest ID to the original value
+$columns->{manifest_id} = $manifest_id;
+
 $columns->{antimicrobial_resistance} = 'am1;X;50';
 throws_ok { Sample->load_row($columns) } qr/Not a valid antimicrobial resistance test result/,
   "error loading invalid amr";
@@ -116,37 +140,37 @@ $columns->{raw_data_accession} = 'data:3';
 $columns->{scientific_name}    = 'Not a real species';
 throws_ok { Sample->load_row($columns) } qr/not found for scientific name/,
   "error loading when tax ID and scientific name don't match";
-is( Sample->count, 2, 'no rows loaded' );
+is( Sample->count, 3, 'no rows loaded' );
 
 $columns->{tax_id}          = 0;
 $columns->{scientific_name} = 'Homo sapiens';
 throws_ok { Sample->load_row($columns) } qr/not found for taxonomy ID/,
   "error loading when tax ID and scientific name don't match";
-is( Sample->count, 2, 'no rows loaded' );
+is( Sample->count, 3, 'no rows loaded' );
 
 $columns->{tax_id}          = 63221;
 $columns->{scientific_name} = 'Homo sapiens';
 throws_ok { Sample->load_row($columns) } qr/taxonomy ID \(63221\) and scientific name \(Homo sapiens\) do not match/,
   "error loading when tax ID and scientific name don't match";
-is( Sample->count, 2, 'no rows loaded' );
+is( Sample->count, 3, 'no rows loaded' );
 
 $columns->{tax_id}   = 9606;
 $columns->{location} = 'not a gaz term';
 throws_ok { Sample->load_row($columns) } qr/term in "location" is not found/,
   "error loading when gazetteer term isn't found";
-is( Sample->count, 2, 'no rows loaded' );
+is( Sample->count, 3, 'no rows loaded' );
 
 $columns->{location}              = 'GAZ:00444180';
 $columns->{host_isolation_source} = 'not a bto term';
 throws_ok { Sample->load_row($columns) } qr/term in "host_isolation_source" is not found/,
   "error loading when BRENDA term isn't found";
-is( Sample->count, 2, 'no rows loaded' );
+is( Sample->count, 3, 'no rows loaded' );
 
 $columns->{host_isolation_source} = 'BTO:0000645';
 $columns->{isolation_source}      = 'not an envo term';
 throws_ok { Sample->load_row($columns) } qr/term in "isolation_source" is not found/,
   "error loading when EnvO term isn't found";
-is( Sample->count, 2, 'no rows loaded' );
+is( Sample->count, 3, 'no rows loaded' );
 
 $DB::single = 1;
 

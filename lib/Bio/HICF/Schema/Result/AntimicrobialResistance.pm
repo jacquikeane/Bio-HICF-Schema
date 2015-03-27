@@ -76,6 +76,13 @@ Susceptibility to the antimicrobial. One of Susceptible, Intermediate or
 
 Minimum inhibitory concentration
 
+=head2 equality
+
+  data_type: 'enum'
+  default_value: 'eq'
+  extra: {list => ["le","lt","eq","gt","ge"]}
+  is_nullable: 0
+
 =head2 diagnostic_centre
 
   data_type: 'varchar'
@@ -122,6 +129,13 @@ __PACKAGE__->add_columns(
   },
   "mic",
   { data_type => "varchar", is_nullable => 0, size => 45 },
+  "equality",
+  {
+    data_type => "enum",
+    default_value => "eq",
+    extra => { list => ["le", "lt", "eq", "gt", "ge"] },
+    is_nullable => 0,
+  },
   "diagnostic_centre",
   { data_type => "varchar", is_nullable => 1, size => 45 },
   "created_at",
@@ -150,19 +164,27 @@ __PACKAGE__->add_columns(
 
 =over 4
 
+=item * L</sample_id>
+
 =item * L</antimicrobial_name>
 
 =item * L</susceptibility>
 
 =item * L</mic>
 
-=item * L</sample_id>
+=item * L</equality>
 
 =back
 
 =cut
 
-__PACKAGE__->set_primary_key("antimicrobial_name", "susceptibility", "mic", "sample_id");
+__PACKAGE__->set_primary_key(
+  "sample_id",
+  "antimicrobial_name",
+  "susceptibility",
+  "mic",
+  "equality",
+);
 
 =head1 RELATIONS
 
@@ -197,17 +219,21 @@ __PACKAGE__->belongs_to(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07042 @ 2015-02-24 13:54:24
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:4+OIXlx0+bWEowp4D0053A
+# Created by DBIx::Class::Schema::Loader v0.07042 @ 2015-03-27 13:31:45
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:zS5F/v0A2l3+28up4tpnFw
 
 #-------------------------------------------------------------------------------
 
 sub get_amr_string {
   my $self = shift;
 
+  my $equality = $self->equality eq 'eq'
+               ? ''
+               : $self->equality;
+
   my $amr_string = $self->get_column('antimicrobial_name') . ';'
                  . $self->susceptibility . ';'
-                 . $self->mic;
+                 . $equality . $self->mic;
 
   $amr_string .= ';' . $self->diagnostic_centre
     if defined $self->diagnostic_centre;

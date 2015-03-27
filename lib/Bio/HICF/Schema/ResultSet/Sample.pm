@@ -22,6 +22,9 @@ sub BUILDARGS { $_[2] }
 Loads a row into the C<sample> table using values from the supplied hash. The
 hash should contain column values keyed on column names.
 
+The same sample may be loaded multiple times, subject to the constraint that it
+comes from a different manifest each time.
+
 Further validation checks are applied before loading, such as confirming that
 the tax ID and scientific name match. An exception is thrown if any of these
 checks fail.
@@ -35,9 +38,11 @@ sub load_row {
 
   # validate the various taxonomy fields
   $self->_taxonomy_checks($upload);
+  # TODO take into account "unknown"
 
   # check that the ontology terms exist
   $self->_ontology_term_check($upload);
+  # TODO take into account "unknown"
 
   # parse out the antimicrobial resistance data and put them back into the row
   # hash in a format that means they'll get inserted correctly in the child
@@ -46,10 +51,9 @@ sub load_row {
     $upload->{antimicrobial_resistances} = $self->_parse_amr_string($amr_string);
   }
 
-  # TODO currently we're not taking any notice if a row already exists in the
-  # TODO database. Need to decide if that's the behaviour we want, or if this
-  # TODO method should throw an exception if the sample already exists
-  my $rs = $self->find_or_create( $upload, { key => 'sample_uc' } );
+  # create a new row for this sample. We want a new row even if this sample
+  # already exists, so that we can have keep track of updated samples.
+  my $rs = $self->create( $upload, { key => 'sample_uc' } );
 
   return $rs->sample_id;
 }
@@ -88,12 +92,13 @@ sub _parse_amr_string {
   # TODO there must be a way to put a big regex like this into a common file
   # TODO like the Types module, rather than having to cart it around like this
   my $amr = [];
-  while ( $amr_string =~ m/(([A-Za-z0-9\-\/\(\)\s]+);([SIR]);(\d+)(;(\w+))?),?\s*/g) {
+  while ( $amr_string =~ m/(([A-Za-z0-9\-\/\(\)\s]+);([SIR]);(lt|le|eq|gt|ge)?(\d+)(;(\w+))?),?\s*/g) {
     push @$amr, {
       antimicrobial_name => $2,
       susceptibility     => $3,
-      mic                => $4,
-      diagnostic_centre  => $6
+      mic                => $5,
+      equality           => $4 || 'eq',
+      diagnostic_centre  => $7
     }
   }
   return $amr;
