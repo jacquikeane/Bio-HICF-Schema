@@ -75,13 +75,11 @@ $schema->load_ontology( $ontology, $file);
 
 # record the dump file details
 
-# calculate the checksum first. Since we don't know how big the file is, we'll
-# generate the digest on-the-fly
+# calculate the checksum
 my $digest = Digest::MD5->new;
-open ( FILE, $file )
+open ( my $fh, $file )
   or croak "ERROR: couldn't read ontology file to calculate checksum: $!";
-while ( <FILE> ) { $digest->add($_); }
-close FILE;
+$digest->addfile($fh);
 
 $schema->add_external_resource(
   {
