@@ -34,13 +34,13 @@ is( $amr->get_amr_string, 'am1;S;50', 'got expected amr string after removing di
 # loading new antimicrobial compound names
 
 is( Antimicrobial->count, 2, 'found 2 antimicrobial before load' );
-lives_ok { Antimicrobial->load_antimicrobial('am3') } 'loading "am3" succeeds';
+lives_ok { Antimicrobial->load('am3') } 'loading "am3" succeeds';
 is( Antimicrobial->count, 3, 'found 3 antimicrobials after load' );
 
-lives_ok { Antimicrobial->load_antimicrobial('am3') } 'loading "am3" again succeeds';
+lives_ok { Antimicrobial->load('am3') } 'loading "am3" again succeeds';
 is( Antimicrobial->count, 3, 'found 3 antimicrobials after loading duplicate' );
 
-throws_ok { Antimicrobial->load_antimicrobial('am#') } qr/Not a valid antimicrobial compound name/,
+throws_ok { Antimicrobial->load('am#') } qr/Not a valid antimicrobial compound name/,
   'loading invalid antimicrobial name fails';
 is( Antimicrobial->count, 3, 'found 3 antimicrobials after failed load' );
 
@@ -55,17 +55,17 @@ my %amr_params = (
   mic               => 10,
   diagnostic_centre => 'Peru',
 );
-lives_ok { AntimicrobialResistance->load_antimicrobial_resistance(%amr_params) }
+lives_ok { AntimicrobialResistance->load(%amr_params) }
   'no error when adding a new valid amr';
 
 $amr_params{sample_id} = 99;
-throws_ok { AntimicrobialResistance->load_antimicrobial_resistance(%amr_params) }
+throws_ok { AntimicrobialResistance->load(%amr_params) }
   qr/both the antimicrobial and the sample/,
   'error when adding an amr with a missing sample ID';
 
 $amr_params{sample_id} = 1;
 $amr_params{name}      = 'x';
-throws_ok { AntimicrobialResistance->load_antimicrobial_resistance(%amr_params) }
+throws_ok { AntimicrobialResistance->load(%amr_params) }
   qr/both the antimicrobial and the sample/,
   'error when adding an amr with a missing compound name';
 
@@ -76,7 +76,7 @@ throws_ok { AntimicrobialResistance->load_antimicrobial_resistance(%amr_params) 
   mic               => 50,
   diagnostic_centre => 'WTSI',
 );
-throws_ok { AntimicrobialResistance->load_antimicrobial_resistance(%amr_params) }
+throws_ok { AntimicrobialResistance->load(%amr_params) }
   qr/already exists/,
   'error when adding an amr that already exists';
 

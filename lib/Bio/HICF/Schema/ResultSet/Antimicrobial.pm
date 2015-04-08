@@ -19,13 +19,13 @@ sub BUILDARGS { $_[2] }
 
 =head1 METHODS
 
-=head2 load_antimicrobial($am_name)
+=head2 load($am_name)
 
 Loads a new antimicrobial compound name into the C<antimicrobial> table.
 
 =cut
 
-sub load_antimicrobial {
+sub load {
   my $self = shift;
   my ( $am_name ) = pos_validated_list(
     \@_,

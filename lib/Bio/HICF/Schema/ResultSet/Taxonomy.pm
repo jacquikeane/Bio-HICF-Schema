@@ -18,7 +18,7 @@ sub BUILDARGS { $_[2] }
 
 =head1 METHODS
 
-=head2 load_tree($tree,$?slice_size)
+=head2 load($tree,$?slice_size)
 
 load the given tree into the taxonomy table. Requires a reference to a
 L<Bio::Metadata::TaxTree> object containing the tree data. The rows
@@ -35,7 +35,7 @@ failed>.
 
 =cut
 
-sub load_tree {
+sub load {
   my ( $self, $tree, $slice_size ) = @_;
 
   croak 'ERROR: not a Bio::Metadata::Tree object'

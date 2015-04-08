@@ -20,7 +20,7 @@ sub BUILDARGS { $_[2] }
 
 =head1 METHODS
 
-=head2 load_antimicrobial_resistance($args)
+=head2 load($args)
 
 Adds the specified antimicrobial resistance rest result to the database. Requires
 a single argument, a hash containing the parameters specifying the resistance
@@ -45,7 +45,7 @@ test result is already present in the database.
 
 =cut
 
-sub load_antimicrobial_resistance {
+sub load {
   my ( $self, %params ) = validated_hash(
     \@_,
     sample_id         => { isa => 'Int' },

@@ -12,13 +12,13 @@ fixtures_ok 'main', 'installed fixtures';
 my $tt = Bio::Metadata::TaxTree->new( names_file => 't/data/05_names.dmp', nodes_file => 't/data/05_nodes.dmp' );
 $tt->build_tree;
 
-lives_ok { Schema->load_tax_tree($tt) } 'successfully loaded tax tree';
+lives_ok { Taxonomy->load($tt) } 'successfully loaded tax tree';
 is( Taxonomy->count, 12, 'got expected number of rows' );
 
-lives_ok { Schema->load_tax_tree($tt) } 'successfully loaded tax tree a second time';
+lives_ok { Taxonomy->load($tt) } 'successfully loaded tax tree a second time';
 is( Taxonomy->count, 12, 'got expected number of rows' );
 
-lives_ok { Schema->load_tax_tree($tt, 5) } 'successfully loaded with a slice size specified';
+lives_ok { Taxonomy->load($tt, 5) } 'successfully loaded with a slice size specified';
 is( Taxonomy->count, 12, 'got expected number of rows' );
 
 my $node = Taxonomy->find(8);
@@ -50,7 +50,7 @@ my $tree_node = Tree::Simple->new(
 );
 $tt->nodes->[13] = $tree_node;
 
-throws_ok { Schema->load_tax_tree($tt) } qr/loading the tax tree failed.*?rolled back/,
+throws_ok { Taxonomy->load($tt) } qr/loading the tax tree failed.*?rolled back/,
   'error and roll back with tree with duplicate nodes';
 is( Taxonomy->count, 12, 'table still has expected number of rows' );
 

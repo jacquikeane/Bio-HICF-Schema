@@ -236,7 +236,7 @@ sub load_antimicrobial {
   chomp $name;
 
   try {
-    $self->resultset('Antimicrobial')->load_antimicrobial($name);
+    $self->resultset('Antimicrobial')->load($name);
   } catch {
     if ( m/did not pass/ ) {
       croak "ERROR: couldn't load '$name'; invalid antimicrobial compound name";
@@ -250,14 +250,14 @@ sub load_antimicrobial {
 =head2 load_antimicrobial_resistance(%amr)
 
 Loads a new antimicrobial resistance test result into the database. See
-L<Bio::HICF::Schema::ResultSet::AntimicrobialResistance::load_antimicrobial_resistance>
+L<Bio::HICF::Schema::ResultSet::AntimicrobialResistance::load>
 for details.
 
 =cut
 
 sub load_antimicrobial_resistance {
   my ( $self, %amr ) = @_;
-  $self->resultset('AntimicrobialResistance')->load_antimicrobial_resistance(%amr);
+  $self->resultset('AntimicrobialResistance')->load(%amr);
 }
 
 #-------------------------------------------------------------------------------
@@ -267,14 +267,14 @@ sub load_antimicrobial_resistance {
 =head2 load_tax_tree($tree, $?slice_size)
 
 load the given tree into the taxonomy table.
-See L<Bio::HICF::Schema::ResultSet::Taxonomy::load_tax_tree>.
+See L<Bio::HICF::Schema::ResultSet::Taxonomy::load>.
 
 =cut
 
 sub load_tax_tree {
   my ( $self, $tree, $slice_size ) = @_;
 
-  $self->resultset('Taxonomy')->load_tree($tree, $slice_size);
+  $self->resultset('Taxonomy')->load($tree, $slice_size);
 }
 
 #-------------------------------------------------------------------------------
