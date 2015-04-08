@@ -472,9 +472,9 @@ containing the following keys:
 
 =back
 
-If the key C<passphrase> is present in the hash, its value will be used to
-set the passphrase for the user. If there is no supplied passphrase, a
-random passphrase will be generated and returned.
+If the key C<passphrase> is present in the hash, its value will be used to set
+the passphrase for the user and the return value will be C<undef>. If there is
+no supplied passphrase, a random passphrase will be generated and returned.
 
 =cut
 

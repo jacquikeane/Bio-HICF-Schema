@@ -66,7 +66,7 @@ my $returned_passphrase;
 lives_ok { $returned_passphrase = Schema->add_new_user($user_details) }
   'no error when adding second new user';
 
-ok( $returned_passphrase eq '', 'returned passphrase is empty' );
+is( $returned_passphrase, undef, 'returned passphrase is undefined' );
 
 is( User->count, 2, 'two users after loading second user' );
 
