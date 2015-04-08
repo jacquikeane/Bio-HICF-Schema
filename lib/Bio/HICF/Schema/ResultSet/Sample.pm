@@ -121,7 +121,7 @@ sub _taxonomy_checks {
 
 # taxonomy ID/scientific name consistency check
 sub _tax_id_name_check {
-  my ( $self, $rs, $upload ) = @_;
+  my ( $self, $tax_table, $upload ) = @_;
 
   my $tax_id = $upload->{tax_id};
   my $name   = $upload->{scientific_name};
@@ -129,41 +129,43 @@ sub _tax_id_name_check {
   # we can only validate taxonomy ID/name if we have both
   return unless ( defined $tax_id and defined $name );
 
-  # find tax ID using the given name
-  my $tax_id_lookup = $rs->find( { name => $name },
-                                 { key => 'name_uq' } );
+  # find tax ID(s) using the given name. There can, it appears, be multiple
+  # nodes with different tax IDs but the same scientific name, so we need to
+  # take that into account
+  my $rs = $tax_table->search( { name => $name }, {} );
 
-  croak "taxonomy ID not found for scientific name ($name)"
-    unless defined $tax_id_lookup;
+  croak "taxonomy ID not found for scientific name '$name'"
+    unless $rs->count;
+
+  my %tax_id_lookup = map { $_->tax_id => 1 } $rs->all;
 
   # find scientific name using given tax ID
-  my $name_lookup = $rs->find( { tax_id => $tax_id },
-                               { key => 'primary' } );
+  my $name_lookup = $tax_table->find( { tax_id => $tax_id },
+                                      { key => 'primary' } );
 
   croak "scientific name not found for taxonomy ID ($tax_id)"
     unless defined $name_lookup;
 
   # cross-check the name and tax ID
   croak "taxonomy ID ($tax_id) and scientific name ($name) do not match"
-   unless ( $tax_id == $tax_id_lookup->tax_id and
-            $name   eq $name_lookup->name );
+   unless ( $name_lookup->name eq $name and
+            exists $tax_id_lookup{$tax_id} );
 }
 
 #-------------------------------------------------------------------------------
 
 # check specific host is a valid scientific name
 sub _specific_host_check {
-  my ( $self, $rs, $upload ) = @_;
+  my ( $self, $tax_table, $upload ) = @_;
 
   my $name = $upload->{specific_host};
 
   return unless defined $name;
 
-  my $name_lookup = $rs->find( { name => $name },
-                               { key => 'name_uq' } );
+  my $name_lookup = $tax_table->search( { name => $name }, {} );
 
   croak "species name in 'specific_host' ($name) is not found in the taxonomy tree"
-    unless defined $name_lookup;
+    unless $name_lookup->count;
 }
 
 #-------------------------------------------------------------------------------

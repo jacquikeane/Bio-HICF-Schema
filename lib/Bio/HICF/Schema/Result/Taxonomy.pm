@@ -107,7 +107,6 @@ __PACKAGE__->set_primary_key("tax_id");
 # DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:6Qhe80y8F33FnwAsdF2dcg
 
 
-__PACKAGE__->add_unique_constraint( 'name_uq', [ 'name' ] );
-
+# You can replace this text with custom code or comments, and it will be preserved on regeneration
 __PACKAGE__->meta->make_immutable;
 1;
