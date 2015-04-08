@@ -17,7 +17,7 @@ sub BUILDARGS { $_[2] }
 
 =head1 METHODS
 
-=head2 load_row($upload)
+=head2 load($upload)
 
 Loads a row into the C<sample> table using values from the supplied hash. The
 hash should contain column values keyed on column names.
@@ -31,7 +31,7 @@ checks fail.
 
 =cut
 
-sub load_row {
+sub load {
   my ( $self, $upload ) = @_;
 
   croak 'not a valid row' unless ref $upload eq 'HASH';

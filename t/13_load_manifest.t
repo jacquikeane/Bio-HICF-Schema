@@ -54,28 +54,28 @@ like( $stderr, qr/ERROR: you must specify a checklist configuration file/, 'got 
 SKIP: {
   skip 'error message testing', 6 if $ENV{SKIP_ERROR_TESTS};
 
-  ( $rv, $stdout, $stderr ) = run_script( $script, [ qw(-c t/data/04_checklist.conf) ] );
+  ( $rv, $stdout, $stderr ) = run_script( $script, [ qw(-c t/data/13_checklist.conf) ] );
   like( $stderr, qr/ERROR: you must specify a script configuration file/, 'got expected error message with just -c flag' );
 
-  ( $rv, $stdout, $stderr ) = run_script( $script, [ qw(-c t/data/04_checklist.conf        -d t/data/test_config.conf) ] );
+  ( $rv, $stdout, $stderr ) = run_script( $script, [ qw(-c t/data/13_checklist.conf        -d t/data/test_config.conf) ] );
   like( $stderr, qr/ERROR: you must specify an input file/, 'got expected error message with -c and -s flags' );
 
-  ( $rv, $stdout, $stderr ) = run_script( $script, [ qw(-c t/data/04_broken_checklist.conf -d t/data/04_script.conf             t/data/04_manifest.csv) ] );
+  ( $rv, $stdout, $stderr ) = run_script( $script, [ qw(-c t/data/13_broken_checklist.conf -d t/data/13_script.conf             t/data/13_manifest.csv) ] );
   like( $stderr, qr/ERROR: could not load configuration/, 'got expected error message with broken checklist config' );
 
-  ( $rv, $stdout, $stderr ) = run_script( $script, [ qw(-c t/data/04_checklist.conf        -d t/data/04_broken_test_config.conf t/data/04_manifest.csv) ] );
+  ( $rv, $stdout, $stderr ) = run_script( $script, [ qw(-c t/data/13_checklist.conf        -d t/data/13_broken_test_config.conf t/data/13_manifest.csv) ] );
   like( $stderr, qr/ERROR: there was a problem reading the script configuration.*? no EndBlock/, 'got expected error message with broken script config' );
 
-  ( $rv, $stdout, $stderr ) = run_script( $script, [ qw(-c t/data/04_checklist.conf        -d t/data/04_bad_db_script.conf      t/data/04_manifest.csv) ] );
+  ( $rv, $stdout, $stderr ) = run_script( $script, [ qw(-c t/data/13_checklist.conf        -d t/data/13_bad_db_script.conf      t/data/13_manifest.csv) ] );
   like( $stderr, qr/ERROR: could not connect/, 'got expected error message with bad script config' );
 
-  ( $rv, $stdout, $stderr ) = run_script( $script, [ qw(-c t/data/04_checklist.conf        -d t/data/04_script.conf             t/data/04_broken_manifest.csv) ] );
+  ( $rv, $stdout, $stderr ) = run_script( $script, [ qw(-c t/data/13_checklist.conf        -d t/data/13_script.conf             t/data/13_broken_manifest.csv) ] );
   like( $stderr, qr/ERROR: there was a problem loading.*? data in the manifest are not valid/, 'got expected error message with invalid manifest' );
 }
 
 is( Sample->count, 1, 'found one row in sample table before loading' );
 
-( $rv, $stdout, $stderr ) = run_script( $script, [ qw(-c t/data/04_checklist.conf -d t/data/04_script.conf t/data/04_manifest.csv) ] );
+( $rv, $stdout, $stderr ) = run_script( $script, [ qw(-c t/data/13_checklist.conf -d t/data/13_script.conf t/data/13_manifest.csv) ] );
 unlike( $stderr, qr/ERROR/, 'no loading error with valid configs and manifest' );
 
 is( Sample->count, 3, 'got expected number of rows in sample table' );

@@ -33,29 +33,17 @@ $tar->extract_file( 'names.dmp', '.cached_test_files/names.dmp' );
 
 #-------------------------------------------------------------------------------
 
-my $c = Bio::Metadata::Config->new( config_file => 't/data/01_checklist.conf' );
-my $r = Bio::Metadata::Reader->new( config => $c );
-my $m = $r->read_csv('t/data/01_manifest.csv');
-
-my @sample_ids;
-lives_ok { @sample_ids = Schema->load_manifest($m) } 'loading valid manifest works';
-
-is_deeply( \@sample_ids, [ 2, 3 ], 'got expected sample_ids from "load_manifest"' );
-
-ok my $sample = Sample->find(2), 'found new sample';
-is( AntimicrobialResistance->search({},{})->count, 5, 'found expected number of antimicrobial resistance rows' );
-
-is_fields [ 'raw_data_accession' ], $sample, [ 'rda:2' ], 'new sample row has expected values';
-
-is( $sample->antimicrobial_resistances->count, 2, 'new sample has 2 amr rows' );
-is( $sample->antimicrobial_resistances->first->get_column('antimicrobial_name'), 'am1', 'new sample has expected antimicrobial_name' );
-
-#-------------------------------------------------------------------------------
-
 # make sure we can retrieve samples and manifests
 
 SKIP: {
-  skip 'sample/manifest retrieval', 5 if $ENV{SKIP_RETRIEVAL_TESTS};
+  skip 'sample/manifest retrieval', 11 if $ENV{SKIP_RETRIEVAL_TESTS};
+
+  my $c = Bio::Metadata::Config->new( config_file => 't/data/01_checklist.conf' );
+  my $r = Bio::Metadata::Reader->new( config => $c );
+  my $m = $r->read_csv('t/data/01_manifest.csv');
+
+  my @sample_ids;
+  lives_ok { @sample_ids = Schema->load_manifest($m) } 'loading valid manifest works';
 
   # using a single sample ID
   my $values;

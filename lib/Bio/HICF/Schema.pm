@@ -29,14 +29,15 @@ __PACKAGE__->load_namespaces;
 
 =cut
 
-use Carp qw( croak );
-use Bio::Metadata::Validator;
-use Bio::Metadata::TaxTree;
-use List::MoreUtils qw( mesh );
-use Try::Tiny;
 use MooseX::Params::Validate;
+use Carp qw( croak );
+use Try::Tiny;
 use Email::Valid;
 use File::Basename;
+use List::MoreUtils qw( mesh );
+
+use Bio::Metadata::Validator;
+use Bio::Metadata::TaxTree;
 
 #-------------------------------------------------------------------------------
 
@@ -51,72 +52,15 @@ use File::Basename;
 =head2 load_manifest($manifest)
 
 Loads the sample data in a L<Bio::Metadata::Manifest>. Returns a list of the
-sample IDs for the newly inserted rows.
-
-The database changes are made inside a transaction (see
-L<DBIx::Class::Storage#txn_do>). If there is a problem during loading an
-exception is throw and we try to roll back any database changes that have been
-made. If the roll back fails, the error message will include the phrase "roll
-back failed".
+sample IDs for the newly inserted rows. See
+L<Bio::HICF::Schema::ResultSet::Manifest::load>.
 
 =cut
 
 sub load_manifest {
   my ( $self, $manifest ) = @_;
 
-  croak 'not a Bio::Metadata::Manifest'
-    unless ref $manifest eq 'Bio::Metadata::Manifest';
-
-  my $v = Bio::Metadata::Validator->new;
-
-  croak 'ERROR: the data in the manifest are not valid'
-    unless $v->validate($manifest);
-
-  # build a transaction
-  my @row_ids;
-  my $txn = sub {
-
-    # add a row to the manifest table
-    my $rs = $self->resultset('Manifest')
-                  ->find_or_create(
-                    {
-                      manifest_id => $manifest->uuid,
-                      md5         => $manifest->md5,
-                      config      => { config => $manifest->config->config_string }
-                    },
-                    { key => 'primary' }
-                  );
-
-    # load the sample rows
-    my $field_names = $manifest->field_names;
-
-    foreach my $row ( $manifest->all_rows ) {
-
-      # zip the field names and values together to form a hash...
-      my %upload = mesh @$field_names, @$row;
-
-      # ... add the manifest ID...
-      $upload{manifest_id} = $manifest->uuid;
-
-      # ... and pass that hash to the ResultSet to load
-      push @row_ids, $self->resultset('Sample')->load_row(\%upload);
-    }
-
-  };
-
-  # run the transaction
-  try {
-    $self->txn_do( $txn );
-  } catch {
-    if ( m/Rollback failed/ ) {
-      croak "ERROR: there was an error when loading the manifest but roll back failed: $_";
-    }
-    else {
-      croak "ERROR: there was an error when loading the manifest; changes have been rolled back: $_";
-    }
-  };
-
-  return @row_ids;
+  return $self->resultset('Manifest')->load($manifest);
 }
 
 #-------------------------------------------------------------------------------
