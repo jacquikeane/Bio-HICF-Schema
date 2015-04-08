@@ -16,7 +16,7 @@ use Pod::Usage;
 use Bio::HICF::Schema;
 use Bio::Metadata::Validator;
 use Carp qw( croak );
-use TryCatch;
+use Try::Tiny;
 
 #-------------------------------------------------------------------------------
 # script boilerplate...
@@ -57,10 +57,9 @@ my $m = $r->read_csv( $file );
 my $cg;
 try {
   $cg = Config::General->new($db_config_file);
-}
-catch ( $e ) {
-  croak "ERROR: there was a problem reading the script configuration: $e";
-}
+} catch {
+  croak "ERROR: there was a problem reading the script configuration: $_";
+};
 
 my %config = $cg->getall;
 
@@ -70,13 +69,14 @@ my @loaded_ids;
 try {
   @loaded_ids = $schema->load_manifest($m);
   print 'manifest ', $m->uuid, " is loaded\n";
-}
-catch ( $e where { m/no such table/ } ) {
-  croak "ERROR: could not connect to the database: $e";
-}
-catch ( $e ) {
-  croak "ERROR: there was a problem loading the manifest: $e";
-}
+} catch {
+  if ( m/no such table/ ) {
+    croak "ERROR: could not connect to the database: $_";
+  }
+  else {
+    croak "ERROR: there was a problem loading the manifest: $_";
+  }
+};
 
 exit ( scalar @loaded_ids ? 0 : 1 );
 

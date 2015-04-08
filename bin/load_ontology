@@ -12,7 +12,7 @@ use warnings;
 use Getopt::Long::Descriptive;
 use Pod::Usage;
 use Config::General;
-use TryCatch;
+use Try::Tiny;
 use Carp qw( croak );
 use File::Slurp;
 
@@ -57,10 +57,9 @@ _usage($usage, 'ERROR: you must specify an input file')
 my $cg;
 try {
   $cg = Config::General->new($config_file);
-}
-catch ( $e ) {
-  croak "ERROR: there was a problem reading the config file ($config_file): $e";
-}
+} catch {
+  croak "ERROR: there was a problem reading the config file ($config_file): $_";
+};
 
 my %config = $cg->getall;
 

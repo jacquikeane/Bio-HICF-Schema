@@ -12,7 +12,7 @@ use warnings;
 use Getopt::Long::Descriptive;
 use Pod::Usage;
 use Config::General;
-use TryCatch;
+use Try::Tiny;
 use Carp qw( croak );
 use Archive::Tar;
 use File::Temp;
@@ -52,10 +52,9 @@ _usage($usage, "ERROR: no such configuration file ($config_file)")
 my $cg;
 try {
   $cg = Config::General->new($config_file);
-}
-catch ( $e ) {
-  croak "ERROR: there was a problem reading the config file ($config_file): $e";
-}
+} catch {
+  croak "ERROR: there was a problem reading the config file ($config_file): $_";
+};
 
 my %config = $cg->getall;
 
@@ -90,10 +89,9 @@ my $schema = Bio::HICF::Schema->connect( @{ $config{database}->{connect_info} } 
 # load it
 try {
   $schema->load_tax_tree($tt);
-}
-catch ( $e ) {
-  croak "ERROR: there was a problem loading the tax tree:\n$e";
-}
+} catch {
+  croak "ERROR: there was a problem loading the tax tree:\n$_";
+};
 
 # record the dump file details
 

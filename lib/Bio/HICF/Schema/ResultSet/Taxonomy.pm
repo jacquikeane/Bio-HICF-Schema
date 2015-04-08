@@ -5,7 +5,7 @@ use Moose;
 use MooseX::NonMoose;
 use MooseX::Params::Validate;
 use Carp qw ( croak );
-use TryCatch;
+use Try::Tiny;
 
 extends 'DBIx::Class::ResultSet';
 
@@ -77,12 +77,12 @@ sub load {
   # execute the transaction
   try {
     $self->result_source->schema->txn_do( $txn );
-  } catch ( $e ) {
-    if ( $e =~ m/Rollback failed/ ) {
-      croak "ERROR: loading the tax tree failed but roll back failed ($e)";
+  } catch {
+    if ( m/Rollback failed/ ) {
+      croak "ERROR: loading the tax tree failed but roll back failed: $_";
     }
     else {
-      croak "ERROR: loading the tax tree failed and the changes were rolled back ($e)";
+      croak "ERROR: loading the tax tree failed and the changes were rolled back: $_";
     }
   };
 }
