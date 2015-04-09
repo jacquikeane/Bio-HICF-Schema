@@ -218,30 +218,24 @@ __PACKAGE__->belongs_to(
   { is_deferrable => 1, on_delete => "CASCADE", on_update => "NO ACTION" },
 );
 
+=head1 L<Moose> ROLES APPLIED
 
-# Created by DBIx::Class::Schema::Loader v0.07042 @ 2015-03-27 13:31:45
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:zS5F/v0A2l3+28up4tpnFw
+=over 4
 
-#-------------------------------------------------------------------------------
+=item * L<Bio::HICF::Schema::Role::AntimicrobialResistance>
 
-sub get_amr_string {
-  my $self = shift;
+=back
 
-  my $equality = $self->equality eq 'eq'
-               ? ''
-               : $self->equality;
+=cut
 
-  my $amr_string = $self->get_column('antimicrobial_name') . ';'
-                 . $self->susceptibility . ';'
-                 . $equality . $self->mic;
 
-  $amr_string .= ';' . $self->diagnostic_centre
-    if defined $self->diagnostic_centre;
+with 'Bio::HICF::Schema::Role::AntimicrobialResistance';
 
-  return $amr_string;
-}
 
-#-------------------------------------------------------------------------------
+# Created by DBIx::Class::Schema::Loader v0.07042 @ 2015-04-09 15:05:20
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:Ydid6VrdV5phsHfw0NvZ9A
 
+
+# You can replace this text with custom code or comments, and it will be preserved on regeneration
 __PACKAGE__->meta->make_immutable;
 1;

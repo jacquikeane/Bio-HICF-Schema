@@ -44,10 +44,17 @@ make_schema_at(
     components         => [ 'InflateColumn::DateTime', 'TimeStamp', 'PassphraseColumn' ],
     dump_directory     => $dump_path,
     use_moose          => 1,
+    # add custom column information for certain columns
     custom_column_info => sub {
       my ( $table, $column_name, $column_info ) = @_;
+
+      # make the created_ad and updated_at update automatically when the
+      # relevant operation is performed on the column
       return { set_on_create => 1 } if $column_name eq 'created_at';
       return { set_on_update => 1 } if $column_name eq 'updated_at';
+
+      # make the passphrase column treat passphrases as salted digests and
+      # set the parameters for that
       if ( $column_name eq 'passphrase' ) {
         return {
           passphrase       => 'rfc2307',
@@ -59,6 +66,31 @@ make_schema_at(
           passphrase_check_method => 'check_password',
         };
       }
+    },
+    # use "col_accessor_map" to set the name for the column accessors for those
+    # columns that allow "unknown", allowing us to overload the accessors and
+    # handle unknowns appropriately as the data go in and out of the DB
+    col_accessor_map => {
+      collection_date       => '_collection_date',
+      location              => '_location',
+      host_associated       => '_host_associated',
+      specific_host         => '_specific_host',
+      host_disease_status   => '_host_disease_status',
+      host_isolation_source => '_host_isolation_source',
+      patient_location      => '_patient_location',
+      isolation_source      => '_isolation_source',
+      serovar               => '_serovar',
+      other_classification  => '_other_classification',
+    },
+    # this allows us to move the functionality for the ResultSets out into
+    # roles. The loader will have the specified ResultSet do a "with <role>"
+    # for each RS in the map
+    result_roles_map => {
+      AntimicrobialResistance => 'Bio::HICF::Schema::Role::AntimicrobialResistance',
+      Assembly                => 'Bio::HICF::Schema::Role::Assembly',
+      Manifest                => 'Bio::HICF::Schema::Role::Manifest',
+      Sample                  => 'Bio::HICF::Schema::Role::Sample',
+      User                    => 'Bio::HICF::Schema::Role::User',
     },
   },
   [

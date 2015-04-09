@@ -109,58 +109,68 @@ __PACKAGE__->table("sample");
 
 =head2 collection_date
 
+  accessor: '_collection_date'
   data_type: 'datetime'
   datetime_undef_if_invalid: 1
   is_nullable: 0
 
 =head2 location
 
+  accessor: '_location'
   data_type: 'varchar'
   is_nullable: 0
   size: 15
 
 =head2 host_associated
 
+  accessor: '_host_associated'
   data_type: 'tinyint'
   is_nullable: 0
 
 =head2 specific_host
 
+  accessor: '_specific_host'
   data_type: 'varchar'
   is_nullable: 1
   size: 200
 
 =head2 host_disease_status
 
+  accessor: '_host_disease_status'
   data_type: 'enum'
   extra: {list => ["healthy","diseased","carriage"]}
   is_nullable: 1
 
 =head2 host_isolation_source
 
+  accessor: '_host_isolation_source'
   data_type: 'varchar'
   is_nullable: 1
   size: 15
 
 =head2 patient_location
 
+  accessor: '_patient_location'
   data_type: 'enum'
   extra: {list => ["inpatient","community"]}
   is_nullable: 1
 
 =head2 isolation_source
 
+  accessor: '_isolation_source'
   data_type: 'varchar'
   is_nullable: 1
   size: 15
 
 =head2 serovar
 
+  accessor: '_serovar'
   data_type: 'text'
   is_nullable: 1
 
 =head2 other_classification
 
+  accessor: '_other_classification'
   data_type: 'text'
   is_nullable: 1
 
@@ -234,36 +244,67 @@ __PACKAGE__->add_columns(
   { data_type => "varchar", is_nullable => 1, size => 45 },
   "collection_date",
   {
+    accessor => "_collection_date",
     data_type => "datetime",
     datetime_undef_if_invalid => 1,
     is_nullable => 0,
   },
   "location",
-  { data_type => "varchar", is_nullable => 0, size => 15 },
+  {
+    accessor => "_location",
+    data_type => "varchar",
+    is_nullable => 0,
+    size => 15,
+  },
   "host_associated",
-  { data_type => "tinyint", is_nullable => 0 },
+  {
+    accessor    => "_host_associated",
+    data_type   => "tinyint",
+    is_nullable => 0,
+  },
   "specific_host",
-  { data_type => "varchar", is_nullable => 1, size => 200 },
+  {
+    accessor => "_specific_host",
+    data_type => "varchar",
+    is_nullable => 1,
+    size => 200,
+  },
   "host_disease_status",
   {
-    data_type => "enum",
-    extra => { list => ["healthy", "diseased", "carriage"] },
+    accessor    => "_host_disease_status",
+    data_type   => "enum",
+    extra       => { list => ["healthy", "diseased", "carriage"] },
     is_nullable => 1,
   },
   "host_isolation_source",
-  { data_type => "varchar", is_nullable => 1, size => 15 },
+  {
+    accessor => "_host_isolation_source",
+    data_type => "varchar",
+    is_nullable => 1,
+    size => 15,
+  },
   "patient_location",
   {
-    data_type => "enum",
-    extra => { list => ["inpatient", "community"] },
+    accessor    => "_patient_location",
+    data_type   => "enum",
+    extra       => { list => ["inpatient", "community"] },
     is_nullable => 1,
   },
   "isolation_source",
-  { data_type => "varchar", is_nullable => 1, size => 15 },
+  {
+    accessor => "_isolation_source",
+    data_type => "varchar",
+    is_nullable => 1,
+    size => 15,
+  },
   "serovar",
-  { data_type => "text", is_nullable => 1 },
+  { accessor => "_serovar", data_type => "text", is_nullable => 1 },
   "other_classification",
-  { data_type => "text", is_nullable => 1 },
+  {
+    accessor    => "_other_classification",
+    data_type   => "text",
+    is_nullable => 1,
+  },
   "strain",
   { data_type => "text", is_nullable => 1 },
   "isolate",
@@ -351,108 +392,26 @@ __PACKAGE__->belongs_to(
   { is_deferrable => 1, on_delete => "NO ACTION", on_update => "NO ACTION" },
 );
 
+=head1 L<Moose> ROLES APPLIED
 
-# Created by DBIx::Class::Schema::Loader v0.07042 @ 2015-03-27 09:59:23
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:BaBfJMLztlKCw7NMXINtnw
+=over 4
 
-#-------------------------------------------------------------------------------
+=item * L<Bio::HICF::Schema::Role::Sample>
+
+=back
+
+=cut
+
+
+with 'Bio::HICF::Schema::Role::Sample';
+
+
+# Created by DBIx::Class::Schema::Loader v0.07042 @ 2015-04-09 14:39:28
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:TVUaE9royaWqADUytwJJRQ
 
 __PACKAGE__->add_unique_constraint(
   sample_uc => [ qw( manifest_id raw_data_accession sample_accession ) ]
 );
-
-#-------------------------------------------------------------------------------
-
-=head1 METHODS
-
-=head2 fields
-
-Returns a reference to a hash containing field values, keyed on field name.
-
-=cut
-
-sub fields {
-  my $self = shift;
-
-  my ( $values_list, $values_hash ) = $self->_get_values;
-  return $values_hash;
-}
-
-#-------------------------------------------------------------------------------
-
-=head2 field_values
-
-Returns a reference to an array containing field values, in the order that they
-are found in the checklist.
-
-=cut
-
-sub field_values {
-  my $self = shift;
-
-  my ( $values_list, $values_hash ) = $self->_get_values;
-  return $values_list;
-}
-
-#-------------------------------------------------------------------------------
-
-=head2 field_names
-
-Returns a list of the fields in a sample, in the order in which they appear in
-the checklist.
-
-=cut
-
-sub field_names {
-  return [ qw(
-    raw_data_accession
-    sample_accession
-    sample_description
-    collected_at
-    tax_id
-    scientific_name
-    collected_by
-    source
-    collection_date
-    location
-    host_associated
-    specific_host
-    host_disease_status
-    host_isolation_source
-    patient_location
-    isolation_source
-    serovar
-    other_classification
-    strain
-    isolate
-  ) ];
-}
-
-#-------------------------------------------------------------------------------
-#- private methods -------------------------------------------------------------
-#-------------------------------------------------------------------------------
-
-sub _get_values {
-  my $self = shift;
-
-  my $values_list = [];
-  my $values_hash = {};
-  foreach my $field ( @{ $self->field_names } ) {
-    my $value = $self->get_column($field);
-    push @$values_list, $value;
-    $values_hash->{$field} = $value;
-  }
-  my @amr_strings;
-  foreach my $amr ( $self->antimicrobial_resistances ) {
-    push @amr_strings, $amr->get_amr_string;
-  }
-  push @$values_list, join ',', @amr_strings;
-  $values_hash->{antimicrobial_resistance} = join ',', @amr_strings;
-
-  return ( $values_list, $values_hash );
-}
-
-#-------------------------------------------------------------------------------
 
 __PACKAGE__->meta->make_immutable;
 

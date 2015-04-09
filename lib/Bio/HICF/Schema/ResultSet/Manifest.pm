@@ -84,7 +84,7 @@ sub load {
       $upload{manifest_id} = $manifest->uuid;
 
       # ... and pass that hash to the ResultSet to load
-      push @row_ids, $schema->resultset('Sample')->load( \%upload );
+      push @row_ids, $schema->resultset('Sample')->load(\%upload);
     }
 
   };

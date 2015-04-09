@@ -19,7 +19,7 @@ sub BUILDARGS { $_[2] }
 
 =head2 load($upload)
 
-Loads a row into the C<sample> table using values from the supplied hash. The
+Loads a row into the C<sample> table using values from the C<$upload> hash. The
 hash should contain column values keyed on column names.
 
 The same sample may be loaded multiple times, subject to the constraint that it
@@ -27,7 +27,8 @@ comes from a different manifest each time.
 
 Further validation checks are applied before loading, such as confirming that
 the tax ID and scientific name match. An exception is thrown if any of these
-checks fail.
+checks fail. Columns that permit "unknown" as a valid value are also checked
+for accepted values of "unknown".
 
 =cut
 
@@ -38,11 +39,9 @@ sub load {
 
   # validate the various taxonomy fields
   $self->_taxonomy_checks($upload);
-  # TODO take into account "unknown"
 
   # check that the ontology terms exist
   $self->_ontology_term_check($upload);
-  # TODO take into account "unknown"
 
   # parse out the antimicrobial resistance data and put them back into the row
   # hash in a format that means they'll get inserted correctly in the child
@@ -50,6 +49,13 @@ sub load {
   if ( my $amr_string = delete $upload->{antimicrobial_resistance} ) {
     $upload->{antimicrobial_resistances} = $self->_parse_amr_string($amr_string);
   }
+
+  # TODO edit columns like "host_associated" to convert from "yes" to a
+  # TODO boolean 1 or 0
+
+  # TODO we need to filter out the "unknown" values, otherwise they'll cause
+  # TODO the "create" call to throw DBI exceptions, for example, when we try
+  # TODO to load "not applicable" in the collection_date column (DateTime)
 
   # create a new row for this sample. We want a new row even if this sample
   # already exists, so that we can have keep track of updated samples.
@@ -63,7 +69,8 @@ sub load {
 =head2 all_rs
 
 Returns a L<DBIx::Class::ResultSet|ResultSet> containing all samples, sorted
-by sample ID and created date.
+by ascending sample ID and created date, i.e. the most recently loaded samples
+will be last in the list.
 
 =cut
 
@@ -106,6 +113,7 @@ sub _parse_amr_string {
 
 #-------------------------------------------------------------------------------
 
+# runs two checks on the taxonomy information in the upload
 sub _taxonomy_checks {
   my ( $self, $upload ) = @_;
 
@@ -126,8 +134,14 @@ sub _tax_id_name_check {
   my $tax_id = $upload->{tax_id};
   my $name   = $upload->{scientific_name};
 
+  my $schema = $self->result_source->schema;
+
   # we can only validate taxonomy ID/name if we have both
   return unless ( defined $tax_id and defined $name );
+
+  # additionally, we can't cross-validate if either one is "unknown"
+  return if ( $schema->is_accepted_unknown($tax_id) or
+              $schema->is_accepted_unknown($name) );
 
   # find tax ID(s) using the given name. There can, it appears, be multiple
   # nodes with different tax IDs but the same scientific name, so we need to
@@ -160,7 +174,8 @@ sub _specific_host_check {
 
   my $name = $upload->{specific_host};
 
-  return unless defined $name;
+  return if not defined $name;
+  return if $self->result_source->schema->is_accepted_unknown($name);
 
   my $name_lookup = $tax_table->search( { name => $name }, {} );
 
@@ -174,35 +189,64 @@ sub _specific_host_check {
 sub _ontology_term_check {
   my ( $self, $upload ) = @_;
 
-  my $gaz_id    = $upload->{location};
-  my $brenda_id = $upload->{host_isolation_source};
-  my $envo_id   = $upload->{isolation_source};
-
   my $schema = $self->result_source->schema;
 
-  # the "location" field is mandatory, so we'll always check the gazetteer term
-  my $rs = $schema->resultset('Gazetteer')
-                  ->find( { id => $gaz_id },
-                          { key => 'primary' } );
-  croak 'term in "location" is not found in the gazetteer ontology'
-    unless defined $rs;
-
-  # check BRENDA and EnvO if found
-  if ( defined $brenda_id ) {
-    $rs = $schema->resultset('Brenda')
-                 ->find( { id => $brenda_id },
-                         { key => 'primary' } );
-    croak 'term in "host_isolation_source" is not found in the BRENDA ontology'
+  # the "location" field (gazetteer ontology)
+  my $gaz_id = $upload->{location};
+  if ( defined $gaz_id and not $schema->is_accepted_unknown($gaz_id) ) {
+    my $rs = $schema->resultset('Gazetteer')->find(
+      { id  => $gaz_id },
+      { key => 'primary' }
+    );
+    croak "term in 'location' ($gaz_id) is not found in the gazetteer ontology"
       unless defined $rs;
   }
 
-  if ( defined $envo_id ) {
-    $rs = $schema->resultset('Envo')
-                 ->find( { id => $envo_id },
-                         { key => 'primary' } );
-    croak 'term in "isolation_source" is not found in the EnvO ontology'
+  # "host_isolation_source" field (BRENDA ontology)
+  my $brenda_id = $upload->{host_isolation_source};
+  if ( defined $brenda_id and not $schema->is_accepted_unknown($brenda_id) ) {
+    my $rs = $schema->resultset('Brenda')->find(
+      { id  => $brenda_id },
+      { key => 'primary' }
+    );
+    croak "term in 'host_isolation_source' ($brenda_id) is not found in the BRENDA ontology"
       unless defined $rs;
   }
+
+  # "isolation_source" field (EnvO ontology)
+  my $envo_id = $upload->{isolation_source};
+  if ( defined $envo_id and not $schema->is_accepted_unknown($envo_id) ) {
+    my $rs = $schema->resultset('Envo')->find(
+      { id  => $envo_id },
+      { key => 'primary' }
+    );
+    croak "term in 'isolation_source' ($envo_id) is not found in the EnvO ontology"
+      unless defined $rs;
+  }
+}
+
+#-------------------------------------------------------------------------------
+
+sub _columns_accepting_unknown {
+  return {
+    collection_date       => 1,
+    location              => 1,
+    host_associated       => 1,
+    specific_host         => 1,
+    host_disease_status   => 1,
+    host_isolation_source => 1,
+    patient_location      => 1,
+    isolation_source      => 1,
+    serovar               => 1,
+    other_classification  => 1,
+  };
+}
+
+# returns true if the specified column accepts "unknown" as a value, 0
+# otherwise
+sub _accepts_unknown {
+  my ( $self, $column_name ) = @_;
+  return exists $self->_columns_accepting_unknown->{$column_name} || 0;
 }
 
 #-------------------------------------------------------------------------------

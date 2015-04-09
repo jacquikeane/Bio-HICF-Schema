@@ -125,60 +125,24 @@ __PACKAGE__->add_columns(
 
 __PACKAGE__->set_primary_key("username");
 
+=head1 L<Moose> ROLES APPLIED
 
-# Created by DBIx::Class::Schema::Loader v0.07042 @ 2015-03-19 15:11:13
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:XFKtHemFVcwdXtHth13kww
+=over 4
 
-=head2 set_passphrase($passphrase)
+=item * L<Bio::HICF::Schema::Role::User>
 
-Sets the passphrase for this user.
-
-=cut
-
-sub set_passphrase {
-  my ( $self, $passphrase ) = @_;
-
-  $self->update( { passphrase => $passphrase } );
-}
-
-#-------------------------------------------------------------------------------
-
-=head2 reset_passphrase
-
-Generates a new passphrase for the current user. The passphrase is set on the
-row and returned to the caller.
+=back
 
 =cut
 
-sub reset_passphrase {
-  my $self = shift;
 
-  my $generated_passphrase = $self->result_source->schema->generate_passphrase;
+with 'Bio::HICF::Schema::Role::User';
 
-  $self->update( { passphrase => $generated_passphrase } );
 
-  return $generated_passphrase;
-}
+# Created by DBIx::Class::Schema::Loader v0.07042 @ 2015-04-09 15:05:20
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:0Tt/f7GFBOzs2rx35cv/XA
 
-#-------------------------------------------------------------------------------
 
-=head2 reset_api_key
-
-Resets the API key for this user and returns it.
-
-=cut
-
-sub reset_api_key {
-  my $self = shift;
-
-  my $api_key = $self->result_source->schema->generate_passphrase(32);
-
-  $self->update( { api_key => $api_key } );
-
-  return $api_key;
-}
-
-#-------------------------------------------------------------------------------
-
+# You can replace this text with custom code or comments, and it will be preserved on regeneration
 __PACKAGE__->meta->make_immutable;
 1;

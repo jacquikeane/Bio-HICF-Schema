@@ -46,6 +46,46 @@ use Bio::Metadata::TaxTree;
 =cut
 
 #-------------------------------------------------------------------------------
+#- unknown terms ---------------------------------------------------------------
+#-------------------------------------------------------------------------------
+
+=head2 unknown_terms
+
+Returns a reference to a hash containing the accepted terms for "unknown" as
+keys.
+
+B<Note>: this is the canonical source for this list.
+
+=cut
+
+sub unknown_terms {
+  return {
+    'not available; not collected'                        => 1,
+    'not available; restricted access'                    => 1,
+    'not available; to be reported later (35 characters)' => 1,
+    'not applicable'                                      => 1,
+    'obscured'                                            => 1,
+    'temporarily obscured'                                => 1,
+  };
+}
+
+#-------------------------------------------------------------------------------
+
+=head2 is_accepted_unknown($value)
+
+Returns 1 if the supplied value is on of the accepted terms for "unknown" or
+0 otherwise.
+
+=cut
+
+sub is_accepted_unknown {
+  my ( $self, $term ) = @_;
+
+  return 0 unless defined $term;
+  return exists $self->unknown_terms->{$term} || 0;
+}
+
+#-------------------------------------------------------------------------------
 #- manifests -------------------------------------------------------------------
 #-------------------------------------------------------------------------------
 
