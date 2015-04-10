@@ -50,7 +50,7 @@ __PACKAGE__->table("manifest");
 
 A UUID that uniquely identifies the manifest.
 
-=head2 config_id
+=head2 checklist_id
 
   data_type: 'integer'
   extra: {unsigned => 1}
@@ -94,7 +94,7 @@ A UUID that uniquely identifies the manifest.
 __PACKAGE__->add_columns(
   "manifest_id",
   { data_type => "char", is_nullable => 0, size => 36 },
-  "config_id",
+  "checklist_id",
   {
     data_type => "integer",
     extra => { unsigned => 1 },
@@ -141,18 +141,18 @@ __PACKAGE__->set_primary_key("manifest_id");
 
 =head1 RELATIONS
 
-=head2 config
+=head2 checklist
 
 Type: belongs_to
 
-Related object: L<Bio::HICF::Schema::Result::ManifestConfig>
+Related object: L<Bio::HICF::Schema::Result::Checklist>
 
 =cut
 
 __PACKAGE__->belongs_to(
-  "config",
-  "Bio::HICF::Schema::Result::ManifestConfig",
-  { config_id => "config_id" },
+  "checklist",
+  "Bio::HICF::Schema::Result::Checklist",
+  { checklist_id => "checklist_id" },
   { is_deferrable => 1, on_delete => "NO ACTION", on_update => "NO ACTION" },
 );
 
@@ -185,8 +185,8 @@ __PACKAGE__->has_many(
 with 'Bio::HICF::Schema::Role::Manifest';
 
 
-# Created by DBIx::Class::Schema::Loader v0.07042 @ 2015-04-09 15:05:20
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:nt5BrT815HOoXvlxeNnxug
+# Created by DBIx::Class::Schema::Loader v0.07042 @ 2015-04-10 15:36:23
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:WnCkjVHc/WwX6OcMdjjoMQ
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration

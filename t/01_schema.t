@@ -9,6 +9,9 @@ use Test::CacheFile;
 use Test::Exception;
 use Archive::Tar;
 
+use Bio::Metadata::Checklist;
+use Bio::Metadata::Reader;
+
 # set up the testing environment
 
 # load the pre-requisite data and THEN turn on foreign keys
@@ -38,8 +41,8 @@ $tar->extract_file( 'names.dmp', '.cached_test_files/names.dmp' );
 SKIP: {
   skip 'sample/manifest retrieval', 11 if $ENV{SKIP_RETRIEVAL_TESTS};
 
-  my $c = Bio::Metadata::Config->new( config_file => 't/data/01_checklist.conf' );
-  my $r = Bio::Metadata::Reader->new( config => $c );
+  my $c = Bio::Metadata::Checklist->new( config_file => 't/data/01_checklist.conf' );
+  my $r = Bio::Metadata::Reader->new( checklist => $c );
   my $m = $r->read_csv('t/data/01_manifest.csv');
 
   my @sample_ids;
@@ -49,7 +52,7 @@ SKIP: {
   my $values;
   lives_ok { $values = Schema->get_sample_values(1) } 'got field values for sample ID 1';
 
-  my $expected_values = [ 'data:1', 'ERS111111', 'New sample', 'CAMBRIDGE', 9606, undef, 'Tate JG', undef, '2015-01-10T14:30:00', 'GAZ:00444180', 1, 'Homo sapiens', 'healthy', 'BTO:0000645', 'inpatient', undef, 'serovar', undef, 'strain', undef, 'am1;S;50;WTSI', ];
+  my $expected_values = [ 'data:1', 'ERS111111', 'New sample', 'CAMBRIDGE', 9606, undef, 'Tate JG', undef, 1428658943, 'GAZ:00444180', 1, 'Homo sapiens', 'healthy', 'BTO:0000645', 'inpatient', undef, 'serovar', undef, 'strain', undef, 'am1;S;50;WTSI', ];
 
   is_deeply($values, $expected_values, 'got expected values for sample 1');
 
@@ -76,7 +79,7 @@ SKIP: {
   my $new_m = Schema->get_manifest($m->uuid);
   $new_m->md5($m->md5);
   $new_m->uuid($m->uuid);
-  $new_m->config->{config_file} = 't/data/01_checklist.conf';
+  $new_m->checklist->{config_file} = 't/data/01_checklist.conf';
 
   is_deeply( $m, $new_m, 'manifest generated from the DB matches original' );
 

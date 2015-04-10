@@ -7,7 +7,7 @@ use Moose::Role;
 
 requires qw(
   manifest_id
-  config_id
+  checklist_id
   md5
   ticket
   created_at

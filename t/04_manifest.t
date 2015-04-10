@@ -7,12 +7,15 @@ use Test::More;
 use Test::Exception;
 use Test::DBIx::Class qw( :resultsets );
 
+use Bio::Metadata::Checklist;
+use Bio::Metadata::Reader;
+
 fixtures_ok 'main', 'installed fixtures';
 lives_ok { Schema->storage->dbh_do( sub { $_[1]->do('PRAGMA foreign_keys = ON') } ) }
   'successfully turned on "foreign_keys" pragma';
 
-my $c = Bio::Metadata::Config->new( config_file => 't/data/04_checklist.conf' );
-my $r = Bio::Metadata::Reader->new( config => $c );
+my $c = Bio::Metadata::Checklist->new( config_file => 't/data/04_checklist.conf' );
+my $r = Bio::Metadata::Reader->new( checklist => $c );
 my $m = $r->read_csv('t/data/04_manifest.csv');
 
 my @sample_ids;

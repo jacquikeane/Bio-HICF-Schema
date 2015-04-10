@@ -36,6 +36,7 @@ use Email::Valid;
 use File::Basename;
 use List::MoreUtils qw( mesh );
 
+use Bio::Metadata::Checklist;
 use Bio::Metadata::Validator;
 use Bio::Metadata::TaxTree;
 
@@ -114,26 +115,26 @@ Returns a L<Bio::Metadata::Manifest> object for the specified manifest.
 sub get_manifest {
   my ( $self, $manifest_id ) = @_;
 
-  # create a B::M::Config object from the config string that we have stored for
-  # this manifest
-  my $config_rs = $self->resultset('Manifest')
+  # create a B::M::Checklist object from the config string that we have stored
+  # for this manifest
+  my $checklist_rs = $self->resultset('Manifest')
                        ->search( { manifest_id => $manifest_id },
-                                 { prefetch => [ 'config' ] } )
+                                 { prefetch => [ 'checklist' ] } )
                        ->single;
 
-  return unless $config_rs;
+  return unless $checklist_rs;
 
-  my %config_args = ( config_string => $config_rs->config->config );
-  if ( defined $config_rs->config->name ) {
-    $config_args{config_name} = $config_rs->config->name;
-  }
+  my %args = ( config_string => $checklist_rs->checklist->config );
 
-  my $c = Bio::Metadata::Config->new(%config_args);
+  $args{config_name} = $checklist_rs->checklist->name
+    if defined $checklist_rs->checklist->name;
+
+  my $c = Bio::Metadata::Checklist->new(%args);
 
   # get the values for the samples in the manifest and add them to a new
   # B::M::Manifest
   my $values = $self->get_samples_values($manifest_id);
-  my $m = Bio::Metadata::Manifest->new( config => $c, rows => $values );
+  my $m = Bio::Metadata::Manifest->new( checklist => $c, rows => $values );
 
   return $m;
 }

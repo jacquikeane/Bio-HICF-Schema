@@ -1,12 +1,12 @@
 use utf8;
-package Bio::HICF::Schema::Result::ManifestConfig;
+package Bio::HICF::Schema::Result::Checklist;
 
 # Created by DBIx::Class::Schema::Loader
 # DO NOT MODIFY THE FIRST PART OF THIS FILE
 
 =head1 NAME
 
-Bio::HICF::Schema::Result::ManifestConfig - Stores the configuration for a given manifest.
+Bio::HICF::Schema::Result::Checklist - Stores the configuration for a given manifest.
 
 =cut
 
@@ -34,15 +34,15 @@ extends 'DBIx::Class::Core';
 
 __PACKAGE__->load_components("InflateColumn::DateTime", "TimeStamp", "PassphraseColumn");
 
-=head1 TABLE: C<manifest_config>
+=head1 TABLE: C<checklist>
 
 =cut
 
-__PACKAGE__->table("manifest_config");
+__PACKAGE__->table("checklist");
 
 =head1 ACCESSORS
 
-=head2 config_id
+=head2 checklist_id
 
   data_type: 'integer'
   extra: {unsigned => 1}
@@ -86,7 +86,7 @@ The name of a configuration in a multi-part configuration. Not required if the c
 =cut
 
 __PACKAGE__->add_columns(
-  "config_id",
+  "checklist_id",
   {
     data_type => "integer",
     extra => { unsigned => 1 },
@@ -123,13 +123,13 @@ __PACKAGE__->add_columns(
 
 =over 4
 
-=item * L</config_id>
+=item * L</checklist_id>
 
 =back
 
 =cut
 
-__PACKAGE__->set_primary_key("config_id");
+__PACKAGE__->set_primary_key("checklist_id");
 
 =head1 RELATIONS
 
@@ -144,13 +144,13 @@ Related object: L<Bio::HICF::Schema::Result::Manifest>
 __PACKAGE__->has_many(
   "manifests",
   "Bio::HICF::Schema::Result::Manifest",
-  { "foreign.config_id" => "self.config_id" },
+  { "foreign.checklist_id" => "self.checklist_id" },
   { cascade_copy => 0, cascade_delete => 0 },
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07042 @ 2015-02-24 13:54:25
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:z3d3hIp+S6UhFMEWWTI/HA
+# Created by DBIx::Class::Schema::Loader v0.07042 @ 2015-04-10 15:36:23
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:B+GQpIHnmtmp0HLc1MhnXw
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration

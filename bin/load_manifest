@@ -13,10 +13,12 @@ use Config::General;
 
 use Getopt::Long::Descriptive;
 use Pod::Usage;
-use Bio::HICF::Schema;
-use Bio::Metadata::Validator;
 use Carp qw( croak );
 use Try::Tiny;
+use Bio::HICF::Schema;
+use Bio::Metadata::Checklist;
+use Bio::Metadata::Reader;
+use Bio::Metadata::Validator;
 
 #-------------------------------------------------------------------------------
 # script boilerplate...
@@ -36,7 +38,7 @@ pod2usage( { -verbose => 2, -exitval => 0 } )
 # take the paths to the files either from the options or from environment
 # variables
 my $checklist_config_file = $opt->checklist || $ENV{CHECKLIST_CONFIG};
-my $db_config_file        = $opt->dbconfig  || $ENV{HICF_CONFIG};
+my $db_config_file        = $opt->dbconfig  || $ENV{HICF_DB_CONFIG};
 my $file                  = shift;
 
 _usage($usage, 'ERROR: you must specify a checklist configuration file')
@@ -50,8 +52,8 @@ _usage($usage, 'ERROR: you must specify an input file')
 
 #-------------------------------------------------------------------------------
 
-my $c = Bio::Metadata::Config->new( config_file => $checklist_config_file );
-my $r = Bio::Metadata::Reader->new( config => $c );
+my $c = Bio::Metadata::Checklist->new( config_file => $checklist_config_file );
+my $r = Bio::Metadata::Reader->new( checklist => $c );
 my $m = $r->read_csv( $file );
 
 my $cg;

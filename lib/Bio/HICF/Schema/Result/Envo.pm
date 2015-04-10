@@ -50,7 +50,7 @@ __PACKAGE__->table("envo");
 
   data_type: 'varchar'
   is_nullable: 0
-  size: 15
+  size: 50
 
 =head2 description
 
@@ -62,7 +62,7 @@ __PACKAGE__->table("envo");
 
 __PACKAGE__->add_columns(
   "id",
-  { data_type => "varchar", is_nullable => 0, size => 15 },
+  { data_type => "varchar", is_nullable => 0, size => 50 },
   "description",
   { data_type => "varchar", is_nullable => 1, size => 45 },
 );
@@ -80,8 +80,8 @@ __PACKAGE__->add_columns(
 __PACKAGE__->set_primary_key("id");
 
 
-# Created by DBIx::Class::Schema::Loader v0.07042 @ 2015-02-24 13:54:25
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:SKz22PH+NonE15RJW9Unew
+# Created by DBIx::Class::Schema::Loader v0.07042 @ 2015-04-10 15:26:02
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:NuoQsVeKSTZekjvUj1SJ0w
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration

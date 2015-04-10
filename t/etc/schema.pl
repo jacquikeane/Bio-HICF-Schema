@@ -5,41 +5,43 @@
     AntimicrobialResistance
     Assembly
     Brenda
+    Checklist
     Envo
     File
     Gazetteer
     Manifest
-    ManifestConfig
     Sample
     Taxonomy
   ) ],
     # ExternalResource
   fixture_sets => {
     main => [
-      Brenda => [
-        [ qw( id description) ],
-        [ qw( BTO:0000645 Lung ) ],
-      ],
-      Envo => [
-        [ qw( id description ) ],
-        [ qw( ENVO:00002148 coarse beach sand ) ],
-      ],
-      Gazetteer => [
-        [ qw( id description ) ],
-        [ qw( GAZ:00444180 Hinxton ) ],
-      ],
-      Taxonomy => [
-        [ qw( tax_id name lft rgt parent_tax_id ) ],
-        [ 9606, 'Homo sapiens', 1, 1, 1 ],
-        [ 63221, 'Homo sapiens neanderthalensis', 1, 1, 1 ],
-      ],
       Antimicrobial => [
         [ qw( name created_at ) ],
         [ qw( am1 2014-10-12T12:15:00 ) ],
         [ qw( am2 2014-11-12T12:15:00 ) ],
       ],
-      ManifestConfig => [
-        [ qw( config_id config config name created_at ) ],
+      AntimicrobialResistance => [
+        [ qw( sample_id
+              antimicrobial_name
+              susceptibility
+              mic
+              equality
+              diagnostic_centre
+              created_at ) ],
+        [ qw( 1 am1 S 50 eq WTSI 2014-12-02T16:55:00 ) ],
+      ],
+      Assembly => [
+        [ qw( assembly_id accession type ) ],
+        [ qw( 1 ERS111111 ERS ) ],
+        [ qw( 2 ERS222222 ERS ) ],
+      ],
+      Brenda => [
+        [ qw( id description) ],
+        [ qw( BTO:0000645 Lung ) ],
+      ],
+      Checklist => [
+        [ qw( checklist_id config config name created_at ) ],
         [ 1,
           qw(<checklist hicf>
   header_row "raw data accession,sample accession,sample description,collected at,tax ID,scientific name,collected by,collection date,location,host associated,specific host,host disease status,host isolation source,patient location,isolation source,serovar,other classification,strain,isolate,antimicrobial resistance,,,,,,,,"
@@ -190,8 +192,21 @@
           'hicf',
           '2015-01-29T09:30:00' ],
       ],
+      Envo => [
+        [ qw( id description ) ],
+        [ qw( ENVO:00002148 coarse beach sand ) ],
+      ],
+      File => [
+        [ qw( file_id assembly_id version path md5 ) ],
+        [ qw( 1 1 1 /home/testuser/ERS111111_123456789a123456789b123456789cda.fa 123456789a123456789b123456789cda ) ],
+        [ qw( 2 1 2 /home/testuser/ERS111111_123456789a123456789b123456789cdb.fa 123456789a123456789b123456789cdb ) ],
+      ],
+      Gazetteer => [
+        [ qw( id description ) ],
+        [ qw( GAZ:00444180 Hinxton ) ],
+      ],
       Manifest => [
-        [ qw( manifest_id config_id md5 created_at ) ],
+        [ qw( manifest_id checklist_id md5 created_at ) ],
         [ '4162F712-1DD2-11B2-B17E-C09EFE1DC403',
           1,
           '8fb372b3d14392b8a21dd296dc7d9f5a',
@@ -251,25 +266,10 @@
           '2014-12-02T16:55:00',
           undef ],
       ],
-      AntimicrobialResistance => [
-        [ qw( sample_id
-              antimicrobial_name
-              susceptibility
-              mic
-              equality
-              diagnostic_centre
-              created_at ) ],
-        [ qw( 1 am1 S 50 eq WTSI 2014-12-02T16:55:00 ) ],
-      ],
-      Assembly => [
-        [ qw( assembly_id accession type ) ],
-        [ qw( 1 ERS111111 ERS ) ],
-        [ qw( 2 ERS222222 ERS ) ],
-      ],
-      File => [
-        [ qw( file_id assembly_id version path md5 ) ],
-        [ qw( 1 1 1 /home/testuser/ERS111111_123456789a123456789b123456789cda.fa 123456789a123456789b123456789cda ) ],
-        [ qw( 2 1 2 /home/testuser/ERS111111_123456789a123456789b123456789cdb.fa 123456789a123456789b123456789cdb ) ],
+      Taxonomy => [
+        [ qw( tax_id name lft rgt parent_tax_id ) ],
+        [ 9606, 'Homo sapiens', 1, 1, 1 ],
+        [ 63221, 'Homo sapiens neanderthalensis', 1, 1, 1 ],
       ],
     ],
   },
