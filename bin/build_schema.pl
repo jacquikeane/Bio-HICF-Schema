@@ -79,8 +79,6 @@ make_schema_at(
       host_isolation_source => '_host_isolation_source',
       patient_location      => '_patient_location',
       isolation_source      => '_isolation_source',
-      serovar               => '_serovar',
-      other_classification  => '_other_classification',
     },
     # this allows us to move the functionality for the ResultSets out into
     # roles. The loader will have the specified ResultSet do a "with <role>"

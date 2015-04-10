@@ -6,6 +6,7 @@ use warnings;
 use Test::More;
 use Test::Exception;
 use Test::DBIx::Class qw( :resultsets );
+use DateTime;
 
 # see 01_load.t
 fixtures_ok 'main', 'installed fixtures';
@@ -21,7 +22,7 @@ my $expected_values = [
   undef,
   'Tate JG',
   undef,
-  '2015-01-10T14:30:00',
+  1428658943,
   'GAZ:00444180',
   1,
   'Homo sapiens',
@@ -40,7 +41,7 @@ my $expected_hash = {
   antimicrobial_resistance => 'am1;S;50;WTSI',
   collected_at             => 'CAMBRIDGE',
   collected_by             => 'Tate JG',
-  collection_date          => '2015-01-10T14:30:00',
+  collection_date          => 1428658943,
   host_associated          => 1,
   host_disease_status      => 'healthy',
   host_isolation_source    => 'BTO:0000645',
@@ -82,7 +83,7 @@ my $columns = {
   scientific_name          => undef,
   collected_by             => 'Tate JG',
   source                   => undef,
-  collection_date          => '2015-01-10T14:30:00',
+  collection_date          => 1428658943,
   location                 => 'GAZ:00444180',
   host_associated          => 1,
   specific_host            => 'Homo sapiens',
@@ -95,10 +96,6 @@ my $columns = {
   strain                   => 'strain',
   isolate                  => undef,
   antimicrobial_resistance => 'am1;S;50',
-};
-my $unknown_terms = {
-  'not available; not collected' => 1,
-  'unknown'                      => 1,
 };
 
 my $sample_id;
@@ -129,11 +126,186 @@ lives_ok { $rs = Schema->get_samples('ERS123456') }
   'got rs with returned samples';
 is( $rs->count, 2, 'got two samples for accession' );
 
-# check we can load data with "unknown" values
 $columns->{sample_accession} = 'ERS654321';
-$columns->{location}         = 'not available; not collected';
-lives_ok { $sample_id = Sample->load($columns, $unknown_terms) }
-  'no error when loading data with "unknown" values';
+
+#-------------------------------------------------------------------------------
+
+# check we can load data with "unknown" values
+
+$columns->{collection_date} = 'not available; not collected';
+lives_ok { $sample_id = Sample->load($columns) }
+  'no error when loading data with "unknown" date';
+$columns->{collection_date} = '2015-01-10T14:30:00';
+
+my $s = Sample->find(4);
+
+#---------------------------------------
+
+# collection_date
+
+is( $s->collection_date, 'not available; not collected', 'collection_date is expected unknown' );
+lives_ok { $s->collection_date('obscured') }
+  'no error setting collection_date to different, valid unknown';
+throws_ok { $s->collection_date('invalid unknown value') }
+  qr/not a valid date or 'unknown'/,
+  'error setting collection_date to invalid unknown';
+lives_ok { $s->collection_date(DateTime->now->epoch) }
+  'no error setting collection_date to valid epoch time';
+
+#---------------------------------------
+
+# collection_date_dt
+
+isa_ok $s->collection_date_dt, 'DateTime', 'collection_date_dt produces a DateTime';
+throws_ok { $s->collection_date_dt('invalid unknown value') }
+  qr/not unknown and can't/,
+  'error setting collection_date_dt to invalid unknown';
+lives_ok { $s->collection_date_dt('not available; not collected') }
+  'no error setting collection_date_dt to a valid unknown';
+is( $s->collection_date_dt, undef, 'collection_date_dt is undef when set to unknown' );
+my $now = DateTime->now;
+my $epoch = $now->epoch;
+lives_ok { $s->collection_date_dt($now) }
+  'no error setting collection_date_dt to a DateTime';
+
+my $retrieved_now = $s->collection_date_dt;
+is( "$retrieved_now", "$now", 'collection_date_dt returns expected DT when set to a valid time' );
+
+lives_ok { $s->collection_date_dt($epoch) }
+  'no error setting collection_date_dt to a valid epoch time';
+$retrieved_now = $s->collection_date_dt;
+is( "$retrieved_now", "$now", 'collection_date_dt returns expected DT when set using an epoch time' );
+
+#---------------------------------------
+
+# location
+
+is( $s->location, 'GAZ:00444180', 'location set as expected' );
+lives_ok { $s->location('obscured') }
+  'no error setting location to valid unknown';
+is( $s->location, 'obscured', 'location returns unknown value' );
+throws_ok { $s->location('not a valid unknown') }
+  qr/not a valid location or 'unknown'/,
+  'error setting location to an invalid unknown';
+throws_ok { $s->location('GAZ:12345678') }
+  qr/can't find location in Gazetteer/,
+  'error setting location to a not-found ontology term';
+lives_ok { $s->location('GAZ:00444180') }
+  'no error setting location to valid GAZ term';
+is( $s->location, 'GAZ:00444180', 'location set as expected' );
+
+#---------------------------------------
+
+# host_associated
+
+is( $s->host_associated, 1, 'host_associated set as expected' );
+
+lives_ok { $s->host_associated(0) } 'no error setting host_associated to valid false (0)';
+is( $s->host_associated, 0, 'host_associated set as expected' );
+lives_ok { $s->host_associated('no') } 'no error setting host_associated to valid false (no)';
+is( $s->host_associated, 0, 'host_associated set as expected' );
+lives_ok { $s->host_associated('false') } 'no error setting host_associated to valid false (false)';
+is( $s->host_associated, 0, 'host_associated set as expected' );
+
+lives_ok { $s->host_associated(1) } 'no error setting host_associated to valid true (1)';
+is( $s->host_associated, 1, 'host_associated set as expected' );
+lives_ok { $s->host_associated('yes') } 'no error setting host_associated to valid false (yes)';
+is( $s->host_associated, 1, 'host_associated set as expected' );
+lives_ok { $s->host_associated('true') } 'no error setting host_associated to valid false (true)';
+is( $s->host_associated, 1, 'host_associated set as expected' );
+
+lives_ok { $s->host_associated('not available; not collected') } 'no error setting host_associated to valid unknown';
+is( $s->host_associated, 'not available; not collected', 'host_associated set as expected' );
+
+throws_ok { $s->host_associated('not a valid value') }
+  qr/host_associated must be true or false/,
+  'error setting host_associated to an invalid value';
+
+#---------------------------------------
+
+# specific_host
+
+is( $s->specific_host, 'Homo sapiens', 'specific_host set as expected' );
+lives_ok { $s->specific_host('Homo sapiens neanderthalensis') }
+  'no error setting specific_host to different valid name';
+is( $s->specific_host, 'Homo sapiens neanderthalensis', 'specific_host returns expected value' );
+lives_ok { $s->specific_host('not available; not collected') }
+  'no error setting specific_host to valid unknown';
+is( $s->specific_host, 'not available; not collected', 'specific_host returns expected unknown value' );
+
+throws_ok { $s->specific_host('not a valid unknown') }
+  qr/not an accepted unknown and can't find/,
+  'error setting specific_host to an invalid value';
+
+#---------------------------------------
+
+# host_disease_status
+
+is( $s->host_disease_status, 'healthy', 'host_disease_status set as expected' );
+lives_ok { $s->host_disease_status('carriage') }
+  'no error setting host_disease_status to different valid term';
+is( $s->host_disease_status, 'carriage', 'host_disease_status set as expected' );
+lives_ok { $s->host_disease_status('not available; not collected') }
+  'no error setting host_disease_status to valid unknown';
+is( $s->host_disease_status, 'not available; not collected', 'host_disease_status returns expected unknown value' );
+
+throws_ok { $s->host_disease_status('not a valid unknown') }
+  qr/must be "healthy"/,
+  'error setting host_disease_status to an invalid value';
+
+#---------------------------------------
+
+# host_isolation_source
+
+is( $s->host_isolation_source, 'BTO:0000645', 'host_isolation_source set as expected' );
+lives_ok { $s->host_isolation_source('obscured') }
+  'no error setting host_isolation_source to valid unknown';
+is( $s->host_isolation_source, 'obscured', 'host_isolation_source returns unknown value' );
+throws_ok { $s->host_isolation_source('not a valid unknown') }
+  qr/not a valid Brenda ontology term/,
+  'error setting host_isolation_source to an invalid unknown';
+throws_ok { $s->host_isolation_source('BTO:1234567') }
+  qr/can't find host_isolation_source in Brenda/,
+  'error setting host_isolation_source to a not-found ontology term';
+lives_ok { $s->host_isolation_source('BTO:0000645') }
+  'no error setting host_isolation_source to valid Brenda term';
+is( $s->host_isolation_source, 'BTO:0000645', 'host_isolation_source set as expected' );
+
+#---------------------------------------
+
+# patient_location
+
+is( $s->patient_location, 'inpatient', 'patient_location set as expected' );
+lives_ok { $s->patient_location('community') }
+  'no error setting patient_location to different valid term';
+is( $s->patient_location, 'community', 'patient_location set as expected' );
+lives_ok { $s->patient_location('not available; not collected') }
+  'no error setting patient_location to valid unknown';
+is( $s->patient_location, 'not available; not collected', 'patient_location returns expected unknown value' );
+
+throws_ok { $s->patient_location('not a valid unknown') }
+  qr/must be "inpatient"/,
+  'error setting patient_location to an invalid value';
+
+#---------------------------------------
+
+# isolation_source
+
+is( $s->isolation_source, undef, 'isolation_source set as expected' );
+lives_ok { $s->isolation_source('obscured') }
+  'no error setting isolation_source to valid unknown';
+is( $s->isolation_source, 'obscured', 'isolation_source returns unknown value' );
+throws_ok { $s->isolation_source('not a valid unknown') }
+  qr/not a valid EnvO ontology term/,
+  'error setting isolation_source to an invalid unknown';
+throws_ok { $s->isolation_source('ENVO:12345678') }
+  qr/can't find isolation_source in EnvO/,
+  'error setting isolation_source to a not-found ontology term';
+lives_ok { $s->isolation_source('ENVO:00002148') }
+  'no error setting isolation_source to valid EnvO term';
+is( $s->isolation_source, 'ENVO:00002148', 'isolation_source set as expected' );
+
+#-------------------------------------------------------------------------------
 
 # test errors
 

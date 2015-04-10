@@ -67,7 +67,7 @@ sub load {
       {
         manifest_id => $manifest->uuid,
         md5         => $manifest->md5,
-        config      => { config => $manifest->config->config_string }
+        config      => { config => $manifest->checklist->config_string }
       },
       { key => 'primary' }
     );

@@ -110,22 +110,23 @@ __PACKAGE__->table("sample");
 =head2 collection_date
 
   accessor: '_collection_date'
-  data_type: 'datetime'
-  datetime_undef_if_invalid: 1
+  data_type: 'varchar'
   is_nullable: 0
+  size: 50
 
 =head2 location
 
   accessor: '_location'
   data_type: 'varchar'
   is_nullable: 0
-  size: 15
+  size: 50
 
 =head2 host_associated
 
   accessor: '_host_associated'
-  data_type: 'tinyint'
+  data_type: 'varchar'
   is_nullable: 0
+  size: 50
 
 =head2 specific_host
 
@@ -137,40 +138,38 @@ __PACKAGE__->table("sample");
 =head2 host_disease_status
 
   accessor: '_host_disease_status'
-  data_type: 'enum'
-  extra: {list => ["healthy","diseased","carriage"]}
+  data_type: 'varchar'
   is_nullable: 1
+  size: 50
 
 =head2 host_isolation_source
 
   accessor: '_host_isolation_source'
   data_type: 'varchar'
   is_nullable: 1
-  size: 15
+  size: 50
 
 =head2 patient_location
 
   accessor: '_patient_location'
-  data_type: 'enum'
-  extra: {list => ["inpatient","community"]}
+  data_type: 'varchar'
   is_nullable: 1
+  size: 50
 
 =head2 isolation_source
 
   accessor: '_isolation_source'
   data_type: 'varchar'
   is_nullable: 1
-  size: 15
+  size: 50
 
 =head2 serovar
 
-  accessor: '_serovar'
   data_type: 'text'
   is_nullable: 1
 
 =head2 other_classification
 
-  accessor: '_other_classification'
   data_type: 'text'
   is_nullable: 1
 
@@ -245,22 +244,23 @@ __PACKAGE__->add_columns(
   "collection_date",
   {
     accessor => "_collection_date",
-    data_type => "datetime",
-    datetime_undef_if_invalid => 1,
+    data_type => "varchar",
     is_nullable => 0,
+    size => 50,
   },
   "location",
   {
     accessor => "_location",
     data_type => "varchar",
     is_nullable => 0,
-    size => 15,
+    size => 50,
   },
   "host_associated",
   {
-    accessor    => "_host_associated",
-    data_type   => "tinyint",
+    accessor => "_host_associated",
+    data_type => "varchar",
     is_nullable => 0,
+    size => 50,
   },
   "specific_host",
   {
@@ -271,40 +271,36 @@ __PACKAGE__->add_columns(
   },
   "host_disease_status",
   {
-    accessor    => "_host_disease_status",
-    data_type   => "enum",
-    extra       => { list => ["healthy", "diseased", "carriage"] },
+    accessor => "_host_disease_status",
+    data_type => "varchar",
     is_nullable => 1,
+    size => 50,
   },
   "host_isolation_source",
   {
     accessor => "_host_isolation_source",
     data_type => "varchar",
     is_nullable => 1,
-    size => 15,
+    size => 50,
   },
   "patient_location",
   {
-    accessor    => "_patient_location",
-    data_type   => "enum",
-    extra       => { list => ["inpatient", "community"] },
+    accessor => "_patient_location",
+    data_type => "varchar",
     is_nullable => 1,
+    size => 50,
   },
   "isolation_source",
   {
     accessor => "_isolation_source",
     data_type => "varchar",
     is_nullable => 1,
-    size => 15,
+    size => 50,
   },
   "serovar",
-  { accessor => "_serovar", data_type => "text", is_nullable => 1 },
+  { data_type => "text", is_nullable => 1 },
   "other_classification",
-  {
-    accessor    => "_other_classification",
-    data_type   => "text",
-    is_nullable => 1,
-  },
+  { data_type => "text", is_nullable => 1 },
   "strain",
   { data_type => "text", is_nullable => 1 },
   "isolate",
@@ -406,8 +402,8 @@ __PACKAGE__->belongs_to(
 with 'Bio::HICF::Schema::Role::Sample';
 
 
-# Created by DBIx::Class::Schema::Loader v0.07042 @ 2015-04-09 14:39:28
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:TVUaE9royaWqADUytwJJRQ
+# Created by DBIx::Class::Schema::Loader v0.07042 @ 2015-04-10 14:31:35
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:6J+oduUH1aV4I8CeHrPxdg
 
 __PACKAGE__->add_unique_constraint(
   sample_uc => [ qw( manifest_id raw_data_accession sample_accession ) ]
