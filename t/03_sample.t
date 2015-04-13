@@ -115,16 +115,33 @@ throws_ok { $sample_id = Sample->load($columns) } qr/UNIQUE constraint failed/,
   'error when loading same sample with same manifest ID';
 $columns->{manifest_id} = $other_manifest_id;
 lives_ok { $sample_id = Sample->load($columns) } 'row loads ok a second time';
-is( Sample->all_rs->count, 3, '"all" returns a ResultSet with 3 rows' );
 
 lives_ok { $sample = Schema->get_sample('ERS123456') }
   'successfully retrieved a single sample row by accession';
 is( $sample->sample_id, 3, 'sample has correct ID');
 
+# after loading the same sample a second time we should have two rows, with the
+# older one having a value for "deleted_at"
 my $rs;
 lives_ok { $rs = Schema->get_samples('ERS123456') }
-  'got rs with returned samples';
+  'got rs with live samples';
+is( $rs->count, 1, 'got one live sample for accession' );
+
+lives_ok { $rs = Schema->get_samples('ERS123456', 1) }
+  'got rs with live and deleted samples';
 is( $rs->count, 2, 'got two samples for accession' );
+
+my $deleted = $rs->search( { 'deleted_at' => { '!=', undef } } )->single;
+my $live    = $rs->search( { 'deleted_at' => { '=',  undef } } )->single;
+
+is $deleted->sample_id, 2, 'got expected sample ID for deleted sample';
+is $live->sample_id,    3, 'got expected sample ID for live sample';
+
+is $deleted->is_deleted, 1, '"is_deleted works for deleted row';
+is $live->is_deleted,    0, '"is_deleted works for live row';
+
+is Sample->all_rs->count, 2, '"all" returns RS with 2 rows';
+is Sample->all_rs(1)->count, 3, '"all" with include_deleted flag returns RS with 3 rows';
 
 $columns->{sample_accession} = 'ERS654321';
 

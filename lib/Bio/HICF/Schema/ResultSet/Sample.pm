@@ -50,35 +50,59 @@ sub load {
     $upload->{antimicrobial_resistances} = $self->_parse_amr_string($amr_string);
   }
 
-  # TODO edit columns like "host_associated" to convert from "yes" to a
-  # TODO boolean 1 or 0
-
-  # TODO we need to filter out the "unknown" values, otherwise they'll cause
-  # TODO the "create" call to throw DBI exceptions, for example, when we try
-  # TODO to load "not applicable" in the collection_date column (DateTime)
-
   # create a new row for this sample. We want a new row even if this sample
   # already exists, so that we can have keep track of updated samples.
-  my $rs = $self->create( $upload, { key => 'sample_uc' } );
+
+  # first, see if this sample already exists
+  my $existing_rs = $self->search(
+    {
+      raw_data_accession => $upload->{raw_data_accession},
+      sample_accession   => $upload->{sample_accession},
+      deleted_at => { '=' => undef }
+    },
+    {}
+  );
+
+  # there should only ever be one sample in this set, since we should be be
+  # setting existing rows as deleted everytime, so we could just use '->single'
+  # to get that row. Just in case, though, we'll apply the 'deleted_at' update
+  # to all rows in the set
+  warn "WARNING: found multiple live samples with sample accession '$upload->{sample_accession}'"
+    if $existing_rs->count > 1;
+
+  while ( my $existing = $existing_rs->next ) {
+    $existing->update( { deleted_at => DateTime->now } );
+  }
+
+  # finally, create the row
+  my $rs = $self->create( $upload, { key => 'manifest_uc' } );
 
   return $rs->sample_id;
 }
 
 #-------------------------------------------------------------------------------
 
-=head2 all_rs
+=head2 all_rs(?$include_deleted)
 
-Returns a L<DBIx::Class::ResultSet|ResultSet> containing all samples, sorted
-by ascending sample ID and created date, i.e. the most recently loaded samples
-will be last in the list.
+Returns a L<DBIx::Class::ResultSet|ResultSet> containing all samples in the
+database, sorted by ascending sample ID and created date, i.e. the most
+recently loaded samples will be last in the list.
+
+If C<?$include_deleted> is true, the returned set of samples  will include
+those samples that have been deleted, i.e. have "deleted_at" set. The default
+is to return only live samples.
 
 =cut
 
 sub all_rs {
-  my ( $self ) = @_;
+  my ( $self, $include_deleted ) = @_;
+
+  my $query = $include_deleted
+            ? { }
+            : { deleted_at => { '=', undef } };
 
   return $self->search(
-    {},
+    $query,
     { order_by => { -asc => [qw( sample_id created_at )] } }
   );
 }

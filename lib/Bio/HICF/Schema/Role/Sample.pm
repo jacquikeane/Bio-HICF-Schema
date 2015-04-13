@@ -43,6 +43,20 @@ use Carp qw(croak);
 
 =head1 METHODS
 
+=head2 is_deleted
+
+Returns 1 if this sample has been deleted, 0 otherwise.
+
+=cut
+
+sub is_deleted {
+  my $self = shift;
+
+  return defined $self->deleted_at ? 1 : 0;
+}
+
+#-------------------------------------------------------------------------------
+
 =head2 fields
 
 Returns a reference to a hash containing field values, keyed on field name.
@@ -256,8 +270,9 @@ Overrides the default accessor to handle unknowns and various expressions of
 
 If C<$ha> is supplied, we check if it's a valid boolean or an accepted
 "unknown" value. A valid boolean is one of: C<0>, C<1>, C<no>, C<yes>,
-C<false>, C<true>. Any other value results in an exception being thrown. The
-values are converted to either C<0> or C<1> for storage in the database.
+C<false>, C<true>. Passing in any other value results in an exception being
+thrown. Boolean values are converted to either C<0> or C<1> for storage in the
+database.
 
 If C<$ha> is not supplied, the stored value is returned. B<Note> that even
 if you try to store "yes", the stored value will be returned as C<1>. If the
@@ -378,7 +393,7 @@ sub host_isolation_source {
   die "ERROR: not a valid Brenda ontology term or 'unknown' ($his)"
     unless $his =~ m/^BTO:\d+$/;
 
-  # if this looks like an ontology term, look it up in the GAZ ontology
+  # this looks like an ontology term; look it up in the ontology
   my $term = $schema->resultset('Brenda')->find($his);
 
   die "ERROR: can't find host_isolation_source in Brenda ontology ($his)"
@@ -395,7 +410,7 @@ sub host_isolation_source {
 Overrides default accessor to handle unknowns.
 
 If C<$location> is supplied, we check that it's either an accepted unknown
-value or that it is one of "inpatient" or "community". If the supplied value is
+value or that it is either "inpatient" or "community". If the supplied value is
 neither unknown nor a valid term, an exception is thrown.
 
 If C<$location> is not supplied, the stored value is returned.
@@ -418,7 +433,6 @@ sub patient_location {
   # ... and if not, throw an exception
   die 'ERROR: patient_location must be "inpatient", "community", or an accepted unknown value';
 }
-
 
 #-------------------------------------------------------------------------------
 

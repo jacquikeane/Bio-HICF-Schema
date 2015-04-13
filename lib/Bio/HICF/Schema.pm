@@ -185,7 +185,8 @@ sub get_samples_values {
   if ( $args[0] =~ m/^[0-9a-f]{8}-([0-9a-f]{4}-){3}[0-9a-f]{12}$/i ) {
     # we were handed a manifest ID
     my $rs = $self->resultset('Sample')
-                  ->search( { manifest_id => $args[0] },
+                  ->search( { manifest_id => $args[0],
+                              deleted_at  => { '=', undef } },
                             { prefetch => 'antimicrobial_resistances' } );
     push @$samples, $_->field_values for ( $rs->all );
   }
@@ -220,7 +221,7 @@ sub get_sample {
 
 #-------------------------------------------------------------------------------
 
-=head2 get_samples($accession)
+=head2 get_samples($accession, ?$include_deleted)
 
 Given a sample accesion, returns a L<DBIx::Class::ResultSet|ResultSet> with
 all of the samples matching that accession. Samples are ordered with the most
@@ -229,16 +230,23 @@ can be retrieved something like
 
  my $latest = $schema->get_samples_rs('ERS123456')->first;
 
+If C<?$include_deleted> is true, the set of samples returned will include
+samples that have been deleted, i.e. have a value for C<deleted_at>. The
+default is to return only live, not-deleted samples.
+
 =cut
 
 sub get_samples {
-  my ( $self, $acc ) = @_;
+  my ( $self, $acc, $include_deleted ) = @_;
 
   croak 'ERROR: must supply a sample accession' unless defined $acc;
 
+  my $query = { sample_accession => $acc };
+  $query->{deleted_at} = { '=', undef } unless $include_deleted;
+
   $self->resultset('Sample')->search(
-    { sample_accession => $acc },
-    { order_by         => { -desc => ['sample_id'] } }
+    $query,
+    { order_by => { -desc => ['sample_id'] } }
   );
 }
 
