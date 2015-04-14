@@ -13,7 +13,6 @@ requires qw(
   equality
   diagnostic_centre
   created_at
-  updated_at
   deleted_at
 );
 

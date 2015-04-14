@@ -44,6 +44,7 @@ make_schema_at(
     components         => [ 'InflateColumn::DateTime', 'TimeStamp', 'PassphraseColumn' ],
     dump_directory     => $dump_path,
     use_moose          => 1,
+
     # add custom column information for certain columns
     custom_column_info => sub {
       my ( $table, $column_name, $column_info ) = @_;
@@ -51,7 +52,7 @@ make_schema_at(
       # make the created_ad and updated_at update automatically when the
       # relevant operation is performed on the column
       return { set_on_create => 1 } if $column_name eq 'created_at';
-      return { set_on_update => 1 } if $column_name eq 'updated_at';
+      # return { set_on_update => 1 } if $column_name eq 'updated_at';
 
       # make the passphrase column treat passphrases as salted digests and
       # set the parameters for that
@@ -67,6 +68,7 @@ make_schema_at(
         };
       }
     },
+
     # use "col_accessor_map" to set the name for the column accessors for those
     # columns that allow "unknown", allowing us to overload the accessors and
     # handle unknowns appropriately as the data go in and out of the DB
@@ -80,15 +82,27 @@ make_schema_at(
       patient_location      => '_patient_location',
       isolation_source      => '_isolation_source',
     },
+
     # this allows us to move the functionality for the ResultSets out into
     # roles. The loader will have the specified ResultSet do a "with <role>"
     # for each RS in the map
     result_roles_map => {
-      AntimicrobialResistance => 'Bio::HICF::Schema::Role::AntimicrobialResistance',
-      Assembly                => 'Bio::HICF::Schema::Role::Assembly',
-      Manifest                => 'Bio::HICF::Schema::Role::Manifest',
-      Sample                  => 'Bio::HICF::Schema::Role::Sample',
-      User                    => 'Bio::HICF::Schema::Role::User',
+      Antimicrobial           => 'Bio::HICF::Schema::Role::Undeletable',
+      AntimicrobialResistance => [
+        'Bio::HICF::Schema::Role::AntimicrobialResistance',
+        'Bio::HICF::Schema::Role::Undeletable',
+      ],
+      Assembly => [
+        'Bio::HICF::Schema::Role::Assembly',
+        'Bio::HICF::Schema::Role::Undeletable',
+      ],
+      File => 'Bio::HICF::Schema::Role::Undeletable',
+      Manifest => 'Bio::HICF::Schema::Role::Manifest',
+      Sample   => [
+        'Bio::HICF::Schema::Role::Sample',
+        'Bio::HICF::Schema::Role::Undeletable',
+      ],
+      User     => 'Bio::HICF::Schema::Role::User',
     },
   },
   [

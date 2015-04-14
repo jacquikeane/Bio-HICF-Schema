@@ -186,7 +186,7 @@ sub get_samples_values {
     # we were handed a manifest ID
     my $rs = $self->resultset('Sample')
                   ->search( { manifest_id => $args[0],
-                              deleted_at  => { '=', undef } },
+                              'me.deleted_at'  => { '=', undef } },
                             { prefetch => 'antimicrobial_resistances' } );
     push @$samples, $_->field_values for ( $rs->all );
   }

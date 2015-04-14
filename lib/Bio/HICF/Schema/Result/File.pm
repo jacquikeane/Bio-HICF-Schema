@@ -81,13 +81,6 @@ __PACKAGE__->table("file");
   is_nullable: 0
   set_on_create: 1
 
-=head2 updated_at
-
-  data_type: 'datetime'
-  datetime_undef_if_invalid: 1
-  is_nullable: 1
-  set_on_update: 1
-
 =head2 deleted_at
 
   data_type: 'datetime'
@@ -123,13 +116,6 @@ __PACKAGE__->add_columns(
     datetime_undef_if_invalid => 1,
     is_nullable => 0,
     set_on_create => 1,
-  },
-  "updated_at",
-  {
-    data_type => "datetime",
-    datetime_undef_if_invalid => 1,
-    is_nullable => 1,
-    set_on_update => 1,
   },
   "deleted_at",
   {
@@ -208,9 +194,22 @@ __PACKAGE__->belongs_to(
   { is_deferrable => 1, on_delete => "NO ACTION", on_update => "NO ACTION" },
 );
 
+=head1 L<Moose> ROLES APPLIED
 
-# Created by DBIx::Class::Schema::Loader v0.07042 @ 2015-03-20 15:45:22
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:E+7bmeVBvhts6yLB1f5+rg
+=over 4
+
+=item * L<Bio::HICF::Schema::Role::Undeletable>
+
+=back
+
+=cut
+
+
+with 'Bio::HICF::Schema::Role::Undeletable';
+
+
+# Created by DBIx::Class::Schema::Loader v0.07042 @ 2015-04-14 09:35:00
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:RPVMfLBPP465ko2MJ9jFNw
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration

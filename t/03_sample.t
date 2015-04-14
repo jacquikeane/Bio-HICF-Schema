@@ -143,6 +143,12 @@ is $live->is_deleted,    0, '"is_deleted works for live row';
 is Sample->all_rs->count, 2, '"all" returns RS with 2 rows';
 is Sample->all_rs(1)->count, 3, '"all" with include_deleted flag returns RS with 3 rows';
 
+
+my $deleted_sample = Sample->search( { 'me.deleted_at' => { '!=', undef } } );
+my $deleted_amrs   = $deleted_sample->search_related('antimicrobial_resistances');
+is $deleted_amrs->count, 1, 'got expected deleted AMR';
+
+# reset the sample accession so we can load further sample metadata as new rows
 $columns->{sample_accession} = 'ERS654321';
 
 #-------------------------------------------------------------------------------

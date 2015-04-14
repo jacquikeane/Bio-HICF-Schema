@@ -83,6 +83,19 @@ __PACKAGE__->table("user");
   is_nullable: 1
   size: 32
 
+=head2 created_at
+
+  data_type: 'datetime'
+  datetime_undef_if_invalid: 1
+  is_nullable: 0
+  set_on_create: 1
+
+=head2 deleted_at
+
+  data_type: 'datetime'
+  datetime_undef_if_invalid: 1
+  is_nullable: 1
+
 =cut
 
 __PACKAGE__->add_columns(
@@ -111,6 +124,19 @@ __PACKAGE__->add_columns(
   },
   "api_key",
   { data_type => "char", is_nullable => 1, size => 32 },
+  "created_at",
+  {
+    data_type => "datetime",
+    datetime_undef_if_invalid => 1,
+    is_nullable => 0,
+    set_on_create => 1,
+  },
+  "deleted_at",
+  {
+    data_type => "datetime",
+    datetime_undef_if_invalid => 1,
+    is_nullable => 1,
+  },
 );
 
 =head1 PRIMARY KEY
@@ -139,8 +165,8 @@ __PACKAGE__->set_primary_key("username");
 with 'Bio::HICF::Schema::Role::User';
 
 
-# Created by DBIx::Class::Schema::Loader v0.07042 @ 2015-04-09 15:05:20
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:0Tt/f7GFBOzs2rx35cv/XA
+# Created by DBIx::Class::Schema::Loader v0.07042 @ 2015-04-14 15:04:26
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:2IE91W6yy0F+049zTbt+3A
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration

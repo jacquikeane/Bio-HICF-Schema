@@ -19,7 +19,7 @@
       Antimicrobial => [
         [ qw( name created_at ) ],
         [ qw( am1 2014-10-12T12:15:00 ) ],
-        [ qw( am2 2014-11-12T12:15:00 ) ],
+        [ qw( am2 2014-11-12 12:15:00 ) ],
       ],
       AntimicrobialResistance => [
         [ qw( sample_id
@@ -29,10 +29,10 @@
               equality
               diagnostic_centre
               created_at ) ],
-        [ qw( 1 am1 S 50 eq WTSI 2014-12-02T16:55:00 ) ],
+        [ qw( 1 am1 S 50 eq WTSI '2014-12-02 16:55:00' ) ],
       ],
       Assembly => [
-        [ qw( assembly_id accession type ) ],
+        [ qw( assembly_id sample_accession type ) ],
         [ qw( 1 ERS111111 ERS ) ],
         [ qw( 2 ERS222222 ERS ) ],
       ],
@@ -190,7 +190,7 @@
   </field>
 </checklist>),
           'hicf',
-          '2015-01-29T09:30:00' ],
+          '2015-01-29 09:30:00' ],
       ],
       Envo => [
         [ qw( id description ) ],
@@ -210,11 +210,11 @@
         [ '4162F712-1DD2-11B2-B17E-C09EFE1DC403',
           1,
           '8fb372b3d14392b8a21dd296dc7d9f5a',
-          '2015-01-29T09_30_00' ],
+          '2015-01-29 09_30_00' ],
         [ '0162F712-1DD2-11B2-B17E-C09EFE1DC403',
           1,
           '0fb372b3d14392b8a21dd296dc7d9f5a',
-          '2015-01-29T09_30_00' ],
+          '2015-01-29 09_30_00' ],
       ],
       Sample => [
         [ qw( manifest_id
@@ -239,7 +239,6 @@
               isolate
               withdrawn
               created_at
-              updated_at
               deleted_at ) ],
         [ '4162F712-1DD2-11B2-B17E-C09EFE1DC403',
           'data:1',
@@ -262,8 +261,7 @@
           'strain',
           undef,
           undef,
-          '2014-12-02T16:55:00',
-          undef,
+          '2014-12-02 16:55:00',
           undef ],
       ],
       Taxonomy => [

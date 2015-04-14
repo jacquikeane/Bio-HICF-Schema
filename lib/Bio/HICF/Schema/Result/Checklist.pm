@@ -75,7 +75,6 @@ The name of a configuration in a multi-part configuration. Not required if the c
   data_type: 'datetime'
   datetime_undef_if_invalid: 1
   is_nullable: 1
-  set_on_update: 1
 
 =head2 deleted_at
 
@@ -109,7 +108,6 @@ __PACKAGE__->add_columns(
     data_type => "datetime",
     datetime_undef_if_invalid => 1,
     is_nullable => 1,
-    set_on_update => 1,
   },
   "deleted_at",
   {
@@ -149,8 +147,8 @@ __PACKAGE__->has_many(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07042 @ 2015-04-10 15:36:23
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:B+GQpIHnmtmp0HLc1MhnXw
+# Created by DBIx::Class::Schema::Loader v0.07042 @ 2015-04-13 15:35:45
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:qqBXe8hSFsER9nDruQmruA
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration

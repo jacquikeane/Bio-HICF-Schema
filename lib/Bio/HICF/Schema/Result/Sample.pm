@@ -196,13 +196,6 @@ __PACKAGE__->table("sample");
   is_nullable: 0
   set_on_create: 1
 
-=head2 updated_at
-
-  data_type: 'datetime'
-  datetime_undef_if_invalid: 1
-  is_nullable: 1
-  set_on_update: 1
-
 =head2 deleted_at
 
   data_type: 'datetime'
@@ -314,13 +307,6 @@ __PACKAGE__->add_columns(
     is_nullable => 0,
     set_on_create => 1,
   },
-  "updated_at",
-  {
-    data_type => "datetime",
-    datetime_undef_if_invalid => 1,
-    is_nullable => 1,
-    set_on_update => 1,
-  },
   "deleted_at",
   {
     data_type => "datetime",
@@ -369,7 +355,7 @@ Related object: L<Bio::HICF::Schema::Result::Assembly>
 __PACKAGE__->has_many(
   "assemblies",
   "Bio::HICF::Schema::Result::Assembly",
-  { "foreign.accession" => "self.sample_accession" },
+  { "foreign.sample_accession" => "self.sample_accession" },
   { cascade_copy => 0, cascade_delete => 0 },
 );
 
@@ -394,16 +380,18 @@ __PACKAGE__->belongs_to(
 
 =item * L<Bio::HICF::Schema::Role::Sample>
 
+=item * L<Bio::HICF::Schema::Role::Undeletable>
+
 =back
 
 =cut
 
 
-with 'Bio::HICF::Schema::Role::Sample';
+with 'Bio::HICF::Schema::Role::Sample', 'Bio::HICF::Schema::Role::Undeletable';
 
 
-# Created by DBIx::Class::Schema::Loader v0.07042 @ 2015-04-10 14:31:35
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:6J+oduUH1aV4I8CeHrPxdg
+# Created by DBIx::Class::Schema::Loader v0.07042 @ 2015-04-14 10:03:38
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:/ZJ5ewhpBjwl2Z8DmATmcQ
 
 __PACKAGE__->add_unique_constraint(
   sample_uc => [ qw( manifest_id raw_data_accession sample_accession ) ]

@@ -56,7 +56,7 @@ sub load {
     unless ( defined $sample and $sample->count > 0 );
 
   # get a row for the assembly...
-  my $assembly_row = $self->find_or_create( { accession => $accession, type => 'ERS' } );
+  my $assembly_row = $self->find_or_create( { sample_accession => $accession, type => 'ERS' } );
 
   # ... and for the file
   my $file_row = $schema->resultset('File')->load($assembly_row, $path);
