@@ -70,18 +70,6 @@ The name of a configuration in a multi-part configuration. Not required if the c
   is_nullable: 0
   set_on_create: 1
 
-=head2 updated_at
-
-  data_type: 'datetime'
-  datetime_undef_if_invalid: 1
-  is_nullable: 1
-
-=head2 deleted_at
-
-  data_type: 'datetime'
-  datetime_undef_if_invalid: 1
-  is_nullable: 1
-
 =cut
 
 __PACKAGE__->add_columns(
@@ -102,18 +90,6 @@ __PACKAGE__->add_columns(
     datetime_undef_if_invalid => 1,
     is_nullable => 0,
     set_on_create => 1,
-  },
-  "updated_at",
-  {
-    data_type => "datetime",
-    datetime_undef_if_invalid => 1,
-    is_nullable => 1,
-  },
-  "deleted_at",
-  {
-    data_type => "datetime",
-    datetime_undef_if_invalid => 1,
-    is_nullable => 1,
   },
 );
 
@@ -147,8 +123,8 @@ __PACKAGE__->has_many(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07042 @ 2015-04-13 15:35:45
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:qqBXe8hSFsER9nDruQmruA
+# Created by DBIx::Class::Schema::Loader v0.07042 @ 2015-04-14 15:55:18
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:Kh7k47tKOG8I8vsItkryiw
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration

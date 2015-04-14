@@ -76,12 +76,6 @@ A UUID that uniquely identifies the manifest.
   is_nullable: 0
   set_on_create: 1
 
-=head2 updated_at
-
-  data_type: 'datetime'
-  datetime_undef_if_invalid: 1
-  is_nullable: 1
-
 =head2 deleted_at
 
   data_type: 'datetime'
@@ -110,12 +104,6 @@ __PACKAGE__->add_columns(
     datetime_undef_if_invalid => 1,
     is_nullable => 0,
     set_on_create => 1,
-  },
-  "updated_at",
-  {
-    data_type => "datetime",
-    datetime_undef_if_invalid => 1,
-    is_nullable => 1,
   },
   "deleted_at",
   {
@@ -183,8 +171,8 @@ __PACKAGE__->has_many(
 with 'Bio::HICF::Schema::Role::Manifest';
 
 
-# Created by DBIx::Class::Schema::Loader v0.07042 @ 2015-04-13 15:35:45
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:J5GlMxd1Cc5slMbYwMovbQ
+# Created by DBIx::Class::Schema::Loader v0.07042 @ 2015-04-14 15:55:19
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:z+80j/p/rpenarHACOpe8g
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration

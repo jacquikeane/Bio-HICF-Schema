@@ -11,7 +11,6 @@ requires qw(
   md5
   ticket
   created_at
-  updated_at
   deleted_at
 );
 
