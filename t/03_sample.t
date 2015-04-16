@@ -74,28 +74,28 @@ is_deeply($values, $expected_hash, 'got expected values for sample 1');
 my $manifest_id       = '4162F712-1DD2-11B2-B17E-C09EFE1DC403';
 my $other_manifest_id = '0162F712-1DD2-11B2-B17E-C09EFE1DC403';
 my $columns = {
+  antimicrobial_resistance => 'am1;I;25',
+  collected_at             => 'CAMBRIDGE',
+  collected_by             => 'Tate JG',
+  collection_date          => 1428658943,
+  host_associated          => 1,
+  host_disease_status      => 'healthy',
+  host_isolation_source    => 'BTO:0000645',
+  isolate                  => undef,
+  isolation_source         => undef,
+  location                 => 'GAZ:00444180',
   manifest_id              => $manifest_id,
+  other_classification     => undef,
+  patient_location         => 'inpatient',
   raw_data_accession       => 'data:2',
   sample_accession         => 'ERS123456',
   sample_description       => 'New sample',
-  collected_at             => 'CAMBRIDGE',
-  tax_id                   => 9606,
   scientific_name          => undef,
-  collected_by             => 'Tate JG',
-  source                   => undef,
-  collection_date          => 1428658943,
-  location                 => 'GAZ:00444180',
-  host_associated          => 1,
-  specific_host            => 'Homo sapiens',
-  host_disease_status      => 'healthy',
-  host_isolation_source    => 'BTO:0000645',
-  patient_location         => 'inpatient',
-  isolation_source         => undef,
   serovar                  => 'serovar',
-  other_classification     => undef,
+  source                   => undef,
+  specific_host            => 'Homo sapiens',
   strain                   => 'strain',
-  isolate                  => undef,
-  antimicrobial_resistance => 'am1;S;50',
+  tax_id                   => 9606,
 };
 
 my $sample_id;
@@ -116,23 +116,14 @@ throws_ok { $sample_id = Sample->load($columns) } qr/UNIQUE constraint failed/,
 $columns->{manifest_id} = $other_manifest_id;
 lives_ok { $sample_id = Sample->load($columns) } 'row loads ok a second time';
 
-lives_ok { $sample = Schema->get_sample('ERS123456') }
-  'successfully retrieved a single sample row by accession';
-is( $sample->sample_id, 3, 'sample has correct ID');
-
 # after loading the same sample a second time we should have two rows, with the
 # older one having a value for "deleted_at"
-my $rs;
-lives_ok { $rs = Schema->get_samples('ERS123456') }
-  'got rs with live samples';
-is( $rs->count, 1, 'got one live sample for accession' );
-
-lives_ok { $rs = Schema->get_samples('ERS123456', 1) }
-  'got rs with live and deleted samples';
+my $rs = Sample->search( { sample_accession => 'ERS123456' } );
 is( $rs->count, 2, 'got two samples for accession' );
 
-my $deleted = $rs->search( { 'deleted_at' => { '!=', undef } } )->single;
-my $live    = $rs->search( { 'deleted_at' => { '=',  undef } } )->single;
+my @samples = $rs->all;
+my $deleted = $samples[0];
+my $live    = $samples[1];
 
 is $deleted->sample_id, 2, 'got expected sample ID for deleted sample';
 is $live->sample_id,    3, 'got expected sample ID for live sample';
@@ -143,9 +134,12 @@ is $live->is_deleted,    0, '"is_deleted works for live row';
 is Sample->all_rs->count, 2, '"all" returns RS with 2 rows';
 is Sample->all_rs(1)->count, 3, '"all" with include_deleted flag returns RS with 3 rows';
 
-
 my $deleted_sample = Sample->search( { 'me.deleted_at' => { '!=', undef } } );
-my $deleted_amrs   = $deleted_sample->search_related('antimicrobial_resistances');
+my $deleted_amrs   = $deleted_sample->search_related(
+                       'antimicrobial_resistances',
+                       { 'me.deleted_at' => { '!=', undef } },
+                       {}
+                     );
 is $deleted_amrs->count, 1, 'got expected deleted AMR';
 
 # reset the sample accession so we can load further sample metadata as new rows

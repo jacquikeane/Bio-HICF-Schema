@@ -58,7 +58,7 @@ sub load {
     {
       raw_data_accession => $upload->{raw_data_accession},
       sample_accession   => $upload->{sample_accession},
-      deleted_at => { '=' => undef }
+      'me.deleted_at' => { '=' => undef }
     },
     {}
   );
@@ -68,13 +68,13 @@ sub load {
   # to get that row. Just in case, though, we'll apply the 'deleted_at' update
   # to all rows in the set
   warn "WARNING: found multiple live samples with sample accession '$upload->{sample_accession}'"
-    if $existing_rs->count;
+    if $existing_rs->count > 1;
 
   while( my $existing_sample = $existing_rs->next ) {
     $existing_sample->mark_as_deleted;
-
-    # mark related rows as deleted
-    $_->mark_as_deleted for $existing_sample->search_related('antimicrobial_resistances')->all;
+    #
+    # # mark related rows as deleted
+    # $_->mark_as_deleted for $existing_sample->search_related('antimicrobial_resistances')->all;
   }
 
   # finally, create the row
@@ -109,19 +109,6 @@ sub all_rs {
     { order_by => { -asc => [qw( sample_id created_at )] } }
   );
 }
-
-#-------------------------------------------------------------------------------
-#- method modifiers ------------------------------------------------------------
-#-------------------------------------------------------------------------------
-
-# when a Sample is marked as deleted, also mark related AntimicrobialResistance
-# rows as deleted
-
-after 'delete' => sub {
-  my $self = shift;
-  $_->mark_as_deleted for $self->search_related('antimicrobial_resistances')->all;
-};
-
 
 #-------------------------------------------------------------------------------
 #- private methods -------------------------------------------------------------

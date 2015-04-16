@@ -18,8 +18,8 @@
     main => [
       Antimicrobial => [
         [ qw( name created_at ) ],
-        [ qw( am1 2014-10-12T12:15:00 ) ],
-        [ qw( am2 2014-11-12 12:15:00 ) ],
+        [ 'am1', '2014-10-12 12:15:00' ],
+        [ 'am2', '2014-11-12 12:15:00' ],
       ],
       AntimicrobialResistance => [
         [ qw( sample_id
@@ -29,7 +29,7 @@
               equality
               diagnostic_centre
               created_at ) ],
-        [ qw( 1 am1 S 50 eq WTSI '2014-12-02 16:55:00' ) ],
+        [ 1, 'am1', 'S', 50, 'eq', 'WTSI', '2014-12-02 16:55:00' ],
       ],
       Assembly => [
         [ qw( assembly_id sample_accession type ) ],
@@ -207,14 +207,8 @@
       ],
       Manifest => [
         [ qw( manifest_id checklist_id md5 created_at ) ],
-        [ '4162F712-1DD2-11B2-B17E-C09EFE1DC403',
-          1,
-          '8fb372b3d14392b8a21dd296dc7d9f5a',
-          '2015-01-29 09_30_00' ],
-        [ '0162F712-1DD2-11B2-B17E-C09EFE1DC403',
-          1,
-          '0fb372b3d14392b8a21dd296dc7d9f5a',
-          '2015-01-29 09_30_00' ],
+        [ '4162F712-1DD2-11B2-B17E-C09EFE1DC403', 1, '8fb372b3d14392b8a21dd296dc7d9f5a', '2015-01-29 09_30_00' ],
+        [ '0162F712-1DD2-11B2-B17E-C09EFE1DC403', 1, '0fb372b3d14392b8a21dd296dc7d9f5a', '2015-01-29 09_30_00' ],
       ],
       Sample => [
         [ qw( manifest_id

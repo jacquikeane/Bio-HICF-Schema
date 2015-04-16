@@ -39,7 +39,7 @@ sub mark_as_deleted {
 
 =head2 delete
 
-Alias for L<delete>.
+Alias for L<mark_as_deleted>.
 
 =cut
 

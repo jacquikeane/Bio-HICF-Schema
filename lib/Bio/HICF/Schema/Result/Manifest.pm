@@ -163,16 +163,18 @@ __PACKAGE__->has_many(
 
 =item * L<Bio::HICF::Schema::Role::Manifest>
 
+=item * L<Bio::HICF::Schema::Role::Undeletable>
+
 =back
 
 =cut
 
 
-with 'Bio::HICF::Schema::Role::Manifest';
+with 'Bio::HICF::Schema::Role::Manifest', 'Bio::HICF::Schema::Role::Undeletable';
 
 
-# Created by DBIx::Class::Schema::Loader v0.07042 @ 2015-04-14 15:55:19
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:z+80j/p/rpenarHACOpe8g
+# Created by DBIx::Class::Schema::Loader v0.07042 @ 2015-04-15 13:31:08
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:oFR65EKFnpg3ut0BJe41Aw
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration

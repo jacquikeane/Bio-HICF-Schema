@@ -7,6 +7,13 @@ use Test::CacheFile;
 use Test::Exception;
 use Test::Script::Run;
 
+# NOTE: this test has to write the test database to disk, rather than using an
+# in-memory DB. Because of that, if the test database already exists, strange
+# things can happen, e.g. fixture loading can fail because the new data can hit
+# unique key constraints if it's loaded over the top of existing data. If you
+# get test failures with this file, make sure there's no file called "test.db"
+# in the cwd.
+
 use Test::DBIx::Class {
   connect_info => [ 'dbi:SQLite:dbname=test.db', '', '' ],
 }, qw( :resultsets );

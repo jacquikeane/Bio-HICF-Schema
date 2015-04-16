@@ -66,7 +66,7 @@ sub load {
 
   # check that the sample exists
   my $schema = $self->result_source->schema;
-  my $sample = $schema->get_sample($accession);
+  my $sample = $schema->get_sample_by_accession($accession);
 
   croak "ERROR: no such sample (accession '$accession')" unless defined $sample;
 

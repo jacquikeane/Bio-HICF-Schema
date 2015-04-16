@@ -87,7 +87,7 @@ make_schema_at(
     # roles. The loader will have the specified ResultSet do a "with <role>"
     # for each RS in the map
     result_roles_map => {
-      Antimicrobial           => 'Bio::HICF::Schema::Role::Undeletable',
+      Antimicrobial => 'Bio::HICF::Schema::Role::Undeletable',
       AntimicrobialResistance => [
         'Bio::HICF::Schema::Role::AntimicrobialResistance',
         'Bio::HICF::Schema::Role::Undeletable',
@@ -97,12 +97,15 @@ make_schema_at(
         'Bio::HICF::Schema::Role::Undeletable',
       ],
       File => 'Bio::HICF::Schema::Role::Undeletable',
-      Manifest => 'Bio::HICF::Schema::Role::Manifest',
+      Manifest => [
+        'Bio::HICF::Schema::Role::Manifest',
+        'Bio::HICF::Schema::Role::Undeletable',
+      ],
       Sample   => [
         'Bio::HICF::Schema::Role::Sample',
         'Bio::HICF::Schema::Role::Undeletable',
       ],
-      User     => 'Bio::HICF::Schema::Role::User',
+      User => 'Bio::HICF::Schema::Role::User',
     },
   },
   [

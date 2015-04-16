@@ -106,148 +106,219 @@ sub load_manifest {
 
 #-------------------------------------------------------------------------------
 
-=head2 get_manifest($manifest_id)
+=head2 get_manifest($manifest_id, ?$include_deleted)
 
-Returns a L<Bio::Metadata::Manifest> object for the specified manifest.
+Returns the L<Bio::HICF::Schema::Result::Manifest> with the specified ID.
+Returns C<undef> if there is no manifest with that ID. Throws an exception if
+the manifest ID is not supplied or is not valid.
 
 =cut
 
 sub get_manifest {
-  my ( $self, $manifest_id ) = @_;
+  my ( $self, $mid, $include_deleted ) = @_;
 
-  # create a B::M::Checklist object from the config string that we have stored
-  # for this manifest
-  my $checklist_rs = $self->resultset('Manifest')
-                       ->search( { manifest_id => $manifest_id },
-                                 { prefetch => [ 'checklist' ] } )
-                       ->single;
+  croak 'ERROR: must supply a valid manifest ID' unless defined $mid;
 
-  return unless $checklist_rs;
+  croak "ERROR: not a valid manifest ID ($mid)"
+    unless $mid=~ m/^[0-9a-f]{8}-([0-9a-f]{4}-){3}[0-9a-f]{12}$/i;
 
-  my %args = ( config_string => $checklist_rs->checklist->config );
+  my $query = { manifest_id => $mid,
+                deleted_at  => { '=', undef } };
 
-  $args{config_name} = $checklist_rs->checklist->name
-    if defined $checklist_rs->checklist->name;
+  delete $query->{deleted_at} if $include_deleted;
 
-  my $c = Bio::Metadata::Checklist->new(%args);
-
-  # get the values for the samples in the manifest and add them to a new
-  # B::M::Manifest
-  my $values = $self->get_samples_values($manifest_id);
-  my $m = Bio::Metadata::Manifest->new( checklist => $c, rows => $values );
-
-  return $m;
+  return $self->resultset('Manifest')
+              ->search( $query, { prefetch => [ 'checklist' ] } )
+              ->single;
 }
+
+#-------------------------------------------------------------------------------
+
+=head2 get_manifest_object($manifest_id)
+
+Returns a L<Bio::Metadata::Manifest> object for the specified manifest.
+Returns C<undef> if there is no manifest with that ID. Throws an exception if
+the manifest ID is not supplied or is not valid.
+
+=cut
+
+sub get_manifest_object {
+  my ( $self, $mid, $include_deleted ) = @_;
+
+  my $manifest_row = $self->get_manifest($mid, $include_deleted);
+
+  return unless $manifest_row;
+
+  # create a Bio::Metadata::Checklist for this manifest
+  my $checklist_row = $manifest_row->checklist;
+
+  my $checklist_name   = $checklist_row->name;
+  my $checklist_config = $checklist_row->config;
+
+  my $constructor_args = { config_string => $checklist_config };
+
+  $constructor_args->{config_name} = $checklist_name
+    if defined $checklist_name;
+
+  my $c = Bio::Metadata::Checklist->new(%$constructor_args);
+
+  my @values;
+  push @values, $_->field_values for ( $manifest_row->get_samples );
+
+  return Bio::Metadata::Manifest->new( checklist => $c, rows => \@values );
+}
+
+#-------------------------------------------------------------------------------
+
+# sub get_manifest {
+#   my ( $self, $manifest_id, $include_deleted ) = @_;
+#
+#   croak 'ERROR: must supply a valid manifest ID' unless defined $manifest_id;
+#
+#   croak "ERROR: not a valid manifest ID ($manifest_id)"
+#     unless $manifest=~ m/^[0-9a-f]{8}-([0-9a-f]{4}-){3}[0-9a-f]{12}$/i;
+#
+#   # create a B::M::Checklist object from the config string that we have stored
+#   # for this manifest
+#   my $manifest_row = $self->resultset('Manifest')
+#                           ->search( { manifest_id => $manifest_id },
+#                                     { prefetch => [ 'checklist' ] } )
+#                           ->single;
+#
+#   return unless $manifest_row;
+#
+#   my %args = ( config_string => $manifest_row->checklist->config );
+#
+#   $args{config_name} = $manifest_row->checklist->name
+#     if defined $manifest_row->checklist->name;
+#
+#   my $c = Bio::Metadata::Checklist->new(%args);
+#
+#   # get the values for the samples in the manifest and add them to a new
+#   # B::M::Manifest
+#   my $values = $self->get_samples_values($manifest_id);
+#   my $m = Bio::Metadata::Manifest->new( checklist => $c, rows => $values );
+#
+#   return $m;
+# }
 
 #-------------------------------------------------------------------------------
 #- samples ---------------------------------------------------------------------
 #-------------------------------------------------------------------------------
 
-=head2 get_sample_values($sample_id)
+=head2 get_sample_by_accession($acc)
 
-Returns a reference to an array containing the field values for the specified
-sample.
+Given a sample accession, C<$acc>, this method returns the most recent version
+of the sample. B<Note> that the returned sample may be deleted (has its
+C<deleted_at> field set); check if a sample is deleted using
+L<Bio::HICF::Schema::Result::Sample::is_deleted|is_deleted>.
+
+Returns C<undef> if there is no sample with the given accession. Throws an
+exception if C<$acc> is not supplied.
 
 =cut
 
-sub get_sample_values {
-  my ( $self, $sample_id ) = @_;
+sub get_sample_by_accession {
+  my ( $self, $acc ) = @_;
 
-  my $sample = $self->resultset('Sample')
-                    ->find($sample_id);
-  croak "ERROR: no sample with that ID ($sample_id)"
-    unless defined $sample;
-
-  my $values = $sample->field_values;
-  croak "ERROR: couldn't get values for sample $sample_id"
-    unless ( defined $values and scalar @$values );
-
-  return $values;
+  my @versions = $self->get_sample_versions_by_accession($acc);
+  return unless @versions;
+  return shift @versions;
 }
 
 #-------------------------------------------------------------------------------
 
-=head2 get_samples_values(@args)
+=head2 get_sample_versions_by_accession($acc)
 
-Returns a reference to an array containing the field values for the specified
-samples, one sample per row. If the first element of C<@args> looks like a UUID,
-it's assumed to be a manifest ID and the method returns the field data for all
-samples in that manifest. Otherwise C<@args> is assumed to be a list of sample
-IDs and the field data for each is return.
+Returns a list of all versions of the sample with the given accession,
+including deleted samples. The list is ordered with the most recent versions
+first, i.e. you can retrieve the current, live version of a sample using
+something like:
 
-=cut
+ my @versions = $schema->get_sample_versions_by_accession('ERS123456');
+ my $latest = $versions[0];
 
-sub get_samples_values {
-  my ( $self, @args ) = @_;
-
-  my $samples;
-
-  if ( $args[0] =~ m/^[0-9a-f]{8}-([0-9a-f]{4}-){3}[0-9a-f]{12}$/i ) {
-    # we were handed a manifest ID
-    my $rs = $self->resultset('Sample')
-                  ->search( { manifest_id => $args[0],
-                              'me.deleted_at'  => { '=', undef } },
-                            { prefetch => 'antimicrobial_resistances' } );
-    push @$samples, $_->field_values for ( $rs->all );
-  }
-  else {
-    my $sample_ids = ( ref $args[0] eq 'ARRAY' )
-                   ? $args[0]
-                   : \@args;
-    # we were handed a list of sample IDs
-    push @$samples, $self->get_sample_values($_) for @$sample_ids;
-  }
-
-  return $samples;
-}
-
-#-------------------------------------------------------------------------------
-
-=head2 get_sample($accession)
-
-Given a sample accession, returns the most recent version of a
-L<Bio::HICF::Schema::Result::Sample> with that accession, i.e. the most
-recently uploaded sample.
+Returns C<undef> if there is no sample with the given accession. Throws an
+exception if C<$acc> is not supplied.
 
 =cut
 
-sub get_sample {
+sub get_sample_versions_by_accession {
   my ( $self, $acc ) = @_;
 
   croak 'ERROR: must supply a sample accession' unless defined $acc;
 
-  $self->get_samples($acc)->first;
+  my $rs = $self->resultset('Sample')->search(
+    { sample_accession => $acc },
+    { order_by => { -desc => ['sample_id'] } },
+  );
+
+  return unless $rs;
+  return $rs->all;
 }
 
 #-------------------------------------------------------------------------------
 
-=head2 get_samples($accession, ?$include_deleted)
+=head2 get_sample_by_id($id)
 
-Given a sample accesion, returns a L<DBIx::Class::ResultSet|ResultSet> with
-all of the samples matching that accession. Samples are ordered with the most
-recent sample first, i.e. the most recently uploaded version of the sample metadata
-can be retrieved something like
+Returns the sample with the given ID. This may not be the most recent version
+of a sample, since re-loading metadata for a given sample will cause the
+existing row to be flagged as deleted and will generate a new row with a new
+sample ID. If you give ID for an older, superceded sample, that sample may
+(should) have been flagged as deleted (had its C<deleted_at> field set); check
+if a sample is deleted using
+L<Bio::HICF::Schema::Result::Sample::is_deleted|is_deleted>.
 
- my $latest = $schema->get_samples_rs('ERS123456')->first;
-
-If C<?$include_deleted> is true, the set of samples returned will include
-samples that have been deleted, i.e. have a value for C<deleted_at>. The
-default is to return only live, not-deleted samples.
+Returns C<undef> if there is no sample with the given ID. Throws an exception
+if C<$ID> is not supplied.
 
 =cut
 
-sub get_samples {
-  my ( $self, $acc, $include_deleted ) = @_;
+sub get_sample_by_id {
+  my ( $self, $id ) = @_;
 
-  croak 'ERROR: must supply a sample accession' unless defined $acc;
+  croak 'ERROR: must supply a sample ID' unless defined $id;
 
-  my $query = { sample_accession => $acc };
-  $query->{deleted_at} = { '=', undef } unless $include_deleted;
+  return $self->resultset('Sample')->find($id);
+}
 
-  $self->resultset('Sample')->search(
-    $query,
-    { order_by => { -desc => ['sample_id'] } }
-  );
+#-------------------------------------------------------------------------------
+
+=head2 get_samples_in_manifest($manifest_id, ?$include_deleted)
+
+Given a manifest ID, this method returns a L<DBIx::Class::ResultSet|ResultSet>
+with all of the samples in that manifest.
+
+If C<$include_deleted> is true, the L<DBIx::Class::ResultSet|ResultSet> will
+contain both live (not deleted) and deleted rows. When a sample row is
+re-loaded, it must have a different manifest ID, so you may find that, when you
+run C<get_samples_in_manifest> with C<$include_deleted> set to true, the
+returned samples will contain some that are deleted, because they have been
+superceded by the same sample from a different manifest.
+
+If C<$include_deleted> is false or omitted, the
+L<DBIx::Class::ResultSet|ResultSet> will contain only live samples, i.e. those
+not marked as deleted. B<Note> that this means that any superceded samples will
+be omitted from the result set.
+
+=cut
+
+sub get_samples_in_manifest {
+  my ( $self, $mid, $include_deleted ) = @_;
+
+  croak 'ERROR: must supply a valid manifest ID'
+    unless ( defined $mid and
+             $mid =~ m/^[0-9a-f]{8}-([0-9a-f]{4}-){3}[0-9a-f]{12}$/i );
+
+  return unless my $manifest_row = $self->resultset('Manifest')->find($mid);
+
+  my $query = { 'manifest.manifest_id' => $mid };
+
+  $query->{'me.deleted_at'} = { '=', undef }
+    unless $include_deleted;
+
+  return $self->resultset('Sample')
+              ->search( $query, { join => [ 'manifest' ] } );
 }
 
 #-------------------------------------------------------------------------------

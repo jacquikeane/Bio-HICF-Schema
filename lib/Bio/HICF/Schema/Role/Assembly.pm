@@ -44,7 +44,7 @@ sub get_file {
   # version number
   my $query = $include_deleted
             ? { }
-            : { deleted_at => { '=', undef } };
+            : { 'me.deleted_at' => { '=', undef } };
   my $attrs = { order_by => { '-desc', ['version'] } };
 
   # should we get a specific version ?
@@ -81,7 +81,7 @@ sub get_files {
 
   my $query = $include_deleted
             ? { }
-            : { 'deleted_at' => { '=',  undef } };
+            : { 'me.deleted_at' => { '=', undef } };
 
   return $self->search_related(
     'files',

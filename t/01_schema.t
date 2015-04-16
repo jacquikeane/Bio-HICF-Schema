@@ -8,6 +8,7 @@ use Test::DBIx::Class qw( :resultsets );
 use Test::CacheFile;
 use Test::Exception;
 use Archive::Tar;
+use Data::UUID;
 
 use Bio::Metadata::Checklist;
 use Bio::Metadata::Reader;
@@ -45,45 +46,121 @@ SKIP: {
   my $r = Bio::Metadata::Reader->new( checklist => $c );
   my $m = $r->read_csv('t/data/01_manifest.csv');
 
+  # load a manifest
   my @sample_ids;
   lives_ok { @sample_ids = Schema->load_manifest($m) } 'loading valid manifest works';
 
-  # using a single sample ID
-  my $values;
-  lives_ok { $values = Schema->get_sample_values(1) } 'got field values for sample ID 1';
+  # retrieve a manifest row
+  my $retrieved_manifest_row;
+  lives_ok { $retrieved_manifest_row = Schema->get_manifest($m->uuid) }
+    '"get_manifest" lives';
+  isa_ok $retrieved_manifest_row, 'Bio::HICF::Schema::Result::Manifest';
 
-  my $expected_values = [ 'data:1', 'ERS111111', 'New sample', 'CAMBRIDGE', 9606, undef, 'Tate JG', undef, 1428658943, 'GAZ:00444180', 1, 'Homo sapiens', 'healthy', 'BTO:0000645', 'inpatient', undef, 'serovar', undef, 'strain', undef, 'am1;S;50;WTSI', ];
-
-  is_deeply($values, $expected_values, 'got expected values for sample 1');
-
-  throws_ok { Schema->get_sample_values(99) } qr/no sample with that ID \(99\)/,
-    'exception when retrieving fields for non-existent sample';
-
-  # using multiple sample IDs
-  my $set_of_values;
-  lives_ok { $set_of_values = Schema->get_samples_values(1,2) } 'got values for multiple samples';
-
-  # using a manifest ID
-  lives_ok { $set_of_values = Schema->get_samples_values($m->uuid) }
-    'got samples using a manifest ID';
-
-  my $expected_set_of_values = [
-    ['rda:2','ERS333333','test sample','CAMBRIDGE',9606,undef,'Tate JG','BSACID:1','2014-01-10T11:20:30','GAZ:00444180',1,'Homo sapiens','healthy','BTO:0000645','inpatient',undef,'serovar',undef,'strain',undef,'am1;S;10,am2;I;20;WTSI'],
-    ['rda:3','ERS444444','test sample','CAMBRIDGE',9606,undef,'Tate JG','BSACID:1','2014-01-10T11:20:30','GAZ:00444180',1,'Homo sapiens','healthy','BTO:0000645','inpatient',undef,'serovar',undef,'strain',undef,'am1;S;le10,am2;I;20;WTSI'],
-  ];
-
-  is_deeply( $set_of_values, $expected_set_of_values, 'got expected set of field values' );
+  # retrieve a manifest object
+  my $retrieved_manifest_object;
+  lives_ok { $retrieved_manifest_object = Schema->get_manifest_object($m->uuid) }
+    '"get_manifest_object" lives';
+  isa_ok $retrieved_manifest_object, 'Bio::Metadata::Manifest';
 
   # generate a manifest from the DB and compare it to the one we used to load the
   # data. Spoof the MD5, UUID and config filename
-  my $new_m = Schema->get_manifest($m->uuid);
+  my $new_m = Schema->get_manifest_object($m->uuid);
   $new_m->md5($m->md5);
   $new_m->uuid($m->uuid);
   $new_m->checklist->{config_file} = 't/data/01_checklist.conf';
 
   is_deeply( $m, $new_m, 'manifest generated from the DB matches original' );
 
-  is( Schema->get_manifest('x'), undef, '"get_manifest" returns undef with bad manifest ID' );
+  throws_ok { Schema->get_manifest_object('x') }
+    qr/not a valid manifest ID/,
+    '"get_manifest_object" throws an exception with bad manifest ID';
+
+  # load a new version of one of the samples
+
+  # this manifest is pre-loaded as a fixture
+  my $other_manifest_id = '0162F712-1DD2-11B2-B17E-C09EFE1DC403';
+
+  my $duplicate_row = {
+    manifest_id              => $other_manifest_id,
+    raw_data_accession       => 'rda:2',       #\_ these two rows are the ones that
+    sample_accession         => 'ERS333333',   #/  determine if it's a duplicate
+    sample_description       => 'New sample',
+    collected_at             => 'CAMBRIDGE',
+    tax_id                   => 9606,
+    scientific_name          => undef,
+    collected_by             => 'Tate JG',
+    source                   => undef,
+    collection_date          => 1428658943,
+    location                 => 'GAZ:00444180',
+    host_associated          => 1,
+    specific_host            => 'Homo sapiens',
+    host_disease_status      => 'healthy',
+    host_isolation_source    => 'BTO:0000645',
+    patient_location         => 'inpatient',
+    isolation_source         => undef,
+    serovar                  => 'serovar',
+    other_classification     => undef,
+    strain                   => 'strain',
+    isolate                  => undef,
+    antimicrobial_resistance => 'am1;I;25',
+  };
+  Sample->load($duplicate_row);
+
+  # retrieve all versions of a sample using a sample accession
+  my @samples;
+  lives_ok { @samples = Schema->get_sample_versions_by_accession('ERS333333') }
+    'got sample versions using accession';
+  is scalar @samples, 2, 'got expected number of samples (2)';
+
+  # same but for a sample with only a single version
+  lives_ok { @samples = Schema->get_sample_versions_by_accession('ERS444444') }
+    'got sample with a single version using accession';
+  is scalar @samples, 1, 'got expected number of samples (1)';
+
+  # check it works in scalar context too
+  my $sample;
+  lives_ok { $sample = Schema->get_sample_versions_by_accession('ERS444444') }
+    'got single sample version using accession';
+
+  # retrieve latest version of a sample using a sample accession
+  lives_ok { $sample = Schema->get_sample_by_accession('ERS333333') }
+    'got latest sample version using accession';
+  is $sample->sample_id, 4, 'sample has correct ID (4)';
+
+  # retrieve a sample using a sample ID
+  lives_ok { $sample = Schema->get_sample_by_id(2) }
+    'got sample using id';
+  is $sample->sample_accession, 'ERS333333', 'sample has correct accession (ERS333333)';
+
+  # check missing/non-existent accession/ID
+  throws_ok { Schema->get_sample_by_accession() }
+    qr/must supply a sample accession/,
+    'got error with missing accession';
+  throws_ok { Schema->get_sample_by_id() }
+    qr/must supply a sample ID/,
+    'got error with missing ID';
+  is Schema->get_sample_by_accession('ERS999999'), undef,
+    '"get_sample_by_accession" returns undef with non-existent accession';
+  is Schema->get_sample_by_id(999999), undef,
+    '"get_sample_by_id" returns undef with non-existent id';
+
+  # TODO make these tests reflect the reality described in the POD for
+  # TODO get_samples_in_manifest...
+
+  # check sample rows returned via a manifest
+  my $samples_in_manifest;
+  lives_ok { $samples_in_manifest = Schema->get_samples_in_manifest($m->uuid) }
+    "'get_samples_in_manifest' successful";
+  is $samples_in_manifest->count, 1, 'got expected 1 sample in resultset';
+  is $samples_in_manifest->first->sample_accession, 'ERS444444',
+    'sample has expected accession';
+
+  lives_ok { $samples_in_manifest = Schema->get_samples_in_manifest($m->uuid, 1) }
+    q('get_samples_in_manifest' successful with $included_deleted true);
+
+  is( $samples_in_manifest->count, 2, 'got expected 2 samples in resultset' );
+  is( $samples_in_manifest->first->sample_accession, 'ERS333333', 'first sample looks right' );
+  is( $samples_in_manifest->next->sample_accession, 'ERS444444', 'second sample looks right' );
 
   # test insert failure behaviour
   $m->rows->[0]->[0] = 'rda:99';
