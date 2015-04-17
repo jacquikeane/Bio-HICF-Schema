@@ -37,7 +37,7 @@ pod2usage( { -verbose => 2, -exitval => 0 } )
 
 # take the paths to the files either from the options or from environment
 # variables
-my $checklist_config_file = $opt->checklist || $ENV{CHECKLIST_CONFIG};
+my $checklist_config_file = $opt->checklist || $ENV{HICF_CHECKLIST_CONFIG};
 my $db_config_file        = $opt->dbconfig  || $ENV{HICF_DB_CONFIG};
 my $file                  = shift;
 
