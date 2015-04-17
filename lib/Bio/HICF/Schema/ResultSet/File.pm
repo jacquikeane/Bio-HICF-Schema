@@ -60,6 +60,8 @@ sub load {
 
   croak "ERROR: can't find ERS number and MD5 in filename"
     unless $filename =~ m/^(ERS\d{6})_([a-f0-9]{32})$/i;
+  # TODO this will only be valid for ENA files. Need to fix it to handle other
+  # types of file, like NCBI uploads
 
   my $accession = $1;
   my $md5       = $2;
