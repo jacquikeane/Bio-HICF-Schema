@@ -32,8 +32,10 @@ Test::CacheFile::cache( 'http://www.brenda-enzymes.info/ontology/tissue/tree/upd
 Test::CacheFile::cache( 'ftp://ftp.ncbi.nlm.nih.gov/pub/taxonomy/taxdump.tar.gz', 'taxdump.tar.gz' );
 
 # extract the names.dmp from the taxdump archive
-my $tar = Archive::Tar->new('.cached_test_files/taxdump.tar.gz');
-$tar->extract_file( 'names.dmp', '.cached_test_files/names.dmp' );
+if ( ! -f '.cached_test_files/names.dmp' ) {
+  my $tar = Archive::Tar->new('.cached_test_files/taxdump.tar.gz');
+  $tar->extract_file( 'names.dmp', '.cached_test_files/names.dmp' );
+}
 
 #-------------------------------------------------------------------------------
 
