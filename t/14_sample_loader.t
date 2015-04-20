@@ -11,6 +11,7 @@ use Archive::Tar;
 use File::Path qw(make_path remove_tree);
 use File::Copy qw(copy);
 use File::Find::Rule;
+use Cwd;
 
 use Test::DBIx::Class {
   connect_info => [ 'dbi:SQLite:dbname=test.db', '', '' ],
@@ -47,7 +48,7 @@ make_path( 't/data/storage/archive',
 
 BEGIN { use_ok( 'Bio::HICF::SampleLoader' ) }
 
-$ENV{HICF_STORAGE} = '/Users/jt6/Work/HICF/modules/Bio-HICF-Schema';
+$ENV{HICF_STORAGE} = getcwd;
 
 # test errors with instantiation first
 

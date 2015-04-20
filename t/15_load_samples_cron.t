@@ -6,6 +6,10 @@ use Test::More;
 use Test::CacheFile;
 use Test::Exception;
 use Test::Script::Run;
+use File::Path qw(make_path remove_tree);
+use File::Copy qw(copy move);
+use File::Find::Rule;
+use Cwd;
 
 use Test::DBIx::Class {
   connect_info => [ 'dbi:SQLite:dbname=test.db', '', '' ],
@@ -26,49 +30,87 @@ Test::CacheFile::cache( 'http://purl.obolibrary.org/obo/subsets/envo-basic.obo',
 Test::CacheFile::cache( 'http://purl.obolibrary.org/obo/gaz.obo', 'gaz.obo' );
 Test::CacheFile::cache( 'http://www.brenda-enzymes.info/ontology/tissue/tree/update/update_files/BrendaTissueOBO', 'bto.obo' );
 
-#-------------------------------------------------------------------------------
-
-my $script = 'bin/load_manifest';
-
-run_ok( $script, [ qw( -h ) ], 'script runs ok with help flag' );
-run_not_ok( $script, [ ], 'script exits with error status when run with no arguments' );
-
-my ( $rv, $stdout, $stderr ) = run_script( $script, [] );
-like( $stderr, qr/ERROR: you must specify a checklist configuration file/, 'got expected error message with no flags' );
-
-SKIP: {
-  skip 'error message testing', 6 if $ENV{SKIP_ERROR_TESTS};
-
-  ( $rv, $stdout, $stderr ) = run_script( $script, [ qw(-c t/data/13_checklist.conf) ] );
-  like( $stderr, qr/ERROR: you must specify a script configuration file/, 'got expected error message with just -c flag' );
-
-  ( $rv, $stdout, $stderr ) = run_script( $script, [ qw(-c t/data/13_checklist.conf        -d t/data/test_config.conf) ] );
-  like( $stderr, qr/ERROR: you must specify an input file/, 'got expected error message with -c and -s flags' );
-
-  ( $rv, $stdout, $stderr ) = run_script( $script, [ qw(-c t/data/13_broken_checklist.conf -d t/data/13_script.conf             t/data/13_manifest.csv) ] );
-  like( $stderr, qr/ERROR: could not load configuration/, 'got expected error message with broken checklist config' );
-
-  ( $rv, $stdout, $stderr ) = run_script( $script, [ qw(-c t/data/13_checklist.conf        -d t/data/13_broken_test_config.conf t/data/13_manifest.csv) ] );
-  like( $stderr, qr/ERROR: there was a problem reading the script configuration.*? no EndBlock/, 'got expected error message with broken script config' );
-
-  ( $rv, $stdout, $stderr ) = run_script( $script, [ qw(-c t/data/13_checklist.conf        -d t/data/13_bad_db_script.conf      t/data/13_manifest.csv) ] );
-  like( $stderr, qr/ERROR: could not connect/, 'got expected error message with bad script config' );
-
-  ( $rv, $stdout, $stderr ) = run_script( $script, [ qw(-c t/data/13_checklist.conf        -d t/data/13_script.conf             t/data/13_broken_manifest.csv) ] );
-  like( $stderr, qr/ERROR: there was a problem loading.*? data in the manifest are not valid/, 'got expected error message with invalid manifest' );
+# extract the names.dmp from the taxdump archive
+if ( ! -f '.cached_test_files/names.dmp' ) {
+  my $tar = Archive::Tar->new('.cached_test_files/taxdump.tar.gz');
+  $tar->extract_file( 'names.dmp', '.cached_test_files/names.dmp' );
 }
 
-is( Sample->count, 1, 'found one row in sample table before loading' );
+# set up the location of the test directories. It's assumed that you're running
+# this test from the top-level directory of the module tree
+# TODO use File::Temp to make this safer and cleaner
+$ENV{HICF_STORAGE} = getcwd;
 
-( $rv, $stdout, $stderr ) = run_script( $script, [ qw(-c t/data/13_checklist.conf -d t/data/13_script.conf t/data/13_manifest.csv) ] );
-unlike( $stderr, qr/ERROR/, 'no loading error with valid configs and manifest' );
+my $archive = $ENV{HICF_STORAGE} . '/t/data/storage/archive';
+my $dropbox = $ENV{HICF_STORAGE} . '/t/data/storage/dropbox';
+my $failed  = $ENV{HICF_STORAGE} . '/t/data/storage/failed';
 
-is( Sample->count, 3, 'got expected number of rows in sample table' );
+make_path( $archive, $dropbox, $failed );
+
+# a File::Find::Rule to search for files (as opposed to directories)
+my $finder = File::Find::Rule->file;
+
+#-------------------------------------------------------------------------------
+
+my $script = 'bin/load_samples_cron';
+
+# should be no output if there are no files to find
+my ( $rv, $stdout, $stderr ) = run_script( $script );
+like $stderr,
+  qr/ERROR: must specify a script configuration file/,
+  'got expected error message with no config specified';
+
+$ENV{HICF_SCRIPT_CONFIG} = 't/data/15_cron.conf';
+
+run_ok( $script, 'script runs ok with no files to find' );
+
+is $finder->in($archive), 0, 'no files in archive';
+is $finder->in($dropbox), 0, 'no files in dropbox';
+is $finder->in($failed),  0, 'found file in failed';
+
+# test a problem that generates a warning
+copy 't/data/15_ERS123456_68d4f8aa49ba39839f2d47a569760742.fa',
+     't/data/storage/dropbox/bad_file_name';
+
+( $rv, $stdout, $stderr ) = run_script( $script );
+like $stderr,
+  qr/WARNING: filename 'bad_file_name' does not have the correct format/,
+  'got expected warning with bad filename in dropbox';
+
+is $finder->in($archive), 0, 'no files in archive';
+is $finder->in($dropbox), 0, 'no files in dropbox';
+is $finder->in($failed),  1, 'found file in failed';
+
+# and one that generates an error
+copy 't/data/15_ERS123456_68d4f8aa49ba39839f2d47a569760742.fa',
+     't/data/storage/dropbox/ERS123456_68d4f8aa49ba39839f2d47a569760742.fa';
+
+( $rv, $stdout, $stderr ) = run_script( $script );
+like $stderr,
+  qr/ERROR: no such sample/,
+  'got expected error with file having no matching accesson in database';
+
+is $finder->in($archive), 0, 'no files in archive';
+is $finder->in($dropbox), 1, 'found latest file in dropbox';
+is $finder->in($failed),  1, 'found previous file in failed';
+
+# move the bad file out of the way and actually load a good one
+unlink 't/data/storage/dropbox/ERS123456_68d4f8aa49ba39839f2d47a569760742.fa';
+copy 't/data/15_ERS123456_68d4f8aa49ba39839f2d47a569760742.fa',
+     't/data/storage/dropbox/ERS111111_68d4f8aa49ba39839f2d47a569760742.fa';
+
+( $rv, $stdout, $stderr ) = run_script( $script );
+is $stdout, '', 'no output with valid file';
+is $stderr, '', 'no error with valid file';
+
+is $finder->in($archive), 1, 'found latest file in archive';
+is $finder->in($dropbox), 0, 'no files in dropbox';
+is $finder->in($failed),  1, 'found previous file in failed';
 
 $DB::single = 1;
 
 done_testing;
 
-# tidy up an empty DB created by one of the tests
-unlink 'nonexistent.db';
+# tidy up
+remove_tree( $ENV{HICF_STORAGE} . '/t/data/storage' );
 
