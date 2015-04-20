@@ -28,6 +28,10 @@ specified by the environment variable C<HICF_SCRIPT_CONFIG>. An exception is
 thrown if the environment variable is not set or if the file pointed to by that
 variable can't be read by L<Config::General>.
 
+We enable variable interpolation in C<Config::General>, so you can use
+environment variables to configure the location from outside the config file,
+if required. See the test files for an example.
+
 =cut
 
 has config => (
@@ -161,6 +165,16 @@ has 'data_uuid' => (
 );
 
 #-------------------------------------------------------------------------------
+#- private attributes ----------------------------------------------------------
+#-------------------------------------------------------------------------------
+
+has '_found_files' => (
+  is      => 'rw',
+  isa     => 'Bool',
+  default => 0,
+);
+
+#-------------------------------------------------------------------------------
 #- construction ----------------------------------------------------------------
 #-------------------------------------------------------------------------------
 
@@ -228,23 +242,28 @@ sub find_files {
   closedir $dh;
 
   $self->files( [ @dropped_files ] );
+  $self->_found_files(1);
 }
 
 #-------------------------------------------------------------------------------
 
 =head2 load_files
 
-Description
+Loads the files in the dropbox into the database (actually, it's not the files
+themselves that are loaded but their B<names>). You need to have run
+L<find_files> first, or you'll get an error message to that effect.
+
+If you prefer to provide a list of files yourself, set them first using
+L<files>; B<note> that the path to the dropbox directory will be prepended
+before the files are loaded. This mode of operation is untested.
 
 =cut
 
 sub load_files {
   my ( $self, $args ) = @_;
 
-  unless ( $self->has_files ) {
-    warn "WARNING: no files to load; call 'find_files' before trying to load";
-    return;
-  }
+  warn "WARNING: no files to load; call 'find_files' before trying to load"
+    unless $self->_found_files;
 
   foreach my $file ( $self->all_files ) {
     my $dropped_file = $self->dirs->{dropbox} . '/' . $file;
@@ -386,6 +405,16 @@ sub _warn_and_move {
 }
 
 #-------------------------------------------------------------------------------
+
+=head1 SEE ALSO
+
+L<Bio::Metadata::Validator>
+
+=head1 CONTACT
+
+path-help@sanger.ac.uk
+
+=cut
 
 __PACKAGE__->meta->make_immutable;
 

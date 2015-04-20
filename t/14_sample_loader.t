@@ -8,6 +8,7 @@ use Test::Exception;
 use Test::Warn;
 use Test::Script::Run;
 use Archive::Tar;
+use File::Path qw(make_path remove_tree);
 use File::Copy qw(copy);
 use File::Find::Rule;
 
@@ -36,6 +37,11 @@ if ( ! -f '.cached_test_files/names.dmp' ) {
   my $tar = Archive::Tar->new('.cached_test_files/taxdump.tar.gz');
   $tar->extract_file( 'names.dmp', '.cached_test_files/names.dmp' );
 }
+
+# make the directories for the tests
+make_path( 't/data/storage/archive',
+           't/data/storage/dropbox',
+           't/data/storage/failed' );
 
 #-------------------------------------------------------------------------------
 
@@ -145,7 +151,7 @@ my @archived_files = File::Find::Rule->file()
 is scalar @archived_files, 1, 'valid file moved to "archve" dir';
 
 # tidy up the file we created
-# unlink shift @archived_files;
+remove_tree( 't/data/storage' );
 
 done_testing;
 
