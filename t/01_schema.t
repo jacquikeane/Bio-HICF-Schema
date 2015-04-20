@@ -50,7 +50,7 @@ SKIP: {
 
   # check loading shortcuts on the schema; load a manifest and an assembly file
   lives_ok { Schema->load_manifest($m) } 'loading valid manifest works';
-  lives_ok { Schema->load_assembly('/home/testuser/ERS111111_123456789012345678901234567890ab.fa') }, 'loading an assembly works';
+  lives_ok { Schema->load_assembly('/home/testuser/ERS111111_123456789012345678901234567890ab_12345678-1234-1234-1234-1234567890ab.fa') } 'loading an assembly works';
 
   # retrieve a manifest row
   my $retrieved_manifest_row;

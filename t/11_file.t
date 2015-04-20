@@ -27,7 +27,7 @@ my $assembly = MockAssembly->new(1);
 
 # load a valid file first
 my $file;
-lives_ok { $file = File->load($assembly, '/home/testuser/ERS111111_123456789a123456789b123456789cdc.fa') }
+lives_ok { $file = File->load($assembly, '/home/testuser/ERS111111_123456789a123456789b123456789cdc_12345678-1234-1234-1234-1234567890ab.fa') }
   'file loaded successfully';
 
 is( File->count, 3, 'three files loaded now' );
@@ -35,7 +35,7 @@ is( $file->version, 3, 'new File has correct version (3)' );
 
 # try loading the same file. Should fail because we can't have exactly
 # the same file loaded twice (MD5 in filename should differ)
-throws_ok { $file = File->load($assembly, '/home/testuser/ERS111111_123456789a123456789b123456789cdc.fa') }
+throws_ok { $file = File->load($assembly, '/home/testuser/ERS111111_123456789a123456789b123456789cdc_12345678-1234-1234-1234-1234567890ab.fa') }
   qr/UNIQUE constraint failed: file.path/,
   'loading same file again fails';
 
@@ -48,25 +48,29 @@ throws_ok { $file = File->load($assembly) }
   qr/must supply both/,
   'failed to load file with no path';
 
-throws_ok { $file = File->load($assembly, 'ERS111111_123456789a123456789b123456789cdc.fa') }
-  qr/must be a full path/,
-  'failed to load file without a full path';
+throws_ok { $file = File->load($assembly, 'ERS111111_123456789a123456789b123456789cdc_12345678-1234-1234-1234-1234567890ab.fa') }
+  qr/must be an absolute path/,
+  'failed to load file without an absolute path';
 
-throws_ok { $file = File->load($assembly, '/home/testuser/ERS111111_123456789a123456789b123456789cdc') }
+throws_ok { $file = File->load($assembly, '/home/testuser/ERS111111_123456789a123456789b123456789cdc_12345678-1234-1234-1234-1234567890ab') }
   qr/couldn't parse file path/,
   'failed to load file with no suffix';
 
-throws_ok { $file = File->load($assembly, '/home/testuser/111111_123456789a123456789b123456789cdc') }
-  qr/couldn't parse file path/,
+throws_ok { $file = File->load($assembly, '/home/testuser/111111_123456789a123456789b123456789cdc_12345678-1234-1234-1234-1234567890ab.fa') }
+  qr/can't find ERS/,
   'failed to load file with bad ERS number';
 
-throws_ok { $file = File->load($assembly, '/home/testuser/ERS111111_23456789a123456789b123456789cdc') }
-  qr/couldn't parse file path/,
-  'failed to load file with no bad MD5';
+throws_ok { $file = File->load($assembly, '/home/testuser/ERS111111_23456789a123456789b123456789cdc_12345678-1234-1234-1234-1234567890ab.fa') }
+  qr/can't find ERS/,
+  'failed to load file with bad MD5';
+
+throws_ok { $file = File->load($assembly, '/home/testuser/ERS111111_123456789a123456789b123456789cdc_12345678-1234-1234-1234-1234567890a.fa') }
+  qr/can't find ERS/,
+  'failed to load file with bad UUID';
 
 # load a file for an assembly with no files
 $assembly = MockAssembly->new(2);
-lives_ok { $file = File->load($assembly, '/home/testuser/ERS111111_123456789a123456789b123456789cdd.fa') }
+lives_ok { $file = File->load($assembly, '/home/testuser/ERS111111_123456789a123456789b123456789cdd_12345678-1234-1234-1234-1234567890ab.fa') }
   'file loaded successfully';
 
 is( File->count, 4, 'four files loaded now' );
@@ -74,7 +78,7 @@ is( $file->version, 1, 'new File has correct version (1)' );
 
 # try loading with an assembly that doesn't exist
 $assembly = MockAssembly->new(100);
-throws_ok { $file = File->load($assembly, '/home/testuser/ERS333333_123456789a123456789b123456789cde.fa') }
+throws_ok { $file = File->load($assembly, '/home/testuser/ERS333333_123456789a123456789b123456789cde_12345678-1234-1234-1234-1234567890ab.fa') }
   qr/no such sample/,
   'loading fails with non-existent assembly';
 
