@@ -17,7 +17,7 @@ is( File->count, 2, 'two files loaded initially' );
 
 # load a valid file first
 my $assembly;
-lives_ok { $assembly = Assembly->load('/home/testuser/ERS111111_11111111111111111111111111111111.fa') }
+lives_ok { $assembly = Assembly->load('/home/testuser/ERS111111_11111111111111111111111111111111_12345678-1234-1234-1234-1234567890AB.fa') }
   'assembly loaded successfully';
 
 is( Assembly->count, 2, 'two assemblies loaded now' );
@@ -60,7 +60,7 @@ my $columns = {
 };
 
 my $sample_id = Sample->load($columns);
-Assembly->load('/home/testuser/ERS222222_22222222222222222222222222222222.fa');
+Assembly->load('/home/testuser/ERS222222_22222222222222222222222222222222_12345678-1234-1234-1234-1234567890AB.fa');
 
 # try deleting
 lives_ok { $assembly->delete } 'delete works';
@@ -81,28 +81,32 @@ is( $assembly->get_file(3), undef, 'got undef when trying to get deleted file' )
 isa_ok( $assembly->get_file(3,1), 'Bio::HICF::Schema::Result::File', 'got row when explicitly getting a deleted file' );
 
 # check error catching
-throws_ok { Assembly->load('/home/testuser/ERS111111_11111111111111111111111111111111.fa') }
+throws_ok { Assembly->load('/home/testuser/ERS111111_11111111111111111111111111111111_12345678-1234-1234-1234-1234567890AB.fa') }
   qr/failed to load file/,
   "can't load same file again";
 is( Assembly->count, 2, 'still two assemblies loaded' );
 
-throws_ok { Assembly->load('ERS333333_33333333333333333333333333333333.fa') }
+throws_ok { Assembly->load('ERS333333_33333333333333333333333333333333_12345678-1234-1234-1234-1234567890AB.fa') }
   qr/must be a full path/,
   "can't load file without full path";
 
-throws_ok { Assembly->load('/home/testuser/ERS333333_33333333333333333333333333333333') }
+throws_ok { Assembly->load('/home/testuser/ERS333333_33333333333333333333333333333333_12345678-1234-1234-1234-1234567890AB') }
   qr/couldn't parse file path/,
   "can't load file without suffix";
 
-throws_ok { Assembly->load('/home/testuser/333333_33333333333333333333333333333333') }
+throws_ok { Assembly->load('/home/testuser/333333_33333333333333333333333333333333_12345678-1234-1234-1234-1234567890AB') }
   qr/couldn't parse file path/,
   "can't load file with bad ERS number";
 
 throws_ok { Assembly->load('/home/testuser/ERS333333_3.fa') }
-  qr/can't find ERS number and MD5 in filename/,
+  qr/can't find ERS number, MD5 and UUID in filename/,
   "can't load file with bad MD5";
 
-throws_ok { Assembly->load('/home/testuser/ERS999999_99999999999999999999999999999999.fa') }
+throws_ok { Assembly->load('/home/testuser/ERS333333_33333333333333333333333333333333_1.fa') }
+  qr/can't find ERS number, MD5 and UUID in filename/,
+  "can't load file with bad UUID";
+
+throws_ok { Assembly->load('/home/testuser/ERS999999_99999999999999999999999999999999_12345678-1234-1234-1234-1234567890AB.fa') }
   qr/no such sample/,
   "can't load assembly for non-existent sample";
 

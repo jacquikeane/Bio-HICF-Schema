@@ -58,8 +58,8 @@ sub load {
   croak 'ERROR: must be a FASTA file (suffix ".fa")' unless $suffix eq '.fa';
   croak 'ERROR: must be a full path' unless $dirs =~ m|^/|;
 
-  croak "ERROR: can't find ERS number and MD5 in filename"
-    unless $filename =~ m/^(ERS\d{6})_([a-f0-9]{32})$/i;
+  croak "ERROR: can't find ERS number, MD5 and UUID in filename"
+    unless $filename =~ m/^(ERS\d{6})_([a-f0-9]{32})_([0-9a-f]{8}-([0-9a-f]{4}-){3}[0-9a-f]{12})$/i;
   # TODO this will only be valid for ENA files. Need to fix it to handle other
   # types of file, like NCBI uploads
 
