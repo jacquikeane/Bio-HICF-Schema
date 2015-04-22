@@ -16,12 +16,12 @@ use DBIx::Class::Schema::Loader qw( make_schema_at );
 #-------------------------------------------------------------------------------
 # configuration
 
-my $database = 'pathogen_hicf_test';
-my $db_host  = 'mcs11.internal.sanger.ac.uk';
-my $db_port  = 3346;
+my $database = $ENV{HICF_DB_NAME};
+my $db_host  = $ENV{HICF_DB_HOST};
+my $db_port  = $ENV{HICF_DB_PORT};
 
-my $username = 'pathpipe_ro';
-my $password = '';
+my $username = $ENV{HICF_DB_USERNAME};
+my $password = $ENV{HICF_DB_PASSWORD};
 
 my $dump_path = './lib';
 
@@ -84,7 +84,7 @@ make_schema_at(
     },
 
     # this allows us to move the functionality for the ResultSets out into
-    # roles. The loader will have the specified ResultSet do a "with <role>"
+    # roles. The loader will have the specified ResultSet add a "with <role>"
     # for each RS in the map
     result_roles_map => {
       Antimicrobial => 'Bio::HICF::Schema::Role::Undeletable',
