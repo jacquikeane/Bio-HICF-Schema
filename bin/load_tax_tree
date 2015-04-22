@@ -27,7 +27,7 @@ use Bio::Metadata::TaxTree;
 
 # define the accepted options
 my ( $opt, $usage ) = describe_options(
-  '%c %o <filename>',
+  '%c %o',
   [ 'config|c=s', 'path to the configuration file' ],
   [ 'help|h',     'print usage message' ],
 );
@@ -160,7 +160,8 @@ configuration file. Required.
 =head1 CONFIGURATION
 
 The configuration file must specify the database connection parameters
-(C<database>) and the canonical URL for the tax dump file (C<taxdump>).
+(C<database>), the canonical URL for the tax dump file (C<taxdump>), and the
+path to the downloaded copy of the C<taxdump.tar.gz> file.
 
  <database>
    connect_info dbi:mysql:name=hicf;port=3341;host=dbhost
@@ -168,7 +169,8 @@ The configuration file must specify the database connection parameters
    connect_info "password"
  </database>
  <taxdump>
-   url ftp://ftp.ncbi.nlm.nih.gov/pub/taxonomy/taxdump.tar.gz
+   url  ftp://ftp.ncbi.nlm.nih.gov/pub/taxonomy/taxdump.tar.gz
+   file /path/to/taxdump.tar.gz
  </taxdump>
 
 =head1 SEE ALSO

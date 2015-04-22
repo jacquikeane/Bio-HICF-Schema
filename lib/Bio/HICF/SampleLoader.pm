@@ -11,53 +11,15 @@ use Try::Tiny;
 use Config::General;
 use Digest::MD5;
 use File::Copy::Recursive qw(rmove);
+use Data::UUID;
+use File::Path qw(make_path);
+use File::Basename;
 
-use Bio::Metadata::Checklist;
-use Bio::Metadata::Reader;
-use Bio::Metadata::Manifest;
 use Bio::HICF::Schema;
 
 #---------------------------------------
 
 =head1 ATTRIBUTES
-
-=attr checklist
-
-L<Bio::Metadata::Checklist> to be used for validating the loaded files.
-
-=cut
-
-has checklist => (
-  is      => 'ro',
-  isa     => 'Bio::Metadata::Checklist',
-  default => sub {
-    die 'ERROR: must specify a checklist config (set $HICF_CHECKLIST_CONFIG)'
-      unless defined $ENV{HICF_CHECKLIST_CONFIG};
-    die "ERROR: can't find config file specified by environment variable ($ENV{HICF_CHECKLIST_CONFIG})"
-      unless -f $ENV{HICF_CHECKLIST_CONFIG};
-    return Bio::Metadata::Checklist->new( config_file => $ENV{HICF_CHECKLIST_CONFIG} );
-  },
-);
-
-#---------------------------------------
-
-=attr reader
-
-L<Bio::Metadata::Reader> that will be used for reading and parsing sample files.
-
-=cut
-
-has reader => (
-  is      => 'ro',
-  isa     => 'Bio::Metadata::Reader',
-  lazy    => 1,
-  default => sub {
-    my $self = shift;
-    return Bio::Metadata::Reader->new( checklist => $self->checklist );
-  },
-);
-
-#---------------------------------------
 
 =attr config
 
@@ -66,19 +28,30 @@ specified by the environment variable C<HICF_SCRIPT_CONFIG>. An exception is
 thrown if the environment variable is not set or if the file pointed to by that
 variable can't be read by L<Config::General>.
 
+We enable variable interpolation in C<Config::General>, so you can use
+environment variables to configure the location from outside the config file,
+if required. See the test files for an example.
+
 =cut
 
 has config => (
   is      => 'ro',
   isa     => 'HashRef',
   default => sub {
+    my $self = shift;
+
     die 'ERROR: must specify a script configuration file (set $HICF_SCRIPT_CONFIG)'
       unless defined $ENV{HICF_SCRIPT_CONFIG};
     die "ERROR: can't find config file specified by environment variable ($ENV{HICF_SCRIPT_CONFIG})"
       unless -f $ENV{HICF_SCRIPT_CONFIG};
+
     my $cg;
     try {
-      $cg = Config::General->new( $ENV{HICF_SCRIPT_CONFIG} );
+      $cg = Config::General->new(
+        -ConfigFile      => $ENV{HICF_SCRIPT_CONFIG},
+        -InterPolateEnv  => 1,
+        -InterPolateVars => 1,
+      );
     }
     catch {
       die "ERROR: there was a problem reading the script configuration: $_";
@@ -97,7 +70,7 @@ has config => (
 
 #---------------------------------------
 
-=attr config
+=attr dirs
 
 A hashref giving names of the various directories required by the script. The
 values are taken from the configuration file. The required keys are:
@@ -171,10 +144,34 @@ has files => (
   trigger => \&_validate_files,
   handles => {
     all_files   => 'elements',
+    clear_files => 'clear',
     count_files => 'count',
     has_files   => 'count',
     ignore_file => 'delete',
   },
+);
+
+#---------------------------------------
+
+=attr data_uuid
+
+Instance of L<Data::UUID>.
+
+=cut
+
+has 'data_uuid' => (
+  is      => 'ro',
+  default => sub { Data::UUID->new },
+);
+
+#-------------------------------------------------------------------------------
+#- private attributes ----------------------------------------------------------
+#-------------------------------------------------------------------------------
+
+has '_found_files' => (
+  is      => 'rw',
+  isa     => 'Bool',
+  default => 0,
 );
 
 #-------------------------------------------------------------------------------
@@ -202,6 +199,10 @@ sub BUILD {
 =head2 all_files
 
 Returns a list of all filenames.
+
+=head2 clear_files
+
+Empties the entire list of files.
 
 =head2 count_files
 
@@ -241,24 +242,90 @@ sub find_files {
   closedir $dh;
 
   $self->files( [ @dropped_files ] );
+  $self->_found_files(1);
 }
 
 #-------------------------------------------------------------------------------
 
 =head2 load_files
 
-Description
+Loads the files in the dropbox into the database (actually, it's not the files
+themselves that are loaded but their B<names>). You need to have run
+L<find_files> first, or you'll get an error message to that effect.
+
+If you prefer to provide a list of files yourself, set them first using
+L<files>; B<note> that the path to the dropbox directory will be prepended
+before the files are loaded. This mode of operation is untested.
 
 =cut
 
 sub load_files {
   my ( $self, $args ) = @_;
 
-  # body
+  warn "WARNING: no files to load; call 'find_files' before trying to load"
+    unless $self->_found_files;
+
+  foreach my $file ( $self->all_files ) {
+    my $dropped_file = $self->dirs->{dropbox} . '/' . $file;
+
+    my $archived_filename = $self->_get_archive_path( $file );
+
+    my $txn = sub {
+      # we "load" the file using it's eventual location in archive directory,
+      # because really all the DB cares about is the format of the filename. If
+      # that loading fails, we want to leave the actual file in the dropbox, so
+      # that it will be picked up when the script next runs
+      $self->schema->load_assembly($archived_filename);
+
+      # once we're sure the filename is recorded in the DB, THEN we'll move
+      # the actual file
+      rmove( $dropped_file, $archived_filename )
+        or die "ERROR: couldn't move loaded file from '$dropped_file' to '$archived_filename': $!";
+    };
+
+    try {
+      $self->schema->txn_do( $txn );
+    } catch {
+      if ( m/Rollback failed/ ) {
+        die "ERROR: loading assembly file '$dropped_file' failed but roll back also failed ($_)";
+      }
+      else {
+        die "ERROR: loading assembly file '$dropped_file' failed and the changes were rolled back ($_)";
+      }
+    };
+
+  }
+
 }
 
 #-------------------------------------------------------------------------------
 #- private methods -------------------------------------------------------------
+#-------------------------------------------------------------------------------
+
+# this method calculates the path to an archived assembly file. In order to
+# ensure a more or less even distribution of files across a directory tree, we
+# append a UUID to the filename and use the first two and four characters to
+# give us two levels of a directory hierarchy.
+
+sub _get_archive_path {
+  my ( $self, $file ) = @_;
+
+  my $uuid = $self->data_uuid->create_str;
+  my $level1 = substr( $uuid, 0, 2 );
+  my $level2 = substr( $uuid, 2, 2 );
+  my $archive_dir = $self->dirs->{archive} . "/$level1/$level2";
+
+  unless ( -d $archive_dir ) {
+    make_path $archive_dir
+      or die "ERROR: couldn't create archive directory ($archive_dir): $!";
+  }
+
+  # split up the filename so that we can insert the UUID in there
+  my ( $filename, $dirs, $suffix ) = fileparse( $file, qr/\.[^.]*/ );
+
+  return "${archive_dir}/${filename}_${uuid}${suffix}";
+}
+
 #-------------------------------------------------------------------------------
 
 # validates the current set of filenames, checking that the specified file
@@ -267,6 +334,8 @@ sub load_files {
 
 sub _validate_files {
   my ( $self, $files ) = @_;
+
+  return unless scalar @$files;
 
   my $dropbox_dir = $self->dirs->{dropbox};
   my $failed_dir  = $self->dirs->{failed};
@@ -289,8 +358,8 @@ sub _validate_files {
       next FILE;
     }
 
-    # the filename doesn't have the expected format...
-    # TODO this needs to fixed, like the same test in
+    # the source filename doesn't have the expected format...
+    # TODO this needs to be fixed, like the same test in
     # TODO Bio::HICF::Schema::ResultSet::File, if we have to accept files from
     # TODO different sources, such as NCBI
     unless ( $file =~ m/^(ERS\d{6})_([a-f0-9]{32}).fa$/i ) {
@@ -336,6 +405,16 @@ sub _warn_and_move {
 }
 
 #-------------------------------------------------------------------------------
+
+=head1 SEE ALSO
+
+L<Bio::Metadata::Validator>
+
+=head1 CONTACT
+
+path-help@sanger.ac.uk
+
+=cut
 
 __PACKAGE__->meta->make_immutable;
 

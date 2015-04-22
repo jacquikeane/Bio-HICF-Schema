@@ -8,7 +8,10 @@ use Test::Exception;
 use Test::Warn;
 use Test::Script::Run;
 use Archive::Tar;
+use File::Path qw(make_path remove_tree);
 use File::Copy qw(copy);
+use File::Find::Rule;
+use Cwd;
 
 use Test::DBIx::Class {
   connect_info => [ 'dbi:SQLite:dbname=test.db', '', '' ],
@@ -36,29 +39,18 @@ if ( ! -f '.cached_test_files/names.dmp' ) {
   $tar->extract_file( 'names.dmp', '.cached_test_files/names.dmp' );
 }
 
+# make the directories for the tests
+make_path( 't/data/storage/archive',
+           't/data/storage/dropbox',
+           't/data/storage/failed' );
+
 #-------------------------------------------------------------------------------
 
 BEGIN { use_ok( 'Bio::HICF::SampleLoader' ) }
 
+$ENV{HICF_STORAGE} = getcwd;
+
 # test errors with instantiation first
-
-throws_ok { Bio::HICF::SampleLoader->new }
-  qr/must specify a checklist config/,
-  'got expected exception when HICF_CHECKLIST_CONFIG not set';
-
-$ENV{HICF_CHECKLIST_CONFIG} = 'non-existent file';
-throws_ok { Bio::HICF::SampleLoader->new }
-  qr/can't find config file/,
-  'got expected exception when HICF_CHECKLIST_CONFIG points to non-existent file';
-
-# point to a file that will make Config::General complain
-$ENV{HICF_CHECKLIST_CONFIG} = 't/14_sample_loader.t';
-throws_ok { Bio::HICF::SampleLoader->new }
-  qr/does not pass the type constraint/,
-  'got expected exception when HICF_CHECKLIST_CONFIG points to an unparseable file';
-
-# finally, point to a valid checklist
-$ENV{HICF_CHECKLIST_CONFIG} = 't/data/14_checklist.conf';
 
 throws_ok { Bio::HICF::SampleLoader->new }
   qr/must specify a script configuration/,
@@ -104,6 +96,7 @@ unlink 't/data/storage/failed/bad_name';
 open( EMPTY, '>t/data/storage/dropbox/ERS123456_68d4f8aa49ba39839f2d47a569760742.fa' );
 close EMPTY;
 
+
 warning_like { $loader->find_files } qr/is empty/, 'got empty file warning';
 is $loader->count_files, 0, 'no files found';
 ok ! -e 't/data/storage/dropbox/ERS123456_68d4f8aa49ba39839f2d47a569760742.fa',
@@ -139,13 +132,27 @@ unlink 't/data/storage/failed/ERS123456_11111111111111111111111111111111.fa';
 
 # finally, try finding a valid file
 copy 't/data/14_ERS123456_68d4f8aa49ba39839f2d47a569760742.fa',
-     't/data/storage/dropbox/ERS123456_68d4f8aa49ba39839f2d47a569760742.fa';
+     't/data/storage/dropbox/ERS111111_68d4f8aa49ba39839f2d47a569760742.fa';
 warning_like { $loader->find_files } undef, 'no warning when finding valid file';
 is $loader->count_files, 1, 'one file found';
-ok -e 't/data/storage/dropbox/ERS123456_68d4f8aa49ba39839f2d47a569760742.fa',
+ok -e 't/data/storage/dropbox/ERS111111_68d4f8aa49ba39839f2d47a569760742.fa',
   'valid file still in "dropbox" dir';
-ok ! -e 't/data/storage/failed/ERS123456_68d4f8aa49ba39839f2d47a569760742.fa',
+ok ! -e 't/data/storage/failed/ERS111111_68d4f8aa49ba39839f2d47a569760742.fa',
   'valid file not moved to "failed" dir';
+
+# having found that file, try loading it
+lives_ok { $loader->load_files } 'loaded found file';
+
+ok ! -e 't/data/storage/dropbox/ERS111111_68d4f8aa49ba39839f2d47a569760742.fa',
+  'valid file no longer in "dropbox" dir';
+
+my @archived_files = File::Find::Rule->file()
+                            ->name( '*.fa' )
+                            ->in( 't/data/storage/archive' );
+is scalar @archived_files, 1, 'valid file moved to "archve" dir';
+
+# tidy up the file we created
+remove_tree( 't/data/storage' );
 
 done_testing;
 

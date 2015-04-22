@@ -170,6 +170,25 @@ sub get_manifest_object {
 
 #-------------------------------------------------------------------------------
 
+=head2 load_assembly($file_path)
+
+Loads the specified filename as an assembly file. The file must conform to a
+particular format: see L<Bio::HICF::Schema::ResultSet::Assembly>. Returns the
+loaded row, a L<Bio::HICF::Schema::Result::Assembly> object.
+
+=cut
+
+sub load_file {
+  my ( $self, $file_path ) = @_;
+
+  return $self->resultset('Assembly')->load($file_path);
+}
+
+#-------------------------------------------------------------------------------
+
+# TODO re-implement this after adding something like
+# TODO Bio::HICF::Schema::Role::Manifest::get_samples_values
+
 # sub get_manifest {
 #   my ( $self, $manifest_id, $include_deleted ) = @_;
 #
