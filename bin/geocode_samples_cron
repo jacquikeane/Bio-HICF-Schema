@@ -1,0 +1,73 @@
+#!/usr/bin/env perl
+
+# PODNAME:  geocode_samples_cron
+# ABSTRACT: cron script to geocode sample locations
+# jt6 20150422 WTSI
+
+# vim: ft=perl :
+
+use strict;
+use warnings;
+
+use Bio::HICF::Geocoder;
+
+my $geocoder = Bio::HICF::Geocoder->new(api_key => $ENV{HICF_GOOGLE_API_KEY});
+my $locations_to_geocode = $geocoder->find_unknown_locations;
+$geocoder->geocode($locations_to_geocode);
+
+__END__
+
+=head1 SYNOPSIS
+
+Set up cron:
+
+ # set up the PERL5LIB and HICF_SCRIPT_CONFIG environment variables to
+ # configure the script
+ PERL5LIB=/path/to/perl5/lib/perl5
+ HICF_SCRIPT_CONFIG=/path/to/etc/cron.conf
+ HICF_GOOGLE_API_KEY='<API KEY>'
+
+ # set the email address to which output (mainly error messages) should be sent
+ MAILTO='path-help@sanger.ac.uk'
+
+ # run the script every hour, on the hour
+
+ #m  h   dom mon dow   command
+ 0   *   *   *   *     /path/to/bin/load_samples_cron
+
+=head1 DESCRIPTION
+
+This script geocodes sample locations in the HICF database.
+
+It finds the GAZ terms for all samples, looks up the description of the
+ontology term and, for any GAZ terms that do not already have location
+information, tries to find the latitude and longitude of that location using
+the Google geocoding API. Newly acquired lat/long values are stored in the
+C<location> table.
+
+=head2 CONFIGURATION
+
+The script is configured by an Apache-style configuration file, specified by an
+environment variable C<$HICF_SCRIPT_CONFIG>. The file should look like this:
+
+ <database>
+   # perl DBI DSN
+   connect_info dbi:mysql:host=dbhost;port=3306;dbname;database=hicf
+   connect_info username
+   connect_info password
+ </database>
+
+The script also requires a Google API key, which is taken from the environment
+variable C<HICF_GOOGLE_API_KEY>.
+
+=head1 SEE ALSO
+
+C<load_samples_cron>,
+L<Bio::HICF::Schema>
+
+=head1 CONTACT
+
+path-help@sanger.ac.uk
+
+=cut
+
