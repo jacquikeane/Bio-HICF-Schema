@@ -70,7 +70,7 @@ has config => (
 
 #---------------------------------------
 
-=attr config
+=attr dirs
 
 A hashref giving names of the various directories required by the script. The
 values are taken from the configuration file. The required keys are:
