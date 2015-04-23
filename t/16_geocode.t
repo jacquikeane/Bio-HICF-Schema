@@ -6,6 +6,7 @@ use Test::More;
 use Test::CacheFile;
 use Test::Exception;
 use Test::Script::Run;
+use Test::MockModule;
 use File::Path qw(make_path remove_tree);
 use File::Copy qw(copy move);
 use File::Find::Rule;
@@ -53,15 +54,13 @@ is scalar @$locations, 1, 'got one new location to find';
 is $locations->[0], 'GAZ:00489637', 'got expected location';
 
 # mock out the LWP::UserAgent object, so that we don't actually need to call
-# the API
+# the API. This lets us test the handling of errors and failures, such as when
+# we hit the API quota limits
 my $successful_api_response = join '', <DATA>;
 
 my $r;
-{
-  package LWP::UserAgent;
-  sub new { bless {}, shift }
-  sub get { return $r }
-}
+my $mocked_ua = Test::MockModule->new('LWP::UserAgent');
+$mocked_ua->mock('get', sub { return $r } );
 
 # geocoding a location
 
@@ -101,8 +100,6 @@ lives_ok { $g->geocode(['GAZ:00489637']) }
 is Location->count, 2, 'still two locations geocoded';
 is Location->find('GAZ:00444180')->lat, 52.078972, 'got expected latitude for WTSI';
 is Location->find('GAZ:00489637')->lat, 51.7566341, 'got expected latitude for UoO';
-
-$DB::single = 1;
 
 done_testing;
 
