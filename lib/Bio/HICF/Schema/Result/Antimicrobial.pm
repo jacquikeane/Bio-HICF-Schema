@@ -6,7 +6,7 @@ package Bio::HICF::Schema::Result::Antimicrobial;
 
 =head1 NAME
 
-Bio::HICF::Schema::Result::Antimicrobial - A curated list of antimicrobial compounds.
+Bio::HICF::Schema::Result::Antimicrobial - A curated list of antimicrobial compounds
 
 =cut
 
@@ -48,6 +48,8 @@ __PACKAGE__->table("antimicrobial");
   is_nullable: 0
   size: 100
 
+Antimicrobial compound name
+
 =head2 created_at
 
   data_type: 'datetime'
@@ -55,11 +57,15 @@ __PACKAGE__->table("antimicrobial");
   is_nullable: 0
   set_on_create: 1
 
+Date/time at which the compound was added to the database
+
 =head2 deleted_at
 
   data_type: 'datetime'
   datetime_undef_if_invalid: 1
   is_nullable: 1
+
+Date/time at which the compound was flagged as deleted in the database
 
 =cut
 
@@ -124,10 +130,9 @@ __PACKAGE__->has_many(
 with 'Bio::HICF::Schema::Role::Undeletable';
 
 
-# Created by DBIx::Class::Schema::Loader v0.07042 @ 2015-04-13 15:18:25
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:L75r9s/OrLPXxPOldCPqVQ
+# Created by DBIx::Class::Schema::Loader v0.07042 @ 2015-04-23 14:38:51
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:0c5LZ30f8xyvEn9kcqRsUw
 
 
-# You can replace this text with custom code or comments, and it will be preserved on regeneration
 __PACKAGE__->meta->make_immutable;
 1;

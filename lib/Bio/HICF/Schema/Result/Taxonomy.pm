@@ -6,11 +6,7 @@ package Bio::HICF::Schema::Result::Taxonomy;
 
 =head1 NAME
 
-Bio::HICF::Schema::Result::Taxonomy
-
-=head1 DESCRIPTION
-
-Look-up table storing the NCBI tax IDs from the NCBI taxonomy tree.
+Bio::HICF::Schema::Result::Taxonomy - The NCBI taxonomic tree.
 
 =cut
 
@@ -52,10 +48,14 @@ __PACKAGE__->table("taxonomy");
   extra: {unsigned => 1}
   is_nullable: 0
 
+NCBI taxonomy ID for the given node
+
 =head2 name
 
   data_type: 'text'
   is_nullable: 0
+
+Scientific name for the given node
 
 =head2 lft
 
@@ -63,17 +63,23 @@ __PACKAGE__->table("taxonomy");
   extra: {unsigned => 1}
   is_nullable: 0
 
+`Left` value for the modified pre-ordered traversal tree
+
 =head2 rgt
 
   data_type: 'integer'
   extra: {unsigned => 1}
   is_nullable: 0
 
+`Right` value for the modified pre-ordered traversal tree
+
 =head2 parent_tax_id
 
   data_type: 'integer'
   extra: {unsigned => 1}
   is_nullable: 0
+
+The NCBI taxonomy ID for the parent of the node
 
 =cut
 
@@ -103,10 +109,9 @@ __PACKAGE__->add_columns(
 __PACKAGE__->set_primary_key("tax_id");
 
 
-# Created by DBIx::Class::Schema::Loader v0.07042 @ 2015-02-24 13:54:25
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:6Qhe80y8F33FnwAsdF2dcg
+# Created by DBIx::Class::Schema::Loader v0.07042 @ 2015-04-23 14:45:47
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:jkBsBCGtvzXagFwJ94yZhA
 
 
-# You can replace this text with custom code or comments, and it will be preserved on regeneration
 __PACKAGE__->meta->make_immutable;
 1;

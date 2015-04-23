@@ -6,7 +6,13 @@ package Bio::HICF::Schema::Result::Manifest;
 
 =head1 NAME
 
-Bio::HICF::Schema::Result::Manifest - Stores details of a manifest containing multiple samples.
+Bio::HICF::Schema::Result::Manifest
+
+=head1 DESCRIPTION
+
+Details of a specific manifest
+
+A manifest is a collection of multiple samples. Every sample must be loaded as part of a manifest and each manifest must be assigned a unique identifier.
 
 =cut
 
@@ -57,17 +63,23 @@ A UUID that uniquely identifies the manifest.
   is_foreign_key: 1
   is_nullable: 0
 
+The ID of the checklist configuration that was used to validate this manifest
+
 =head2 md5
 
   data_type: 'char'
   is_nullable: 0
   size: 32
 
+The MD5 checksum for the file from which the manifest was loaded
+
 =head2 ticket
 
   data_type: 'integer'
   extra: {unsigned => 1}
   is_nullable: 1
+
+If the manifest was provided in a request tracked ticket, the ID of the RT ticket may be given here
 
 =head2 created_at
 
@@ -76,11 +88,15 @@ A UUID that uniquely identifies the manifest.
   is_nullable: 0
   set_on_create: 1
 
+Date/time at which the manifest was added to the database
+
 =head2 deleted_at
 
   data_type: 'datetime'
   datetime_undef_if_invalid: 1
   is_nullable: 1
+
+Date/time at which the manifest was flagged as deleted in the database
 
 =cut
 
@@ -173,10 +189,9 @@ __PACKAGE__->has_many(
 with 'Bio::HICF::Schema::Role::Manifest', 'Bio::HICF::Schema::Role::Undeletable';
 
 
-# Created by DBIx::Class::Schema::Loader v0.07042 @ 2015-04-15 13:31:08
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:oFR65EKFnpg3ut0BJe41Aw
+# Created by DBIx::Class::Schema::Loader v0.07042 @ 2015-04-23 14:38:51
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:v9D7tDYB2TPwamTyzqBZsA
 
 
-# You can replace this text with custom code or comments, and it will be preserved on regeneration
 __PACKAGE__->meta->make_immutable;
 1;

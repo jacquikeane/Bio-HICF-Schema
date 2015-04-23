@@ -6,7 +6,7 @@ package Bio::HICF::Schema::Result::MidasSession;
 
 =head1 NAME
 
-Bio::HICF::Schema::Result::MidasSession
+Bio::HICF::Schema::Result::MidasSession - Session data for the MIDAS website
 
 =cut
 
@@ -48,15 +48,21 @@ __PACKAGE__->table("midas_session");
   is_nullable: 0
   size: 72
 
+Unique ID for the session.
+
 =head2 session_data
 
   data_type: 'longtext'
   is_nullable: 1
 
+The data stored in the session, encoded as a single string
+
 =head2 expires
 
   data_type: 'integer'
   is_nullable: 1
+
+The expiry date/time of the session, given as in epoch seconds
 
 =cut
 
@@ -82,10 +88,9 @@ __PACKAGE__->add_columns(
 __PACKAGE__->set_primary_key("id");
 
 
-# Created by DBIx::Class::Schema::Loader v0.07042 @ 2015-03-19 15:11:13
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:sqf3hY4qTZKqPrnbqpEwgA
+# Created by DBIx::Class::Schema::Loader v0.07042 @ 2015-04-23 14:38:51
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:nRdCqWN51agx7ev2yxxvZA
 
 
-# You can replace this text with custom code or comments, and it will be preserved on regeneration
 __PACKAGE__->meta->make_immutable;
 1;

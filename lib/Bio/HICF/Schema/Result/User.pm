@@ -6,7 +6,7 @@ package Bio::HICF::Schema::Result::User;
 
 =head1 NAME
 
-Bio::HICF::Schema::Result::User
+Bio::HICF::Schema::Result::User - User details for the MIDAS website
 
 =cut
 
@@ -48,6 +48,8 @@ __PACKAGE__->table("user");
   is_nullable: 0
   size: 64
 
+Username for a website user
+
 =head2 passphrase
 
   data_type: 'varchar'
@@ -58,17 +60,23 @@ __PACKAGE__->table("user");
   passphrase_class: 'SaltedDigest'
   size: 128
 
+Crypted hash for the user passphrase
+
 =head2 displayname
 
   data_type: 'varchar'
   is_nullable: 1
   size: 64
 
+A human-readable name for the user
+
 =head2 email
 
   data_type: 'varchar'
   is_nullable: 0
   size: 128
+
+The users email address
 
 =head2 roles
 
@@ -77,11 +85,15 @@ __PACKAGE__->table("user");
   is_nullable: 1
   size: 128
 
+Website roles for the current user. Default user.
+
 =head2 api_key
 
   data_type: 'char'
   is_nullable: 1
   size: 32
+
+REST API key for the user
 
 =head2 created_at
 
@@ -90,11 +102,15 @@ __PACKAGE__->table("user");
   is_nullable: 0
   set_on_create: 1
 
+Date/time at which the user was added to the database
+
 =head2 deleted_at
 
   data_type: 'datetime'
   datetime_undef_if_invalid: 1
   is_nullable: 1
+
+Date/time at which the user was flagged as deleted in the database
 
 =cut
 
@@ -165,10 +181,9 @@ __PACKAGE__->set_primary_key("username");
 with 'Bio::HICF::Schema::Role::User';
 
 
-# Created by DBIx::Class::Schema::Loader v0.07042 @ 2015-04-14 15:04:26
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:2IE91W6yy0F+049zTbt+3A
+# Created by DBIx::Class::Schema::Loader v0.07042 @ 2015-04-23 13:38:24
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:vYOStpYMckS/S9eCZgysWQ
 
 
-# You can replace this text with custom code or comments, and it will be preserved on regeneration
 __PACKAGE__->meta->make_immutable;
 1;

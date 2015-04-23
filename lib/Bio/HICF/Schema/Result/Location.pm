@@ -6,7 +6,7 @@ package Bio::HICF::Schema::Result::Location;
 
 =head1 NAME
 
-Bio::HICF::Schema::Result::Location
+Bio::HICF::Schema::Result::Location - Geographical location for terms in the gazetteer ontology
 
 =cut
 
@@ -48,17 +48,21 @@ __PACKAGE__->table("location");
   is_nullable: 0
   size: 50
 
-	
+The gazetteer ontology term
 
 =head2 lat
 
   data_type: 'float'
   is_nullable: 1
 
+Latitude. The north-south position, in degrees, of the location
+
 =head2 lng
 
   data_type: 'float'
   is_nullable: 1
+
+Longitude. The east-west position, in degrees, of the location
 
 =cut
 
@@ -84,10 +88,9 @@ __PACKAGE__->add_columns(
 __PACKAGE__->set_primary_key("gaz_term");
 
 
-# Created by DBIx::Class::Schema::Loader v0.07042 @ 2015-04-22 12:29:40
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:X13sJR/jxDTFN28KQXYOiQ
+# Created by DBIx::Class::Schema::Loader v0.07042 @ 2015-04-23 14:38:51
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:6OMdnzhF2OeSgegnsIY9VA
 
 
-# You can replace this text with custom code or comments, and it will be preserved on regeneration
 __PACKAGE__->meta->make_immutable;
 1;
