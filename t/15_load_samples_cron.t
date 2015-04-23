@@ -54,6 +54,8 @@ my $finder = File::Find::Rule->file;
 
 my $script = 'bin/load_samples_cron';
 
+delete $ENV{HICF_SCRIPT_CONFIG};
+
 # should be no output if there are no files to find
 my ( $rv, $stdout, $stderr ) = run_script( $script );
 like $stderr,
