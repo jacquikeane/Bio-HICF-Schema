@@ -44,12 +44,12 @@ my $g = new_ok( 'Bio::HICF::Geocoder' => [ api_key => $ENV{HICF_GOOGLE_API_KEY} 
 
 # should have two distinct locations in the sample table, one with lat/long
 # values, one without
-is Sample->count,   2, 'two samples to geo-locate';
+is Sample->count,   3, 'three samples to geo-locate';
 is Location->count, 1, 'one location already found';
 
 # location finding
 my $locations;
-lives_ok { $locations = $g->find_unknown_locations } 'no error when finding locations';
+lives_ok { $locations = $g->find_uncoded_locations } 'no error when finding locations';
 is scalar @$locations, 1, 'got one new location to find';
 is $locations->[0], 'GAZ:00489637', 'got expected location';
 

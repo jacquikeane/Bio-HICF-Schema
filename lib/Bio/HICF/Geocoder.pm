@@ -141,14 +141,14 @@ has schema => (
 
 =head1 METHODS
 
-=head2 find_unknown_locations
+=head2 find_uncoded_locations
 
 Finds the locations in the C<sample> table that have no C<gaz_term> in the
 C<location> table.
 
 =cut
 
-sub find_unknown_locations {
+sub find_uncoded_locations {
   my $self = shift;
 
   # we should be able to do this nicely with a single query, provided we can
@@ -178,23 +178,26 @@ sub find_unknown_locations {
   # already geocoded a given sample location
   my %geocoded_locations = map { $_->gaz_term => 1 } @all_geocoded_locations;
 
-  my @unknown_location_terms = ();
+  my @uncoded_location_terms = ();
 
   while ( my $location = $all_locations->next ) {
     my $term = $location->location;
-    push @unknown_location_terms, $term
-      unless exists $geocoded_locations{$term};
+
+    next if $self->schema->is_accepted_unknown($term);
+    next if exists $geocoded_locations{$term};
+
+    push @uncoded_location_terms, $term;
   }
 
-  return \@unknown_location_terms;
+  return \@uncoded_location_terms;
 }
 
 #-------------------------------------------------------------------------------
 
-=head2 geocode($unknown_locations)
+=head2 geocode($uncoded_locations)
 
 Attempts to find latitude and longitude values for the GAZ ontology terms.
-C<$unknown_locations> should be a reference to an array containing the GAZ
+C<$uncoded_locations> should be a reference to an array containing the GAZ
 terms to geocode. The GAZ terms are converted into locations string by looking
 them up in the C<gazetteer> table in the database.
 
@@ -210,9 +213,9 @@ Loads the resulting latitude and longitude values into the C<location> table.
 =cut
 
 sub geocode {
-  my ( $self, $unknown_locations ) = @_;
+  my ( $self, $uncoded_locations ) = @_;
 
-  TERM: foreach my $term ( @$unknown_locations ) {
+  TERM: foreach my $term ( @$uncoded_locations ) {
 
     if ( $term !~ m/^GAZ:\d{8}$/ ) {
       warn "WARNING: '$term' is not a valid GAZ ontology term";
