@@ -42,6 +42,12 @@ use Bio::Metadata::TaxTree;
 
 #-------------------------------------------------------------------------------
 
+=head1 DESCRIPTION
+
+This is the L<DBIx::Class::Schema> class for the HICF database API. It contains
+high-level methods for interacting with the database, notably the methods for
+loading most types of data.
+
 =head1 METHODS
 
 =cut
@@ -74,7 +80,7 @@ sub unknown_terms {
 
 =head2 is_accepted_unknown($value)
 
-Returns 1 if the supplied value is on of the accepted terms for "unknown" or
+Returns 1 if the supplied value is one of the accepted terms for "unknown" or
 0 otherwise.
 
 =cut
@@ -534,8 +540,8 @@ sub load_ontology {
 =head2 add_external_resource($resource_spec}
 
 Add a record to the C<external_resources> table to record the addition of a new
-external resource. The C<$resource_spec> hash must contain the four required
-keys plus, optionally, a version:
+external resource. The C<$resource_spec> hash must contain the following four
+required keys plus, optionally, a version:
 
 =over 4
 

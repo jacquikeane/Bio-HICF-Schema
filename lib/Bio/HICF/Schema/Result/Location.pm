@@ -1,12 +1,12 @@
 use utf8;
-package Bio::HICF::Schema::Result::MidasSession;
+package Bio::HICF::Schema::Result::Location;
 
 # Created by DBIx::Class::Schema::Loader
 # DO NOT MODIFY THE FIRST PART OF THIS FILE
 
 =head1 NAME
 
-Bio::HICF::Schema::Result::MidasSession - Session data for the MIDAS website
+Bio::HICF::Schema::Result::Location - Geographical location for terms in the gazetteer ontology
 
 =cut
 
@@ -34,62 +34,62 @@ extends 'DBIx::Class::Core';
 
 __PACKAGE__->load_components("InflateColumn::DateTime", "TimeStamp", "PassphraseColumn");
 
-=head1 TABLE: C<midas_session>
+=head1 TABLE: C<location>
 
 =cut
 
-__PACKAGE__->table("midas_session");
+__PACKAGE__->table("location");
 
 =head1 ACCESSORS
 
-=head2 id
+=head2 gaz_term
 
   data_type: 'varchar'
   is_nullable: 0
-  size: 72
+  size: 50
 
-Unique ID for the session.
+The gazetteer ontology term
 
-=head2 session_data
+=head2 lat
 
-  data_type: 'longtext'
+  data_type: 'float'
   is_nullable: 1
 
-The data stored in the session, encoded as a single string
+Latitude. The north-south position, in degrees, of the location
 
-=head2 expires
+=head2 lng
 
-  data_type: 'integer'
+  data_type: 'float'
   is_nullable: 1
 
-The expiry date/time of the session, given as in epoch seconds
+Longitude. The east-west position, in degrees, of the location
 
 =cut
 
 __PACKAGE__->add_columns(
-  "id",
-  { data_type => "varchar", is_nullable => 0, size => 72 },
-  "session_data",
-  { data_type => "longtext", is_nullable => 1 },
-  "expires",
-  { data_type => "integer", is_nullable => 1 },
+  "gaz_term",
+  { data_type => "varchar", is_nullable => 0, size => 50 },
+  "lat",
+  { data_type => "float", is_nullable => 1 },
+  "lng",
+  { data_type => "float", is_nullable => 1 },
 );
 
 =head1 PRIMARY KEY
 
 =over 4
 
-=item * L</id>
+=item * L</gaz_term>
 
 =back
 
 =cut
 
-__PACKAGE__->set_primary_key("id");
+__PACKAGE__->set_primary_key("gaz_term");
 
 
 # Created by DBIx::Class::Schema::Loader v0.07042 @ 2015-04-23 14:38:51
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:nRdCqWN51agx7ev2yxxvZA
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:6OMdnzhF2OeSgegnsIY9VA
 
 
 __PACKAGE__->meta->make_immutable;

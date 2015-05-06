@@ -15,6 +15,8 @@ sub BUILDARGS { $_[2] }
 
 #-------------------------------------------------------------------------------
 
+# ABSTRACT: resultset for the file table
+
 =head1 METHODS
 
 =head2 load

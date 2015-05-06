@@ -6,7 +6,7 @@ package Bio::HICF::Schema::Result::Gazetteer;
 
 =head1 NAME
 
-Bio::HICF::Schema::Result::Gazetteer - Look-up table storing the terms from the gazetteer ontology.
+Bio::HICF::Schema::Result::Gazetteer - Terms from the gazetteer ontology
 
 =cut
 
@@ -48,11 +48,15 @@ __PACKAGE__->table("gazetteer");
   is_nullable: 0
   size: 50
 
+Gazetteer ontology term
+
 =head2 description
 
   data_type: 'varchar'
   is_nullable: 1
   size: 45
+
+Description of the gazetteer term
 
 =cut
 
@@ -76,10 +80,9 @@ __PACKAGE__->add_columns(
 __PACKAGE__->set_primary_key("id");
 
 
-# Created by DBIx::Class::Schema::Loader v0.07042 @ 2015-04-10 15:26:02
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:BlMLg/sBQhdXb6mVEhnhfQ
+# Created by DBIx::Class::Schema::Loader v0.07042 @ 2015-04-23 14:38:51
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:A1DvJ8mQAFhCwTOD1cTKXg
 
 
-# You can replace this text with custom code or comments, and it will be preserved on regeneration
 __PACKAGE__->meta->make_immutable;
 1;

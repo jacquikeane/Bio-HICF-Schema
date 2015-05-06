@@ -1,6 +1,8 @@
 use utf8;
 package Bio::HICF::Schema::ResultSet::Assembly;
 
+# 
+
 use Moose;
 use MooseX::NonMoose;
 use MooseX::Params::Validate;
@@ -14,6 +16,8 @@ sub BUILDARGS { $_[2] }
 # see https://metacpan.org/pod/DBIx::Class::ResultSet#ResultSet-subclassing-with-Moose-and-similar-constructor-providers
 
 #-------------------------------------------------------------------------------
+
+# ABSTRACT: resultset for the assembly table
 
 =head1 METHODS
 

@@ -8,6 +8,10 @@ package Bio::HICF::Schema::Result::ExternalResource;
 
 Bio::HICF::Schema::Result::ExternalResource
 
+=head1 DESCRIPTION
+
+Details of external resources loaded into or required by the database
+
 =cut
 
 use strict;
@@ -49,11 +53,15 @@ __PACKAGE__->table("external_resources");
   is_auto_increment: 1
   is_nullable: 0
 
+Unique resource ID
+
 =head2 name
 
   data_type: 'varchar'
   is_nullable: 0
   size: 45
+
+The name of the resource
 
 =head2 source
 
@@ -61,11 +69,15 @@ __PACKAGE__->table("external_resources");
   is_nullable: 1
   size: 255
 
+The canonical source of the resource data, such as the URL from which it was downloaded
+
 =head2 retrieved_at
 
   data_type: 'datetime'
   datetime_undef_if_invalid: 1
   is_nullable: 0
+
+The date/time at which the resource file was retrieved from the source
 
 =head2 checksum
 
@@ -73,11 +85,15 @@ __PACKAGE__->table("external_resources");
   is_nullable: 0
   size: 45
 
+MD5 checksum for the downloaded resource file
+
 =head2 version
 
   data_type: 'varchar'
   is_nullable: 1
   size: 45
+
+Version number for the resource. If the resource has its own version, that may be stored here, or, if the resource is loaded multiple times, the version may be a simple count of the number of times the resource has been loaded
 
 =head2 created_at
 
@@ -85,6 +101,8 @@ __PACKAGE__->table("external_resources");
   datetime_undef_if_invalid: 1
   is_nullable: 1
   set_on_create: 1
+
+Date/time at which the resource was created
 
 =cut
 
@@ -132,10 +150,9 @@ __PACKAGE__->add_columns(
 __PACKAGE__->set_primary_key("id");
 
 
-# Created by DBIx::Class::Schema::Loader v0.07042 @ 2015-02-24 13:54:25
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:7mMc+HelhnvcnM8qhv4mMQ
+# Created by DBIx::Class::Schema::Loader v0.07042 @ 2015-04-23 13:38:23
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:0s0Mvuj+53ytwLND8rHDTA
 
 
-# You can replace this text with custom code or comments, and it will be preserved on regeneration
 __PACKAGE__->meta->make_immutable;
 1;

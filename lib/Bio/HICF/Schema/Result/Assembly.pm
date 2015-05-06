@@ -6,7 +6,7 @@ package Bio::HICF::Schema::Result::Assembly;
 
 =head1 NAME
 
-Bio::HICF::Schema::Result::Assembly
+Bio::HICF::Schema::Result::Assembly - Details of an assembly for a given sample
 
 =cut
 
@@ -49,12 +49,16 @@ __PACKAGE__->table("assembly");
   is_auto_increment: 1
   is_nullable: 0
 
+Unique ID for the given assembly
+
 =head2 sample_accession
 
   data_type: 'varchar'
   is_foreign_key: 1
   is_nullable: 0
   size: 20
+
+Accession for the sample to which the assembly belongs
 
 =head2 type
 
@@ -69,11 +73,15 @@ __PACKAGE__->table("assembly");
   is_nullable: 0
   set_on_create: 1
 
+Date/time at which the assembly was added to the database
+
 =head2 deleted_at
 
   data_type: 'datetime'
   datetime_undef_if_invalid: 1
   is_nullable: 1
+
+Date/time at which the assembly was flagged as deleted in the database
 
 =cut
 
@@ -164,10 +172,9 @@ __PACKAGE__->belongs_to(
 with 'Bio::HICF::Schema::Role::Assembly', 'Bio::HICF::Schema::Role::Undeletable';
 
 
-# Created by DBIx::Class::Schema::Loader v0.07042 @ 2015-04-14 10:03:38
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:RxDVodB4q8Hricl8MdYSQw
+# Created by DBIx::Class::Schema::Loader v0.07042 @ 2015-04-23 14:38:51
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:RrSuQYp2L1sLrc2XwV58mA
 
 
-# You can replace this text with custom code or comments, and it will be preserved on regeneration
 __PACKAGE__->meta->make_immutable;
 1;

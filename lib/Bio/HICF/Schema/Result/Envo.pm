@@ -6,11 +6,8 @@ package Bio::HICF::Schema::Result::Envo;
 
 =head1 NAME
 
-Bio::HICF::Schema::Result::Envo
+Bio::HICF::Schema::Result::Envo - Terms from the environment ontology
 
-=head1 DESCRIPTION
-
-Look-up table storing the terms from the environment ontology.
 
 =cut
 
@@ -52,11 +49,15 @@ __PACKAGE__->table("envo");
   is_nullable: 0
   size: 50
 
+EnvO ontology term
+
 =head2 description
 
   data_type: 'varchar'
   is_nullable: 1
   size: 45
+
+Description of the EnvO term
 
 =cut
 
@@ -80,10 +81,9 @@ __PACKAGE__->add_columns(
 __PACKAGE__->set_primary_key("id");
 
 
-# Created by DBIx::Class::Schema::Loader v0.07042 @ 2015-04-10 15:26:02
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:NuoQsVeKSTZekjvUj1SJ0w
+# Created by DBIx::Class::Schema::Loader v0.07042 @ 2015-04-23 14:38:51
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:/9vbc7AAkXhPIuSaMP/HfA
 
 
-# You can replace this text with custom code or comments, and it will be preserved on regeneration
 __PACKAGE__->meta->make_immutable;
 1;

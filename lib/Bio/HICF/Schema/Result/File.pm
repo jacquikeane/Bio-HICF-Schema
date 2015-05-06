@@ -6,7 +6,7 @@ package Bio::HICF::Schema::Result::File;
 
 =head1 NAME
 
-Bio::HICF::Schema::Result::File
+Bio::HICF::Schema::Result::File - Details of assembly files on disk
 
 =cut
 
@@ -49,6 +49,8 @@ __PACKAGE__->table("file");
   is_auto_increment: 1
   is_nullable: 0
 
+Unique ID for the file
+
 =head2 assembly_id
 
   data_type: 'integer'
@@ -56,11 +58,15 @@ __PACKAGE__->table("file");
   is_foreign_key: 1
   is_nullable: 0
 
+The ID of the assembly that this file represents
+
 =head2 version
 
   data_type: 'integer'
   extra: {unsigned => 1}
   is_nullable: 0
+
+Version of the file. This should be incremented every time the same file (or a new version of the file) is reloaded.
 
 =head2 path
 
@@ -68,11 +74,15 @@ __PACKAGE__->table("file");
   is_nullable: 0
   size: 45
 
+The absolute path to the assembly file on disk.
+
 =head2 md5
 
   data_type: 'char'
   is_nullable: 0
   size: 32
+
+The MD5 checksum for the assembly file.
 
 =head2 created_at
 
@@ -81,11 +91,15 @@ __PACKAGE__->table("file");
   is_nullable: 0
   set_on_create: 1
 
+Date/time at which the file was created
+
 =head2 deleted_at
 
   data_type: 'datetime'
   datetime_undef_if_invalid: 1
   is_nullable: 1
+
+Date/time at which the file was flagged as deleted in the database
 
 =cut
 
@@ -208,10 +222,9 @@ __PACKAGE__->belongs_to(
 with 'Bio::HICF::Schema::Role::Undeletable';
 
 
-# Created by DBIx::Class::Schema::Loader v0.07042 @ 2015-04-14 09:35:00
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:RPVMfLBPP465ko2MJ9jFNw
+# Created by DBIx::Class::Schema::Loader v0.07042 @ 2015-04-23 14:38:51
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:YHifdk3YB8obTvL/JqvXhQ
 
 
-# You can replace this text with custom code or comments, and it will be preserved on regeneration
 __PACKAGE__->meta->make_immutable;
 1;

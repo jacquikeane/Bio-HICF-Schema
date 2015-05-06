@@ -52,6 +52,8 @@ $ENV{HICF_STORAGE} = getcwd;
 
 # test errors with instantiation first
 
+delete $ENV{HICF_SCRIPT_CONFIG};
+
 throws_ok { Bio::HICF::SampleLoader->new }
   qr/must specify a script configuration/,
   'got expected exception when HICF_SCRIPT_CONFIG not set';

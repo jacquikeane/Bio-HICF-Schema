@@ -6,11 +6,7 @@ package Bio::HICF::Schema::Result::AntimicrobialResistance;
 
 =head1 NAME
 
-Bio::HICF::Schema::Result::AntimicrobialResistance
-
-=head1 DESCRIPTION
-
-Stores information about the antimicrobial resistance tests for a given sample. The antimicrobial compound must exist in the look-up table.
+Bio::HICF::Schema::Result::AntimicrobialResistance - Antimicrobial resistance tests for a given sample
 
 =cut
 
@@ -66,7 +62,7 @@ __PACKAGE__->table("antimicrobial_resistance");
   extra: {list => ["S","I","R"]}
   is_nullable: 0
 
-Susceptibility to the antimicrobial. One of Susceptible, Intermediate or Resistant
+Susceptibility to the antimicrobial. One of `Susceptible`, `Intermediate` or `Resistant`
 
 =head2 mic
 
@@ -83,11 +79,15 @@ Minimum inhibitory concentration
   extra: {list => ["le","lt","eq","gt","ge"]}
   is_nullable: 0
 
+The susceptibility of the tested sample to a given antimicrobial may be given in terms of a lower or upper limit, e.g. sample was found susceptible to compound at an MIC of less than 4 microgrammes/millilitre. This field specifies the equality. Must be one of le (<=), lt (<), eq (=), gt (>), ge (>=). The default is eq.
+
 =head2 diagnostic_centre
 
   data_type: 'varchar'
   is_nullable: 1
   size: 45
+
+Short label for the centre where the antimicrobial testing was carried out
 
 =head2 created_at
 
@@ -96,11 +96,15 @@ Minimum inhibitory concentration
   is_nullable: 0
   set_on_create: 1
 
+Date/time at which the antimicrobial test result was added to the database
+
 =head2 deleted_at
 
   data_type: 'datetime'
   datetime_undef_if_invalid: 1
   is_nullable: 1
+
+Date/time at which the antimicrobial test result was flagged as deleted in the database
 
 =cut
 
@@ -220,10 +224,9 @@ __PACKAGE__->belongs_to(
 with 'Bio::HICF::Schema::Role::AntimicrobialResistance', 'Bio::HICF::Schema::Role::Undeletable';
 
 
-# Created by DBIx::Class::Schema::Loader v0.07042 @ 2015-04-13 15:18:25
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:Af32FSUjIrmogJJ4x5rYzw
+# Created by DBIx::Class::Schema::Loader v0.07042 @ 2015-04-23 14:38:51
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:qwSOs5dye63ZzXY0Y1TKgg
 
 
-# You can replace this text with custom code or comments, and it will be preserved on regeneration
 __PACKAGE__->meta->make_immutable;
 1;

@@ -9,6 +9,7 @@
     Envo
     File
     Gazetteer
+    Location
     Manifest
     Sample
     Taxonomy
