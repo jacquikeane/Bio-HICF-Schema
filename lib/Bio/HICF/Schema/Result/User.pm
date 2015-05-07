@@ -91,6 +91,10 @@ Website roles for the current user. Default user.
 
   data_type: 'char'
   is_nullable: 1
+  passphrase: 'rfc2307'
+  passphrase_args: {algorithm => "SHA-1",salt_random => 20}
+  passphrase_check_method: 'check_api_key'
+  passphrase_class: 'SaltedDigest'
   size: 32
 
 REST API key for the user
@@ -139,7 +143,15 @@ __PACKAGE__->add_columns(
     size => 128,
   },
   "api_key",
-  { data_type => "char", is_nullable => 1, size => 32 },
+  {
+    data_type => "char",
+    is_nullable => 1,
+    passphrase => "rfc2307",
+    passphrase_args => { algorithm => "SHA-1", salt_random => 20 },
+    passphrase_check_method => "check_api_key",
+    passphrase_class => "SaltedDigest",
+    size => 32,
+  },
   "created_at",
   {
     data_type => "datetime",
@@ -181,8 +193,8 @@ __PACKAGE__->set_primary_key("username");
 with 'Bio::HICF::Schema::Role::User';
 
 
-# Created by DBIx::Class::Schema::Loader v0.07042 @ 2015-04-23 13:38:24
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:vYOStpYMckS/S9eCZgysWQ
+# Created by DBIx::Class::Schema::Loader v0.07042 @ 2015-05-06 15:44:01
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:XI8HCG9YcnZvfcI8wE1yrA
 
 
 __PACKAGE__->meta->make_immutable;

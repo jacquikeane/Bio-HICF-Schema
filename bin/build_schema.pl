@@ -52,11 +52,14 @@ make_schema_at(
       # make the created_ad and updated_at update automatically when the
       # relevant operation is performed on the column
       return { set_on_create => 1 } if $column_name eq 'created_at';
-      # return { set_on_update => 1 } if $column_name eq 'updated_at';
 
       # make the passphrase column treat passphrases as salted digests and
       # set the parameters for that
-      if ( $column_name eq 'passphrase' ) {
+      if ( $column_name eq 'passphrase' or
+           $column_name eq 'api_key'       ) {
+        my $method = $column_name eq 'passphrase'
+                   ? 'check_password'
+                   : 'check_api_key';
         return {
           passphrase       => 'rfc2307',
           passphrase_class => 'SaltedDigest',
@@ -64,7 +67,7 @@ make_schema_at(
             algorithm   => 'SHA-1',
             salt_random => 20,
           },
-          passphrase_check_method => 'check_password',
+          passphrase_check_method => $method,
         };
       }
     },
