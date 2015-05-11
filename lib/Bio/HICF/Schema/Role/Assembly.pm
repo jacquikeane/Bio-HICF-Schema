@@ -5,6 +5,8 @@ package Bio::HICF::Schema::Role::Assembly;
 
 use Moose::Role;
 
+use Bio::Metadata::Types qw( PositiveInt );
+
 requires qw(
   assembly_id
   sample_accession
@@ -35,10 +37,8 @@ the returned files may have been flagged as deleted.
 sub get_file {
   my ( $self, $version, $include_deleted ) = @_;
 
-  if ( defined $version ) {
-    croak 'ERROR: version must be a positive integer'
-      unless ( $version =~ m/^\d+$/ and $version > 0 );
-  }
+  croak 'ERROR: version must be a positive integer'
+    unless is_PositiveInt($version);
 
   # default to returning only files that haven't been deleted, ordered by
   # version number
