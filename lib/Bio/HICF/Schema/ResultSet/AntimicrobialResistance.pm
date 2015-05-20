@@ -6,7 +6,8 @@ use MooseX::NonMoose;
 use MooseX::Params::Validate;
 
 use Carp qw ( croak );
-use Bio::Metadata::Types;
+use Bio::Metadata::Types qw( AntimicrobialName SIRTerm AMREquality );
+use MooseX::Types::Moose qw( Int Str );
 use Try::Tiny;
 
 extends 'DBIx::Class::ResultSet';
@@ -48,14 +49,14 @@ test result is already present in the database.
 sub load {
   my ( $self, %params ) = validated_hash(
     \@_,
-    sample_id         => { isa => 'Int' },
-    name              => { isa => 'Bio::Metadata::Types::AntimicrobialName' },
-    susceptibility    => { isa => 'Bio::Metadata::Types::SIRTerm' },
-    mic               => { isa => 'Int' },
-    equality          => { isa => 'Bio::Metadata::Types::AMREquality',
+    sample_id         => { isa => Int },
+    name              => { isa => AntimicrobialName },
+    susceptibility    => { isa => SIRTerm },
+    mic               => { isa => Int },
+    equality          => { isa => AMREquality,
                            default => 'eq',
                            optional => 1 },
-    diagnostic_centre => { isa => 'Str' },
+    diagnostic_centre => { isa => Str },
   );
 
   my $amr = $self->find_or_new(

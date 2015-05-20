@@ -36,6 +36,7 @@ use Email::Valid;
 use File::Basename;
 use List::MoreUtils qw( mesh );
 
+use Bio::Metadata::Types qw( UUID OntologyTerm );
 use Bio::Metadata::Checklist;
 use Bio::Metadata::Validator;
 use Bio::Metadata::TaxTree;
@@ -126,7 +127,7 @@ sub get_manifest {
   croak 'ERROR: must supply a valid manifest ID' unless defined $mid;
 
   croak "ERROR: not a valid manifest ID ($mid)"
-    unless $mid=~ m/^[0-9a-f]{8}-([0-9a-f]{4}-){3}[0-9a-f]{12}$/i;
+    unless is_UUID($mid);
 
   my $query = { manifest_id => $mid,
                 deleted_at  => { '=', undef } };
@@ -332,8 +333,7 @@ sub get_samples_in_manifest {
   my ( $self, $mid, $include_deleted ) = @_;
 
   croak 'ERROR: must supply a valid manifest ID'
-    unless ( defined $mid and
-             $mid =~ m/^[0-9a-f]{8}-([0-9a-f]{4}-){3}[0-9a-f]{12}$/i );
+    unless ( defined $mid and is_UUID($mid) );
 
   return unless my $manifest_row = $self->resultset('Manifest')->find($mid);
 
@@ -485,7 +485,7 @@ sub load_ontology {
       if ( m/^id: (.*?)$/ and $is_term ) {
         my $id = $1;
         croak "ERROR: found an invalid ontology term ID ($1)"
-          unless $id =~ m/^[A-Z]+:\d+$/;
+          unless is_OntologyTerm($id);
         push @$term, $id;
       }
       # and if this is a [Term] and we've found a name for it, store that too

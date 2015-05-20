@@ -6,6 +6,8 @@ use MooseX::NonMoose;
 use MooseX::Params::Validate;
 use Carp qw ( croak );
 
+use Bio::Metadata::Types qw( AMRString );
+
 extends 'DBIx::Class::ResultSet';
 
 sub BUILDARGS { $_[2] }
@@ -120,7 +122,7 @@ sub _parse_amr_string {
   my $self = shift;
   my ( $amr_string ) = pos_validated_list(
     \@_,
-    { isa => 'Bio::Metadata::Types::AMRString' },
+    { isa => AMRString },
   );
 
   # TODO there must be a way to put a big regex like this into a common file
