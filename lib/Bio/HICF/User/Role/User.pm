@@ -1,5 +1,5 @@
 use utf8;
-package Bio::HICF::Schema::Role::User;
+package Bio::HICF::User::Role::User;
 
 # ABSTRACT: role carrying methods for the AntimicrobialResistance table
 

@@ -109,8 +109,8 @@ __PACKAGE__->add_columns(
 __PACKAGE__->set_primary_key("tax_id");
 
 
-# Created by DBIx::Class::Schema::Loader v0.07042 @ 2015-04-23 14:45:47
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:jkBsBCGtvzXagFwJ94yZhA
+# Created by DBIx::Class::Schema::Loader v0.07042 @ 2015-05-27 16:45:22
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:bVRlELulEW4vaHNzxp/8Rw
 
 
 __PACKAGE__->meta->make_immutable;

@@ -1,12 +1,12 @@
 use utf8;
-package Bio::HICF::Schema::Result::User;
+package Bio::HICF::User::Result::User;
 
 # Created by DBIx::Class::Schema::Loader
 # DO NOT MODIFY THE FIRST PART OF THIS FILE
 
 =head1 NAME
 
-Bio::HICF::Schema::Result::User - User details for the MIDAS website
+Bio::HICF::User::Result::User - User details for the MIDAS website
 
 =cut
 
@@ -183,19 +183,20 @@ __PACKAGE__->set_primary_key("username");
 
 =over 4
 
-=item * L<Bio::HICF::Schema::Role::User>
+=item * L<Bio::HICF::User::Role::User>
 
 =back
 
 =cut
 
 
-with 'Bio::HICF::Schema::Role::User';
+with 'Bio::HICF::User::Role::User';
 
 
-# Created by DBIx::Class::Schema::Loader v0.07042 @ 2015-05-06 15:44:01
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:XI8HCG9YcnZvfcI8wE1yrA
+# Created by DBIx::Class::Schema::Loader v0.07042 @ 2015-05-27 12:12:07
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:UqbRoUD6rfbD7GbNRtHPbA
 
 
+# You can replace this text with custom code or comments, and it will be preserved on regeneration
 __PACKAGE__->meta->make_immutable;
 1;
