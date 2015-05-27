@@ -15,7 +15,7 @@ use utf8;
 use Config::General;
 use Getopt::Long::Descriptive;
 use Pod::Usage;
-use Bio::HICF::Schema;
+use Bio::HICF::User;
 use Term::ReadKey;
 use open qw( :std :utf8 );
 use Try::Tiny;
@@ -60,7 +60,7 @@ try {
 
 my %config = $cg->getall;
 
-my $schema = Bio::HICF::Schema->connect( @{ $config{database}->{connect_info} } );
+my $schema = Bio::HICF::User->connect( @{ $config{database}->{user}->{connect_info} } );
 
 #-------------------------------------------------------------------------------
 
