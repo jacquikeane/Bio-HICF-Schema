@@ -89,13 +89,13 @@ Website roles for the current user. Default user.
 
 =head2 api_key
 
-  data_type: 'char'
+  data_type: 'varchar'
   is_nullable: 1
   passphrase: 'rfc2307'
   passphrase_args: {algorithm => "SHA-1",salt_random => 20}
   passphrase_check_method: 'check_api_key'
   passphrase_class: 'SaltedDigest'
-  size: 32
+  size: 128
 
 REST API key for the user
 
@@ -144,13 +144,13 @@ __PACKAGE__->add_columns(
   },
   "api_key",
   {
-    data_type => "char",
+    data_type => "varchar",
     is_nullable => 1,
     passphrase => "rfc2307",
     passphrase_args => { algorithm => "SHA-1", salt_random => 20 },
     passphrase_check_method => "check_api_key",
     passphrase_class => "SaltedDigest",
-    size => 32,
+    size => 128,
   },
   "created_at",
   {
@@ -193,8 +193,8 @@ __PACKAGE__->set_primary_key("username");
 with 'Bio::HICF::User::Role::User';
 
 
-# Created by DBIx::Class::Schema::Loader v0.07042 @ 2015-05-27 12:12:07
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:UqbRoUD6rfbD7GbNRtHPbA
+# Created by DBIx::Class::Schema::Loader v0.07042 @ 2015-05-28 16:32:23
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:qn6Yi1+WCyhWYE8RSa+oTw
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration

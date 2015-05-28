@@ -53,9 +53,8 @@ EnvO ontology term
 
 =head2 description
 
-  data_type: 'varchar'
+  data_type: 'text'
   is_nullable: 1
-  size: 45
 
 Description of the EnvO term
 
@@ -65,7 +64,7 @@ __PACKAGE__->add_columns(
   "id",
   { data_type => "varchar", is_nullable => 0, size => 50 },
   "description",
-  { data_type => "varchar", is_nullable => 1, size => 45 },
+  { data_type => "text", is_nullable => 1 },
 );
 
 =head1 PRIMARY KEY
@@ -81,8 +80,8 @@ __PACKAGE__->add_columns(
 __PACKAGE__->set_primary_key("id");
 
 
-# Created by DBIx::Class::Schema::Loader v0.07042 @ 2015-04-23 14:38:51
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:/9vbc7AAkXhPIuSaMP/HfA
+# Created by DBIx::Class::Schema::Loader v0.07042 @ 2015-05-28 16:32:22
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:PlfRx4yDNdo6OSRPRwOcwQ
 
 
 __PACKAGE__->meta->make_immutable;
