@@ -66,7 +66,7 @@ my @names = grep { ! m/^(#|\s*$)/ } read_file( $file );
 print 'found ' . scalar @names . " rows to load from '$file'\n";
 
 # get a database connection
-my $schema = Bio::HICF::Schema->connect(@{ $config{database}->{connect_info} });
+my $schema = Bio::HICF::Schema->connect(@{ $config{database}->{hicf}->{connect_info} });
 
 # load the rows in a transaction
 try {

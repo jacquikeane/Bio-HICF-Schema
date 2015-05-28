@@ -68,7 +68,7 @@ _usage($usage, "ERROR: not a valid ontology name ($ontology)")
   unless exists $config{ontology}->{$ontology};
 
 # get a database connection
-my $schema = Bio::HICF::Schema->connect(@{ $config{database}->{connect_info} });
+my $schema = Bio::HICF::Schema->connect(@{ $config{database}->{hicf}->{connect_info} });
 
 # load
 $schema->load_ontology( $ontology, $file);
