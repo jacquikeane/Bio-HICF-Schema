@@ -347,6 +347,35 @@ sub get_samples_in_manifest {
 }
 
 #-------------------------------------------------------------------------------
+
+=head2 get_all_samples
+
+Returns a L<DBIx::Class::ResultSet|ResultSet> containing all samples in the
+database.
+
+The sample table is joined against the ontology and geocoding tables,
+adding two relationships, C<geolocation>, which adds columns C<lat> and C<long>
+(which have values providing the sample location has been geocoded), and
+C<location_description>, which links to the gazetteer ontology and provides
+the C<description> column, giving the location description from the ontology.
+
+=cut
+
+sub get_all_samples {
+  my ( $self ) = @_;
+
+  my $samples_rs = $self->resultset('Sample')->search(
+    {},
+    {
+      join     => [qw( geolocation location_description )],
+      prefetch => [qw( geolocation location_description )]
+    }
+  );
+
+  return $samples_rs;
+}
+
+#-------------------------------------------------------------------------------
 #- assemblies ------------------------------------------------------------------
 #-------------------------------------------------------------------------------
 
