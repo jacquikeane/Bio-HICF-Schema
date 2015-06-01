@@ -490,7 +490,7 @@ sub load_ontology {
       }
       # and if this is a [Term] and we've found a name for it, store that too
       if ( m/^name: (.*)$/ and $is_term ) {
-        push @$term, substr($1, 0, 45);
+        push @$term, $1;
         push @$chunk, $term;
 
         # load the current set of terms every Nth term
