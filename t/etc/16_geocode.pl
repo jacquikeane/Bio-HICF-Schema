@@ -1,4 +1,10 @@
 {
+  schema_class => 'Bio::HICF::Schema',
+  resultsets => [ qw(
+    Gazetteer
+    Location
+    Sample
+  ) ],
   fixture_sets => {
     main => [
       Gazetteer => [

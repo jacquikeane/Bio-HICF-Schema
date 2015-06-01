@@ -24,10 +24,7 @@ use Test::Script::Run;
 
 use Test::DBIx::Class {
   connect_info => [ 'dbi:SQLite:dbname=test.db', '', '' ],
-}, qw( :resultsets );
-
-# load the pre-requisite data and THEN turn on foreign keys
-fixtures_ok 'main', 'installed fixtures';
+};
 
 #-------------------------------------------------------------------------------
 

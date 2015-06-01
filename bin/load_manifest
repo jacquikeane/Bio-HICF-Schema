@@ -65,7 +65,7 @@ try {
 
 my %config = $cg->getall;
 
-my $schema = Bio::HICF::Schema->connect(@{ $config{database}->{connect_info} });
+my $schema = Bio::HICF::Schema->connect(@{ $config{database}->{hicf}->{connect_info} });
 
 my @loaded_ids;
 try {

@@ -84,7 +84,7 @@ my $tt = Bio::Metadata::TaxTree->new( names_file => $names,
 $tt->build_tree;
 
 # get a database connection
-my $schema = Bio::HICF::Schema->connect( @{ $config{database}->{connect_info} } );
+my $schema = Bio::HICF::Schema->connect( @{ $config{database}->{hicf}->{connect_info} } );
 
 # load it
 try {

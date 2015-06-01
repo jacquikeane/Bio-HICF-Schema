@@ -6,7 +6,7 @@ package Bio::HICF::Schema::Result::Taxonomy;
 
 =head1 NAME
 
-Bio::HICF::Schema::Result::Taxonomy - The NCBI taxonomic tree.
+Bio::HICF::Schema::Result::Taxonomy - The NCBI taxonomic tree
 
 =cut
 
@@ -109,8 +109,8 @@ __PACKAGE__->add_columns(
 __PACKAGE__->set_primary_key("tax_id");
 
 
-# Created by DBIx::Class::Schema::Loader v0.07042 @ 2015-04-23 14:45:47
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:jkBsBCGtvzXagFwJ94yZhA
+# Created by DBIx::Class::Schema::Loader v0.07042 @ 2015-05-28 16:32:22
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:BRw+KJNBLVbcVjPYbrk1hA
 
 
 __PACKAGE__->meta->make_immutable;

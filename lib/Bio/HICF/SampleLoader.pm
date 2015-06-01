@@ -123,7 +123,7 @@ has schema => (
   lazy    => 1,
   default => sub {
     my $self         = shift;
-    my $connect_info = $self->config->{database}->{connect_info};
+    my $connect_info = $self->config->{database}->{hicf}->{connect_info};
     return Bio::HICF::Schema->connect(@$connect_info);
   },
 );

@@ -40,11 +40,14 @@ throws_ok { Bio::HICF::Geocoder->new( api_key => 'notvalid' ) }
   qr//,
   'not a valid API key';
 
-my $g = new_ok( 'Bio::HICF::Geocoder' => [ api_key => $ENV{HICF_GOOGLE_API_KEY} ] );
+# we can use a dummy key, since we're mocking LWP and not actually talking to
+# google for the tests
+my $dummy_api_key = 'AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA';
+my $g = new_ok( 'Bio::HICF::Geocoder' => [ api_key => $dummy_api_key ] );
 
 # should have two distinct locations in the sample table, one with lat/long
 # values, one without
-is Sample->count,   3, 'three samples to geo-locate';
+is Sample->count,   2, 'two samples to geo-locate';
 is Location->count, 1, 'one location already found';
 
 # location finding

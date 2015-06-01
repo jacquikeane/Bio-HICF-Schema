@@ -70,6 +70,8 @@ SKIP: {
   $new_m->md5($m->md5);
   $new_m->uuid($m->uuid);
   $new_m->checklist->{config_file} = 't/data/01_checklist.conf';
+  $new_m->_set_fh($m->_fh);
+  $new_m->_set_csv($m->_csv);
 
   is_deeply( $m, $new_m, 'manifest generated from the DB matches original' );
 
