@@ -119,7 +119,7 @@ make_schema_at(
     custom_column_info => sub {
       my ( $table, $column_name, $column_info ) = @_;
 
-      # make the created_ad and updated_at update automatically when the
+      # make the created_at and updated_at update automatically when the
       # relevant operation is performed on the column
       return { set_on_create => 1 } if $column_name eq 'created_at';
 

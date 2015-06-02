@@ -442,6 +442,23 @@ __PACKAGE__->add_unique_constraint(
   sample_uc => [ qw( manifest_id raw_data_accession sample_accession ) ]
 );
 
+# add some extra relationships
+
+# map the location term in this table (given as a Gazetteer ontology term) to
+# to location table, which stores the latitude and longitude for that location
+__PACKAGE__->might_have(
+  'geolocation',
+  'Bio::HICF::Schema::Result::Location',
+  { 'foreign.gaz_term' => 'self.location' },
+);
+
+# map the location term to the ontology, giving us the place description
+__PACKAGE__->might_have(
+  'location_description',
+  'Bio::HICF::Schema::Result::Gazetteer',
+  { 'foreign.id' => 'self.location' },
+);
+
 __PACKAGE__->meta->make_immutable;
 1;
 
