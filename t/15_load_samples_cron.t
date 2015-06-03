@@ -2,8 +2,7 @@
 use strict;
 use warnings;
 
-use Test::More;
-use Test::CacheFile;
+use Test::More tests => 20;
 use Test::Exception;
 use Test::Script::Run;
 use File::Path qw(make_path remove_tree);
@@ -24,17 +23,6 @@ my $preload = sub {
 };
 
 lives_ok { Schema->storage->dbh_do($preload) } 'successfully turned on "foreign_keys" pragma';
-
-diag 'caching ontology files';
-Test::CacheFile::cache( 'http://purl.obolibrary.org/obo/subsets/envo-basic.obo', 'envo-basic.obo' );
-Test::CacheFile::cache( 'http://purl.obolibrary.org/obo/gaz.obo', 'gaz.obo' );
-Test::CacheFile::cache( 'http://www.brenda-enzymes.info/ontology/tissue/tree/update/update_files/BrendaTissueOBO', 'bto.obo' );
-
-# extract the names.dmp from the taxdump archive
-if ( ! -f '.cached_test_files/names.dmp' ) {
-  my $tar = Archive::Tar->new('.cached_test_files/taxdump.tar.gz');
-  $tar->extract_file( 'names.dmp', '.cached_test_files/names.dmp' );
-}
 
 # set up the location of the test directories. It's assumed that you're running
 # this test from the top-level directory of the module tree

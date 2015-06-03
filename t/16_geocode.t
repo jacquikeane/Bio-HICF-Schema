@@ -2,8 +2,7 @@
 use strict;
 use warnings;
 
-use Test::More;
-use Test::CacheFile;
+use Test::More tests => 22;
 use Test::Exception;
 use Test::Script::Run;
 use Test::MockModule;

@@ -2,8 +2,7 @@
 use strict;
 use warnings;
 
-use Test::More;
-use Test::CacheFile;
+use Test::More tests => 33;
 use Test::Exception;
 use Test::Warn;
 use Test::Script::Run;
@@ -26,18 +25,6 @@ my $preload = sub {
 };
 
 lives_ok { Schema->storage->dbh_do($preload) } 'successfully turned on "foreign_keys" pragma';
-
-diag 'caching ontology/taxonomy files';
-Test::CacheFile::cache( 'http://purl.obolibrary.org/obo/subsets/envo-basic.obo', 'envo-basic.obo' );
-Test::CacheFile::cache( 'http://purl.obolibrary.org/obo/gaz.obo', 'gaz.obo' );
-Test::CacheFile::cache( 'http://www.brenda-enzymes.info/ontology/tissue/tree/update/update_files/BrendaTissueOBO', 'bto.obo' );
-Test::CacheFile::cache( 'ftp://ftp.ncbi.nlm.nih.gov/pub/taxonomy/taxdump.tar.gz', 'taxdump.tar.gz' );
-
-# extract the names.dmp from the taxdump archive
-if ( ! -f '.cached_test_files/names.dmp' ) {
-  my $tar = Archive::Tar->new('.cached_test_files/taxdump.tar.gz');
-  $tar->extract_file( 'names.dmp', '.cached_test_files/names.dmp' );
-}
 
 # make the directories for the tests
 make_path( 't/data/storage/archive',
