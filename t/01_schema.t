@@ -2,10 +2,9 @@
 use strict;
 use warnings;
 
-use Test::More;
+use Test::More tests => 51;
 use File::Temp;
 use Test::DBIx::Class qw( :resultsets );
-use Test::CacheFile;
 use Test::Exception;
 use Archive::Tar;
 use Data::UUID;
@@ -223,6 +222,21 @@ SKIP: {
 
 SKIP: {
   skip 'ontology loading', 7, if $ENV{SKIP_ONTOLOGY_TESTS};
+
+  # the might_have relationship from sample to gazetteer causes a foreign key
+  # to be added to the sample table in the SQLite test database when it's
+  # instantiated from the schema. That causes problems when we load ontologies,
+  # because the first thing that method does is empty the ontology table, which
+  # hits the foreign key constraint. The same problem doesn't exist in the live
+  # database, because although there's a relationship in the schema definition,
+  # it's not there in the MySQL instance.
+  #
+  # Although it's a bit hacky, we can just turn off foreign key constraints
+  # before calling "load_ontology", which avoids the problem for this test
+  Schema->storage->dbh_do( sub {
+    my ( $storage, $dbh, @other_args ) = @_;
+    $dbh->do( 'PRAGMA foreign_keys = OFF' );
+  } );
 
   throws_ok { Schema->load_ontology( 'not a real ontology', 't/data/01_gaz.obo' ) }
     qr/Validation failed for 'Bio::Metadata::Types::OntologyName'/,
