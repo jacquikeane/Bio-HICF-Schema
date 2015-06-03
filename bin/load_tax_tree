@@ -85,6 +85,7 @@ $tt->build_tree;
 
 # get a database connection
 my $schema = Bio::HICF::Schema->connect( @{ $config{database}->{hicf}->{connect_info} } );
+croak "ERROR: couldn't connect to the database" unless defined $schema;
 
 # load it
 try {
