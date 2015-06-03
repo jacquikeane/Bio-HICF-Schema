@@ -2,10 +2,9 @@
 use strict;
 use warnings;
 
-use Test::More;
+use Test::More tests => 51;
 use File::Temp;
 use Test::DBIx::Class qw( :resultsets );
-use Test::CacheFile;
 use Test::Exception;
 use Archive::Tar;
 use Data::UUID;
@@ -24,18 +23,6 @@ my $preload = sub {
 };
 
 lives_ok { Schema->storage->dbh_do($preload) } 'successfully turned on "foreign_keys" pragma';
-
-diag 'caching ontology/taxonomy files';
-Test::CacheFile::cache( 'http://purl.obolibrary.org/obo/subsets/envo-basic.obo', 'envo-basic.obo' );
-Test::CacheFile::cache( 'http://purl.obolibrary.org/obo/gaz.obo', 'gaz.obo' );
-Test::CacheFile::cache( 'http://www.brenda-enzymes.info/ontology/tissue/tree/update/update_files/BrendaTissueOBO', 'bto.obo' );
-Test::CacheFile::cache( 'ftp://ftp.ncbi.nlm.nih.gov/pub/taxonomy/taxdump.tar.gz', 'taxdump.tar.gz' );
-
-# extract the names.dmp from the taxdump archive
-if ( ! -f '.cached_test_files/names.dmp' ) {
-  my $tar = Archive::Tar->new('.cached_test_files/taxdump.tar.gz');
-  $tar->extract_file( 'names.dmp', '.cached_test_files/names.dmp' );
-}
 
 #-------------------------------------------------------------------------------
 
@@ -235,6 +222,21 @@ SKIP: {
 
 SKIP: {
   skip 'ontology loading', 7, if $ENV{SKIP_ONTOLOGY_TESTS};
+
+  # the might_have relationship from sample to gazetteer causes a foreign key
+  # to be added to the sample table in the SQLite test database when it's
+  # instantiated from the schema. That causes problems when we load ontologies,
+  # because the first thing that method does is empty the ontology table, which
+  # hits the foreign key constraint. The same problem doesn't exist in the live
+  # database, because although there's a relationship in the schema definition,
+  # it's not there in the MySQL instance.
+  #
+  # Although it's a bit hacky, we can just turn off foreign key constraints
+  # before calling "load_ontology", which avoids the problem for this test
+  Schema->storage->dbh_do( sub {
+    my ( $storage, $dbh, @other_args ) = @_;
+    $dbh->do( 'PRAGMA foreign_keys = OFF' );
+  } );
 
   throws_ok { Schema->load_ontology( 'not a real ontology', 't/data/01_gaz.obo' ) }
     qr/Validation failed for 'Bio::Metadata::Types::OntologyName'/,

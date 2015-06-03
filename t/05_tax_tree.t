@@ -2,7 +2,7 @@
 use strict;
 use warnings;
 
-use Test::More;
+use Test::More tests => 15;
 use Test::DBIx::Class qw( :resultsets );
 use Test::Exception;
 

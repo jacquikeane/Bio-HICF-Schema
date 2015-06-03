@@ -1,0 +1,152 @@
+format-version: 1.2
+date: 23:12:2013 14:47
+saved-by: michaelashburner
+auto-generated-by: OBO-Edit 2.3-beta5
+synonymtypedef: ABBREVIATION "ABBREVIATION" EXACT
+synonymtypedef: COLLOQUIAL_NAME "COLLOQUIAL NAME" EXACT
+synonymtypedef: FORMAL_NAME "FORMAL NAME" EXACT
+synonymtypedef: FORMER_NAME "FORMER NAME" EXACT
+synonymtypedef: LAPSUS "LAPSUS" EXACT
+synonymtypedef: SPELLING_VARIANT "SPELLING VARIANT" EXACT
+default-namespace: file:/Users/michaelashburner/Desktop/gaz/gaz.obo
+remark: This is an alpha version and is only for experimental implementation.
+remark: Comments etc to Michael Ashburner, ma11@gen.cam.ac.uk
+remark: Acknowledgements and sources: A large number of sources have been, and are being, used to build gaz.obo. By far
+remark: the most used are the pages of Wikipedia, which seem to be quite accurate in this domain. Thanks to all
+remark: of those who contribute to this invaluable resource. In addition, a number of other sources have been
+remark: used quite extensively and I wish to acknowledge, with thanks, the following (which is not exhaustive):
+remark: ...
+
+[Term]
+id: GAZ:00444173
+name: Swaffham Bulbeck Lode
+namespace: GAZ
+def: "A man-made channel. A lode." [url:http\://en.wikipedia.org/wiki/Cambridgeshire_Lodes]
+relationship: connected_to GAZ:00442461 ! River Cam
+relationship: located_in GAZ:00444137 ! Civil Parish of Swaffham Bulbeck
+created_by: michaelashburner
+creation_date: 2011-07-02T10:53:07Z
+
+[Term]
+id: GAZ:00444174
+name: Reach Lode
+namespace: GAZ
+def: "A man-made waterway. A lode." [url:http\://en.wikipedia.org/wiki/Cambridgeshire_Lodes]
+relationship: connected_to GAZ:00442461 ! River Cam
+relationship: partial_overlaps GAZ:00444141 ! Civil Parish of Reach
+relationship: partial_overlaps GAZ:00444215 ! Upware
+created_by: michaelashburner
+creation_date: 2011-07-02T10:53:07Z
+
+[Term]
+id: GAZ:00444175
+name: River Rhee
+namespace: GAZ
+def: "A river. It begins just off the High Street (Ashwell Springs), Ashwell in Hertfordshire running north then east 19 km through the farmland of southern Cambridgeshire." [url:http\://en.wikipedia.org/wiki/River_Cam#ref_map_12]
+relationship: partial_overlaps GAZ:00443226 ! Civil Parish of Ashwell
+relationship: tributary_of GAZ:00442461 ! River Cam
+created_by: michaelashburner
+creation_date: 2011-07-02T10:55:23Z
+
+[Term]
+id: GAZ:00444176
+name: River Granta [Essex]
+namespace: GAZ
+def: "A river. It starts near the village of Widdington in Essex flowing the 24 km north past Audley End House to merge with the Rhee a mile south of Grantchester." [url:http\://en.wikipedia.org/wiki/River_Cam#ref_map_12]
+relationship: partial_overlaps GAZ:00443944 ! Civil Parish of Great Shelford
+relationship: tributary_of GAZ:00444175 ! River Rhee
+created_by: michaelashburner
+creation_date: 2011-07-02T10:57:35Z
+
+[Term]
+id: GAZ:00444177
+name: River Granta [Haverhill]
+namespace: GAZ
+def: "A river." [url:http\://en.wikipedia.org/wiki/River_Cam#ref_map_12]
+relationship: partial_overlaps GAZ:00443963 ! Civil Parish of Linton
+relationship: tributary_of GAZ:00444176 ! River Granta [Essex]
+created_by: michaelashburner
+creation_date: 2011-07-02T10:59:29Z
+
+[Term]
+id: GAZ:00444178
+name: Byron's Pool
+namespace: GAZ
+alt_id: GAZ:00007815
+def: "A weir pool. A protected area." [url:http\://lnr.cambridge.gov.uk/reserves/byrons_pool/]
+synonym: "Byron's Pool" EXACT []
+relationship: located_in GAZ:00007814 ! Granchester
+relationship: located_in GAZ:00442461 ! River Cam
+created_by: michaelashburner
+creation_date: 2011-07-02T11:03:35Z
+
+[Term]
+id: GAZ:00444179
+name: Wellcome Trust Genome Campus
+namespace: GAZ
+def: "A scientific research campus." [url:http\://en.wikipedia.org/wiki/Wellcome_Trust_Genome_Campus]
+relationship: located_in GAZ:00443954 ! Civil Parish of Hinxton
+created_by: michaelashburner
+creation_date: 2011-07-02T11:14:42Z
+
+[Term]
+id: GAZ:00444180
+name: Wellcome Trust Sanger Institute
+namespace: GAZ
+def: "Anon-profit, genomics and genetics research institute, primarily funded by the Wellcome Trust." [url:http\://en.wikipedia.org/wiki/Wellcome_Trust_Sanger_Institute]
+synonym: "Sanger Centre" EXACT FORMER_NAME []
+relationship: located_in GAZ:00444179 ! Wellcome Trust Genome Campus
+created_by: michaelashburner
+creation_date: 2011-07-02T11:16:31Z
+
+[Term]
+id: GAZ:00444181
+name: European Bioinformatics Institute
+namespace: GAZ
+def: "A centre for research and services in bioinformatics, and is part of European Molecular Biology Laboratory (EMBL)." [url:http\://en.wikipedia.org/wiki/European_Bioinformatics_Institute]
+relationship: located_in GAZ:00444179 ! Wellcome Trust Genome Campus
+created_by: michaelashburner
+creation_date: 2011-07-02T11:16:31Z
+
+[Term]
+id: GAZ:00444182
+name: Babraham Institute
+namespace: GAZ
+def: "A life sciences institute involved in biomedical research." [url:http\://en.wikipedia.org/wiki/Babraham_Institute]
+relationship: located_in GAZ:00443907 ! Civil Parish of Babraham
+created_by: michaelashburner
+creation_date: 2011-07-02T11:18:56Z
+
+[Term]
+id: GAZ:00444183
+name: Royal Society for the Protection of Birds Fowlmere
+namespace: GAZ
+def: "A protected area; a former watercress farm." [url:http\://www.rspb.org.uk/reserves/guide/f/fowlmere/index.aspx]
+relationship: located_in GAZ:00443934 ! Civil Parish of Fowlmere
+created_by: michaelashburner
+creation_date: 2011-07-02T11:20:58Z
+
+[Term]
+id: GAZ:00444184
+name: Fowlmere Airfield
+namespace: GAZ
+def: "An airfield." [url:http\://en.wikipedia.org/wiki/Fowlmere]
+xref: ICAO:EGMA
+relationship: located_in GAZ:00443934 ! Civil Parish of Fowlmere
+created_by: michaelashburner
+creation_date: 2011-07-02T11:22:43Z
+
+[Term]
+id: GAZ:00444185
+name: Cherry Hinton
+namespace: GAZ
+def: "A suburban area of the city of Cambridge, in Cambridgeshire." [url:http\://en.wikipedia.org/wiki/Cherry_Hinton]
+relationship: located_in GAZ:00004832 ! Cambridge
+created_by: michaelashburner
+creation_date: 2011-07-02T11:28:09Z
+
+[Typedef]
+id: adjacent_to
+name: adjacent_to
+xref: RO:0002220
+is_symmetric: true

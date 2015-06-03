@@ -2,8 +2,7 @@
 use strict;
 use warnings;
 
-use Test::More;
-use Test::CacheFile;
+use Test::More tests => 12;
 use Test::Exception;
 use Test::Script::Run;
 
@@ -68,8 +67,6 @@ unlike $stderr, qr/ERROR/,
   'no loading error with valid configs and manifest';
 
 is( Antimicrobial->count, 9, 'got expected number of rows antimicrobial table after loading' );
-
-$DB::single = 1;
 
 done_testing;
 

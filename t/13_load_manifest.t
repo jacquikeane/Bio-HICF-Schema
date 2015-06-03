@@ -2,8 +2,7 @@
 use strict;
 use warnings;
 
-use Test::More;
-use Test::CacheFile;
+use Test::More tests => 14;
 use Test::Exception;
 use Test::Script::Run;
 
@@ -36,11 +35,6 @@ my $preload = sub {
 
 lives_ok { Schema->storage->dbh_do($preload) } 'successfully turned on "foreign_keys" pragma';
 
-diag 'caching ontology files';
-Test::CacheFile::cache( 'http://purl.obolibrary.org/obo/subsets/envo-basic.obo', 'envo-basic.obo' );
-Test::CacheFile::cache( 'http://purl.obolibrary.org/obo/gaz.obo', 'gaz.obo' );
-Test::CacheFile::cache( 'http://www.brenda-enzymes.info/ontology/tissue/tree/update/update_files/BrendaTissueOBO', 'bto.obo' );
-
 #-------------------------------------------------------------------------------
 
 my $script = 'bin/load_manifest';
@@ -60,9 +54,6 @@ SKIP: {
   ( $rv, $stdout, $stderr ) = run_script( $script, [ qw(-c t/data/13_checklist.conf        -d t/data/test_config.conf) ] );
   like( $stderr, qr/ERROR: you must specify an input file/, 'got expected error message with -c and -s flags' );
 
-  ( $rv, $stdout, $stderr ) = run_script( $script, [ qw(-c t/data/13_broken_checklist.conf -d t/data/13_script.conf             t/data/13_manifest.csv) ] );
-  like( $stderr, qr/ERROR: could not load configuration/, 'got expected error message with broken checklist config' );
-
   ( $rv, $stdout, $stderr ) = run_script( $script, [ qw(-c t/data/13_checklist.conf        -d t/data/13_broken_test_config.conf t/data/13_manifest.csv) ] );
   like( $stderr, qr/ERROR: there was a problem reading the script configuration.*? no EndBlock/, 'got expected error message with broken script config' );
 
@@ -71,6 +62,9 @@ SKIP: {
 
   ( $rv, $stdout, $stderr ) = run_script( $script, [ qw(-c t/data/13_checklist.conf        -d t/data/13_script.conf             t/data/13_broken_manifest.csv) ] );
   like( $stderr, qr/ERROR: there was a problem loading.*? data in the manifest are not valid/, 'got expected error message with invalid manifest' );
+
+  ( $rv, $stdout, $stderr ) = run_script( $script, [ qw(-c t/data/13_broken_checklist.conf -d t/data/13_script.conf             t/data/13_manifest.csv) ] );
+  like( $stderr, qr/ERROR: could not load configuration/, 'got expected error message with broken checklist config' );
 }
 
 is( Sample->count, 1, 'found one row in sample table before loading' );

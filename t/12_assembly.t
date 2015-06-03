@@ -3,7 +3,7 @@
 use strict;
 use warnings;
 
-use Test::More;
+use Test::More tests => 29;
 use Test::Exception;
 use Test::DBIx::Class qw( :resultsets );
 

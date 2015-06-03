@@ -367,8 +367,8 @@ sub get_all_samples {
   my $samples_rs = $self->resultset('Sample')->search(
     {},
     {
-      join     => [qw( geolocation location_description )],
-      prefetch => [qw( geolocation location_description )]
+      join     => [ 'location_description' ],
+      prefetch => [ 'location_description' ]
     }
   );
 
