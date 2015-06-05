@@ -626,6 +626,62 @@ sub add_external_resource {
 }
 
 #-------------------------------------------------------------------------------
+#- summary ---------------------------------------------------------------------
+#-------------------------------------------------------------------------------
+
+sub get_sample_summary {
+  my ( $self ) = @_;
+
+  my $summary = {};
+
+  my $samples   = $self->resultset('Sample');
+  my $manifests = $self->resultset('Manifest');
+
+  #---------------------------------------
+
+  # counts of samples with given scientific names
+  my $rs = $samples->search(
+    {},
+    {
+      select   => [ 'scientific_name', { count => 'sample_id' } ],
+      as       => [ 'scientific_name', 'sample_count' ],
+      group_by => [ 'scientific_name' ],
+    }
+  );
+      # distinct => 1,
+      # columns  => [ 'scientific_name', 'tax_id' ]
+
+  my %names = map { $_->scientific_name => $_->get_column('sample_count') } $rs->all;
+
+  $summary->{scientific_names} = \%names;
+
+  #---------------------------------------
+
+  $summary->{total_number_of_samples}   = $samples->count;
+  $summary->{total_number_of_manifests} = $manifests->count;
+
+  #---------------------------------------
+
+  # count of the number of samples from each of the sites
+  $rs = $samples->search(
+    {},
+    {
+      select   => [ 'collected_at', { count => 'sample_id' } ],
+      as       => [ 'collected_at', 'sample_count' ],
+      group_by => [ 'collected_at' ]
+    }
+  );
+
+  my %collected_at = map { $_->collected_at => $_->get_column('sample_count') } $rs->all;
+
+  $summary->{collected_at} = \%collected_at;
+
+  #---------------------------------------
+
+  return $summary;
+}
+
+#-------------------------------------------------------------------------------
 
 =head1 SEE ALSO
 
