@@ -40,10 +40,10 @@ sub load {
   croak 'not a valid row' unless ref $upload eq 'HASH';
 
   # validate the various taxonomy fields
-  $self->_taxonomy_checks($upload);
+  $self->_do_taxonomy_checks($upload);
 
   # check that the ontology terms exist
-  $self->_ontology_term_check($upload);
+  $self->_do_ontology_term_check($upload);
 
   # parse out the antimicrobial resistance data and put them back into the row
   # hash in a format that means they'll get inserted correctly in the child
@@ -143,21 +143,21 @@ sub _parse_amr_string {
 #-------------------------------------------------------------------------------
 
 # runs two checks on the taxonomy information in the upload
-sub _taxonomy_checks {
+sub _do_taxonomy_checks {
   my ( $self, $upload ) = @_;
 
   my $rs = $self->result_source
                 ->schema
                 ->resultset('Taxonomy');
 
-  $self->_tax_id_name_check( $rs, $upload );
-  $self->_specific_host_check( $rs, $upload );
+  $self->_do_tax_id_name_check( $rs, $upload );
+  $self->_do_specific_host_check( $rs, $upload );
 }
 
 #-------------------------------------------------------------------------------
 
 # taxonomy ID/scientific name consistency check
-sub _tax_id_name_check {
+sub _do_tax_id_name_check {
   my ( $self, $tax_table, $upload ) = @_;
 
   my $tax_id = $upload->{tax_id};
@@ -167,10 +167,6 @@ sub _tax_id_name_check {
 
   # we can only validate taxonomy ID/name if we have both
   return unless ( defined $tax_id and defined $name );
-
-  # additionally, we can't cross-validate if either one is "unknown"
-  return if ( $schema->is_accepted_unknown($tax_id) or
-              $schema->is_accepted_unknown($name) );
 
   # find tax ID(s) using the given name. There can, it appears, be multiple
   # nodes with different tax IDs but the same scientific name, so we need to
@@ -198,7 +194,7 @@ sub _tax_id_name_check {
 #-------------------------------------------------------------------------------
 
 # check specific host is a valid scientific name
-sub _specific_host_check {
+sub _do_specific_host_check {
   my ( $self, $tax_table, $upload ) = @_;
 
   my $name = $upload->{specific_host};
@@ -215,7 +211,7 @@ sub _specific_host_check {
 #-------------------------------------------------------------------------------
 
 # check ontology terms are found
-sub _ontology_term_check {
+sub _do_ontology_term_check {
   my ( $self, $upload ) = @_;
 
   my $schema = $self->result_source->schema;
