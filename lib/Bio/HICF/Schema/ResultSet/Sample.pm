@@ -149,10 +149,10 @@ sub _parse_amr_string {
   my $amr = [];
   while ( $amr_string =~ m/(([A-Za-z0-9\-\/\(\)\s]+);([SIR]);(lt|le|eq|gt|ge)?(\d+)(;(\w+))?),?\s*/g) {
     push @$amr, {
-      antimicrobial_name => $2,
-      susceptibility     => $3,
+      antimicrobial_name => lc $2,
+      susceptibility     => uc $3,
       mic                => $5,
-      equality           => $4 || 'eq',
+      equality           => lc( $4 || 'eq' ),
       diagnostic_centre  => $7
     }
   }
