@@ -187,6 +187,10 @@ sub _do_tax_id_name_check {
   # we can only validate taxonomy ID/name if we have both
   return unless ( defined $tax_id and defined $name );
 
+  # additionally, we can't cross-validate if either one is "unknown"
+  # return if ( $schema->is_accepted_unknown($tax_id) or
+  #             $schema->is_accepted_unknown($name) );
+
   # find tax ID(s) using the given name. There can, it appears, be multiple
   # nodes with different tax IDs but the same scientific name, so we need to
   # take that into account
