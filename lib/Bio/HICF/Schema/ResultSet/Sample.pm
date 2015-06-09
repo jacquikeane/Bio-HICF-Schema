@@ -39,8 +39,27 @@ sub load {
 
   croak 'not a valid row' unless ref $upload eq 'HASH';
 
+  my $schema = $self->result_source->schema;
+
   # validate the various taxonomy fields
   $self->_do_taxonomy_checks($upload);
+
+  # by this point we know that either "tax_id" or "scientific_name" is a valid
+  # and real taxonomy label. The database requires that "tax_id" is populated
+  # and if it's missing we can now look it up
+  if ( not defined $upload->{tax_id}                       and
+           defined $upload->{scientific_name}              and
+       not $schema->is_accepted_unknown($upload->{tax_id}) and
+       not $schema->is_accepted_unknown($upload->{scientific_name}) ) {
+
+    my $tax_id = $schema->resultset('Taxonomy')
+                        ->find({ name => $upload->{scientific_name} } )
+                        ->tax_id;
+    croak 'failed to look up taxonomy ID from scientific name; not found'
+      unless defined $tax_id;
+
+    $upload->{tax_id} = $tax_id;
+  }
 
   # check that the ontology terms exist
   $self->_do_ontology_term_check($upload);
