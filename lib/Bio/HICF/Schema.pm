@@ -164,9 +164,6 @@ sub get_manifest_object {
 
   my $constructor_args = { config_string => $checklist_config };
 
-  $constructor_args->{config_name} = $checklist_name
-    if defined $checklist_name;
-
   my $c = Bio::Metadata::Checklist->new(%$constructor_args);
 
   my @values;
