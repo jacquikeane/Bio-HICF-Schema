@@ -73,7 +73,7 @@
           undef,
           'Tate JG',
           1428658943,
-          'not available; not collected',
+          'not available: not collected',
           1,
           'Homo sapiens',
           'healthy',

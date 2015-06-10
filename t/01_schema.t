@@ -2,7 +2,7 @@
 use strict;
 use warnings;
 
-use Test::More tests => 51;
+use Test::More tests => 55;
 use File::Temp;
 use Test::DBIx::Class qw( :resultsets );
 use Test::Exception;
@@ -29,7 +29,7 @@ lives_ok { Schema->storage->dbh_do($preload) } 'successfully turned on "foreign_
 # make sure we can retrieve samples and manifests
 
 SKIP: {
-  skip 'sample/manifest retrieval', 11 if $ENV{SKIP_RETRIEVAL_TESTS};
+  skip 'sample/manifest retrieval', 32 if $ENV{SKIP_RETRIEVAL_TESTS};
 
   my $c = Bio::Metadata::Checklist->new( config_file => 't/data/01_checklist.conf' );
   my $r = Bio::Metadata::Reader->new( checklist => $c );
@@ -78,7 +78,7 @@ SKIP: {
     sample_description       => 'New sample',
     collected_at             => 'CAMBRIDGE',
     tax_id                   => 9606,
-    scientific_name          => undef,
+    scientific_name          => 'Homo sapiens',
     collected_by             => 'Tate JG',
     source                   => undef,
     collection_date          => 1428658943,
@@ -123,6 +123,11 @@ SKIP: {
     'got sample using id';
   is $sample->sample_accession, 'ERS333333', 'sample has correct accession (ERS333333)';
 
+  # retrieve all samples
+  my $all_samples_rs;
+  lives_ok { $all_samples_rs = Schema->get_all_samples } 'ran get_all_samples successfully';
+  is $all_samples_rs->count, 4, 'got expected number of samples';
+
   # check missing/non-existent accession/ID
   throws_ok { Schema->get_sample_by_accession() }
     qr/must supply a sample accession/,
@@ -163,6 +168,27 @@ SKIP: {
 
   like( $m->row_errors->[0], qr/'location' is a required field/,
     'error in manifest shows "location" as a required field' );
+
+  # check sample summary
+  my $summary;
+  lives_ok { $summary = Schema->get_sample_summary } 'got summary successfully';
+
+  my $expected_summary = {
+    collected_at => {
+      CAMBRIDGE => 1,
+      OXFORD    => 1,
+      UCL       => 2,
+    },
+    scientific_names => {
+      'Homo sapiens neanderthalensis' => 2,
+      'Homo sapiens'                  => 1,
+      'Mus musculus'                  => 1,
+      },
+    total_number_of_manifests => 3,
+    total_number_of_samples   => 4,
+  };
+
+  is_deeply $summary, $expected_summary, 'summary looks right';
 }
 
 #-------------------------------------------------------------------------------
@@ -272,8 +298,6 @@ my $resource = {
 };
 lives_ok { Schema->add_external_resource($resource) } 'no exception with valid resource';
 is( ExternalResource->count, 1, 'one resource after loading' );
-
-$DB::single = 1;
 
 done_testing;
 

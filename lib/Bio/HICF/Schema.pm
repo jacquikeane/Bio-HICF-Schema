@@ -68,9 +68,9 @@ B<Note>: this is the canonical source for this list.
 
 sub unknown_terms {
   return {
-    'not available; not collected'                        => 1,
-    'not available; restricted access'                    => 1,
-    'not available; to be reported later (35 characters)' => 1,
+    'not available: not collected'                        => 1,
+    'not available: restricted access'                    => 1,
+    'not available: to be reported later (35 characters)' => 1,
     'not applicable'                                      => 1,
     'obscured'                                            => 1,
     'temporarily obscured'                                => 1,
@@ -163,9 +163,6 @@ sub get_manifest_object {
   my $checklist_config = $checklist_row->config;
 
   my $constructor_args = { config_string => $checklist_config };
-
-  $constructor_args->{config_name} = $checklist_name
-    if defined $checklist_name;
 
   my $c = Bio::Metadata::Checklist->new(%$constructor_args);
 
@@ -623,6 +620,62 @@ sub add_external_resource {
     if $resource->in_storage;
 
   $resource->insert;
+}
+
+#-------------------------------------------------------------------------------
+#- summary ---------------------------------------------------------------------
+#-------------------------------------------------------------------------------
+
+sub get_sample_summary {
+  my ( $self ) = @_;
+
+  my $summary = {};
+
+  my $samples   = $self->resultset('Sample');
+  my $manifests = $self->resultset('Manifest');
+
+  #---------------------------------------
+
+  # counts of samples with given scientific names
+  my $rs = $samples->search(
+    {},
+    {
+      select   => [ 'scientific_name', { count => 'sample_id' } ],
+      as       => [ 'scientific_name', 'sample_count' ],
+      group_by => [ 'scientific_name' ],
+    }
+  );
+      # distinct => 1,
+      # columns  => [ 'scientific_name', 'tax_id' ]
+
+  my %names = map { $_->scientific_name => $_->get_column('sample_count') } $rs->all;
+
+  $summary->{scientific_names} = \%names;
+
+  #---------------------------------------
+
+  $summary->{total_number_of_samples}   = $samples->count;
+  $summary->{total_number_of_manifests} = $manifests->count;
+
+  #---------------------------------------
+
+  # count of the number of samples from each of the sites
+  $rs = $samples->search(
+    {},
+    {
+      select   => [ 'collected_at', { count => 'sample_id' } ],
+      as       => [ 'collected_at', 'sample_count' ],
+      group_by => [ 'collected_at' ]
+    }
+  );
+
+  my %collected_at = map { $_->collected_at => $_->get_column('sample_count') } $rs->all;
+
+  $summary->{collected_at} = \%collected_at;
+
+  #---------------------------------------
+
+  return $summary;
 }
 
 #-------------------------------------------------------------------------------

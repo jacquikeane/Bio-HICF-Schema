@@ -149,7 +149,7 @@ $columns->{sample_accession} = 'ERS654321';
 
 # check we can load data with "unknown" values
 
-$columns->{collection_date} = 'not available; not collected';
+$columns->{collection_date} = 'not available: not collected';
 lives_ok { $sample_id = Sample->load($columns) }
   'no error when loading data with "unknown" date';
 $columns->{collection_date} = '2015-01-10T14:30:00';
@@ -160,7 +160,7 @@ my $s = Sample->find(4);
 
 # collection_date
 
-is( $s->collection_date, 'not available; not collected', 'collection_date is expected unknown' );
+is( $s->collection_date, 'not available: not collected', 'collection_date is expected unknown' );
 lives_ok { $s->collection_date('obscured') }
   'no error setting collection_date to different, valid unknown';
 throws_ok { $s->collection_date('invalid unknown value') }
@@ -177,7 +177,7 @@ isa_ok $s->collection_date_dt, 'DateTime', 'collection_date_dt produces a DateTi
 throws_ok { $s->collection_date_dt('invalid unknown value') }
   qr/not unknown and can't/,
   'error setting collection_date_dt to invalid unknown';
-lives_ok { $s->collection_date_dt('not available; not collected') }
+lives_ok { $s->collection_date_dt('not available: not collected') }
   'no error setting collection_date_dt to a valid unknown';
 is( $s->collection_date_dt, undef, 'collection_date_dt is undef when set to unknown' );
 my $now = DateTime->now;
@@ -231,8 +231,8 @@ is( $s->host_associated, 1, 'host_associated set as expected' );
 lives_ok { $s->host_associated('true') } 'no error setting host_associated to valid false (true)';
 is( $s->host_associated, 1, 'host_associated set as expected' );
 
-lives_ok { $s->host_associated('not available; not collected') } 'no error setting host_associated to valid unknown';
-is( $s->host_associated, 'not available; not collected', 'host_associated set as expected' );
+lives_ok { $s->host_associated('not available: not collected') } 'no error setting host_associated to valid unknown';
+is( $s->host_associated, 'not available: not collected', 'host_associated set as expected' );
 
 throws_ok { $s->host_associated('not a valid value') }
   qr/host_associated must be true or false/,
@@ -246,9 +246,9 @@ is( $s->specific_host, 'Homo sapiens', 'specific_host set as expected' );
 lives_ok { $s->specific_host('Homo sapiens neanderthalensis') }
   'no error setting specific_host to different valid name';
 is( $s->specific_host, 'Homo sapiens neanderthalensis', 'specific_host returns expected value' );
-lives_ok { $s->specific_host('not available; not collected') }
+lives_ok { $s->specific_host('not available: not collected') }
   'no error setting specific_host to valid unknown';
-is( $s->specific_host, 'not available; not collected', 'specific_host returns expected unknown value' );
+is( $s->specific_host, 'not available: not collected', 'specific_host returns expected unknown value' );
 
 throws_ok { $s->specific_host('not a valid unknown') }
   qr/not an accepted unknown and can't find/,
@@ -262,9 +262,9 @@ is( $s->host_disease_status, 'healthy', 'host_disease_status set as expected' );
 lives_ok { $s->host_disease_status('carriage') }
   'no error setting host_disease_status to different valid term';
 is( $s->host_disease_status, 'carriage', 'host_disease_status set as expected' );
-lives_ok { $s->host_disease_status('not available; not collected') }
+lives_ok { $s->host_disease_status('not available: not collected') }
   'no error setting host_disease_status to valid unknown';
-is( $s->host_disease_status, 'not available; not collected', 'host_disease_status returns expected unknown value' );
+is( $s->host_disease_status, 'not available: not collected', 'host_disease_status returns expected unknown value' );
 
 throws_ok { $s->host_disease_status('not a valid unknown') }
   qr/must be "healthy"/,
@@ -296,9 +296,9 @@ is( $s->patient_location, 'inpatient', 'patient_location set as expected' );
 lives_ok { $s->patient_location('community') }
   'no error setting patient_location to different valid term';
 is( $s->patient_location, 'community', 'patient_location set as expected' );
-lives_ok { $s->patient_location('not available; not collected') }
+lives_ok { $s->patient_location('not available: not collected') }
   'no error setting patient_location to valid unknown';
-is( $s->patient_location, 'not available; not collected', 'patient_location returns expected unknown value' );
+is( $s->patient_location, 'not available: not collected', 'patient_location returns expected unknown value' );
 
 throws_ok { $s->patient_location('not a valid unknown') }
   qr/must be "inpatient"/,
