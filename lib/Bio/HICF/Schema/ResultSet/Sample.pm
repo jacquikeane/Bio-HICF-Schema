@@ -241,6 +241,11 @@ sub _do_ontology_term_check {
 
   # the "location" field (gazetteer ontology)
   my $gaz_id = $upload->{location};
+
+  # TODO we really should have the API know about the checklist for which
+  # TODO it's trying to load data, so that hard-coded checks for "unknown"
+  # TODO can be made more intelligent
+
   if ( defined $gaz_id and not $schema->is_accepted_unknown($gaz_id) ) {
     my $rs = $schema->resultset('Gazetteer')->find(
       { id  => $gaz_id },
