@@ -2,7 +2,7 @@
 use strict;
 use warnings;
 
-use Test::More tests => 51;
+use Test::More tests => 63;
 use File::Temp;
 use Test::DBIx::Class qw( :resultsets );
 use Test::Exception;
@@ -78,7 +78,7 @@ SKIP: {
     sample_description       => 'New sample',
     collected_at             => 'CAMBRIDGE',
     tax_id                   => 9606,
-    scientific_name          => undef,
+    scientific_name          => 'Homo sapiens',
     collected_by             => 'Tate JG',
     source                   => undef,
     collection_date          => 1428658943,
@@ -122,6 +122,34 @@ SKIP: {
   lives_ok { $sample = Schema->get_sample_by_id(2) }
     'got sample using id';
   is $sample->sample_accession, 'ERS333333', 'sample has correct accession (ERS333333)';
+
+  # retrieve all samples
+  my $all_samples_rs;
+  lives_ok { $all_samples_rs = Schema->get_all_samples } 'ran get_all_samples successfully';
+  is $all_samples_rs->count, 3, 'got expected number of samples';
+
+  lives_ok { $all_samples_rs = Schema->get_all_samples(1) } 'ran get_all_samples successfully with $include_deleted set true';
+  is $all_samples_rs->count, 4, 'got expected number of samples';
+
+  # retrieve samples for a specified organism
+  my $samples_for_organism_rs;
+  lives_ok { $samples_for_organism_rs = Schema->get_samples_from_organism(9606) }
+    'call to get samples by tax ID succeeds';
+  is $samples_for_organism_rs->count, 3, 'got three samples for 9606';
+  my @found_sample_ids;
+  push @found_sample_ids, $_->sample_id for $samples_for_organism_rs->all;
+  is_deeply( \@found_sample_ids, [ 1, 3, 4], 'got expected samples' );
+
+  lives_ok { $samples_for_organism_rs = Schema->get_samples_from_organism(9606, 1) }
+    'call to get ALL (deleted and otherwise) samples by tax ID succeeds';
+  is $samples_for_organism_rs->count, 4, 'got four samples for 9606';
+  @found_sample_ids = ();
+  push @found_sample_ids, $_->sample_id for $samples_for_organism_rs->all;
+  is_deeply( \@found_sample_ids, [ 1, 2, 3, 4], 'got expected samples' );
+
+  lives_ok { $samples_for_organism_rs = Schema->get_samples_from_organism('Homo sapiens') }
+    'call to get samples by sci name succeeds';
+  is $samples_for_organism_rs->count, 3, 'got three samples for "Homo sapiens"';
 
   # check missing/non-existent accession/ID
   throws_ok { Schema->get_sample_by_accession() }

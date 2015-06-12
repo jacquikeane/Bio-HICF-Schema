@@ -241,7 +241,7 @@
           'New sample',
           'CAMBRIDGE',
           9606,
-          undef,
+          'Homo sapiens',
           'Tate JG',
           1428658943,
           'GAZ:00444180',

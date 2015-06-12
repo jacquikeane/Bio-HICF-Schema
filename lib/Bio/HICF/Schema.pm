@@ -348,24 +348,32 @@ sub get_samples_in_manifest {
 
 #-------------------------------------------------------------------------------
 
-=head2 get_all_samples
+=head2 get_all_samples(?$include_deleted)
 
 Returns a L<DBIx::Class::ResultSet|ResultSet> containing all samples in the
 database.
 
-The sample table is joined against the ontology and geocoding tables,
-adding two relationships, C<geolocation>, which adds columns C<lat> and C<long>
-(which have values providing the sample location has been geocoded), and
-C<location_description>, which links to the gazetteer ontology and provides
-the C<description> column, giving the location description from the ontology.
+If C<$include_deleted> is false or not given, the default behaviour is for the
+returned ResultSet to contain only live (not deleted) samples. If
+C<$include_deleted> is true, the returned ResultSet may include both deleted
+and live (not deleted) samples.
+
+The sample table is joined against the ontology table, adding the
+C<location_description> relationship, which links to the gazetteer ontology and
+provides the C<description> column, giving the location description from the
+ontology.
 
 =cut
 
 sub get_all_samples {
-  my ( $self ) = @_;
+  my ( $self, $include_deleted ) = @_;
+
+  my $query = $include_deleted
+            ? { }
+            : { deleted_at => { '=', undef } };
 
   my $samples_rs = $self->resultset('Sample')->search(
-    {},
+    $query,
     {
       join     => [ 'location_description' ],
       prefetch => [ 'location_description' ]
@@ -376,10 +384,54 @@ sub get_all_samples {
 }
 
 #-------------------------------------------------------------------------------
+
+=head2 get_samples_from_organism($organism, ?$include_deleted)
+
+Returns a L<DBIx::Class::ResultSet|ResultSet> containing samples from the
+specified organism. C<$organism> can be either the taxonomy ID or scientific
+name for the desired organism.
+
+If C<$include_deleted> is false or not given, the default behaviour is for the
+returned ResultSet to contain only live (not deleted) samples. If
+C<$include_deleted> is true, the returned ResultSet may include both deleted
+and live (not deleted) samples.
+
+The sample table is joined against the location ontology table, adding the
+C<location_description> relationship, which provides the C<description> column,
+giving the location description from the ontology.
+
+=cut
+
+sub get_samples_from_organism {
+  my ( $self, $organism, $include_deleted ) = @_;
+
+  # in principle we could just throw the organism string at either the
+  # scientific_name or tax_id columnm, but if we use a scientific name to
+  # search tax_id, SQLite complains (used in testing). As a work-around we'll
+  # just split the query
+
+  my $column = ( $organism =~ m/^\d+$/ )
+            ? 'tax_id'
+            : 'scientific_name';
+
+  my $query = { $column => $organism };
+
+  $query->{deleted_at} = { '=', undef } unless $include_deleted;
+
+  return $self->resultset('Sample')->search(
+    $query,
+    {
+      join     => ['location_description'],
+      prefetch => ['location_description']
+    }
+  );
+}
+
+#-------------------------------------------------------------------------------
 #- assemblies ------------------------------------------------------------------
 #-------------------------------------------------------------------------------
 
-=head2 load_assembly
+=head2 load_assembly($path)
 
 Given a path to an assembly file, this method stores the file location in the
 L<Bio::HICF::Schema::Result::File|File> and
