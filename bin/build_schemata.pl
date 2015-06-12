@@ -24,6 +24,10 @@ my $password = $ENV{HICF_DB_PASSWORD};
 
 my $dump_path = './lib';
 
+die 'ERROR: must set $ENV{HICF_DB_DATA_DATABASE} and $ENV{HICF_DB_USER_DATABASE'
+  unless ( defined $ENV{HICF_DB_DATA_DATABASE} and
+           defined $ENV{HICF_DB_USER_DATABASE} );
+
 #-------------------------------------------------------------------------------
 
 # first, the schema containing the HICF data:
