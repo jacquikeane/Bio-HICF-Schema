@@ -39,11 +39,30 @@ sub load {
 
   croak 'not a valid row' unless ref $upload eq 'HASH';
 
+  my $schema = $self->result_source->schema;
+
   # validate the various taxonomy fields
-  $self->_taxonomy_checks($upload);
+  $self->_do_taxonomy_checks($upload);
+
+  # by this point we know that either "tax_id" or "scientific_name" is a valid
+  # and real taxonomy label. The database requires that "tax_id" is populated
+  # and if it's missing we can now look it up
+  if ( not defined $upload->{tax_id}                       and
+           defined $upload->{scientific_name}              and
+       not $schema->is_accepted_unknown($upload->{tax_id}) and
+       not $schema->is_accepted_unknown($upload->{scientific_name}) ) {
+
+    my $tax_id = $schema->resultset('Taxonomy')
+                        ->find({ name => $upload->{scientific_name} } )
+                        ->tax_id;
+    croak 'failed to look up taxonomy ID from scientific name; not found'
+      unless defined $tax_id;
+
+    $upload->{tax_id} = $tax_id;
+  }
 
   # check that the ontology terms exist
-  $self->_ontology_term_check($upload);
+  $self->_do_ontology_term_check($upload);
 
   # parse out the antimicrobial resistance data and put them back into the row
   # hash in a format that means they'll get inserted correctly in the child
@@ -130,10 +149,10 @@ sub _parse_amr_string {
   my $amr = [];
   while ( $amr_string =~ m/(([A-Za-z0-9\-\/\(\)\s]+);([SIR]);(lt|le|eq|gt|ge)?(\d+)(;(\w+))?),?\s*/g) {
     push @$amr, {
-      antimicrobial_name => $2,
-      susceptibility     => $3,
+      antimicrobial_name => lc $2,
+      susceptibility     => uc $3,
       mic                => $5,
-      equality           => $4 || 'eq',
+      equality           => lc( $4 || 'eq' ),
       diagnostic_centre  => $7
     }
   }
@@ -143,21 +162,21 @@ sub _parse_amr_string {
 #-------------------------------------------------------------------------------
 
 # runs two checks on the taxonomy information in the upload
-sub _taxonomy_checks {
+sub _do_taxonomy_checks {
   my ( $self, $upload ) = @_;
 
   my $rs = $self->result_source
                 ->schema
                 ->resultset('Taxonomy');
 
-  $self->_tax_id_name_check( $rs, $upload );
-  $self->_specific_host_check( $rs, $upload );
+  $self->_do_tax_id_name_check( $rs, $upload );
+  $self->_do_specific_host_check( $rs, $upload );
 }
 
 #-------------------------------------------------------------------------------
 
 # taxonomy ID/scientific name consistency check
-sub _tax_id_name_check {
+sub _do_tax_id_name_check {
   my ( $self, $tax_table, $upload ) = @_;
 
   my $tax_id = $upload->{tax_id};
@@ -169,8 +188,8 @@ sub _tax_id_name_check {
   return unless ( defined $tax_id and defined $name );
 
   # additionally, we can't cross-validate if either one is "unknown"
-  return if ( $schema->is_accepted_unknown($tax_id) or
-              $schema->is_accepted_unknown($name) );
+  # return if ( $schema->is_accepted_unknown($tax_id) or
+  #             $schema->is_accepted_unknown($name) );
 
   # find tax ID(s) using the given name. There can, it appears, be multiple
   # nodes with different tax IDs but the same scientific name, so we need to
@@ -198,7 +217,7 @@ sub _tax_id_name_check {
 #-------------------------------------------------------------------------------
 
 # check specific host is a valid scientific name
-sub _specific_host_check {
+sub _do_specific_host_check {
   my ( $self, $tax_table, $upload ) = @_;
 
   my $name = $upload->{specific_host};
@@ -215,13 +234,18 @@ sub _specific_host_check {
 #-------------------------------------------------------------------------------
 
 # check ontology terms are found
-sub _ontology_term_check {
+sub _do_ontology_term_check {
   my ( $self, $upload ) = @_;
 
   my $schema = $self->result_source->schema;
 
   # the "location" field (gazetteer ontology)
   my $gaz_id = $upload->{location};
+
+  # TODO we really should have the API know about the checklist for which
+  # TODO it's trying to load data, so that hard-coded checks for "unknown"
+  # TODO can be made more intelligent
+
   if ( defined $gaz_id and not $schema->is_accepted_unknown($gaz_id) ) {
     my $rs = $schema->resultset('Gazetteer')->find(
       { id  => $gaz_id },

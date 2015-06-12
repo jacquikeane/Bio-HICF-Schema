@@ -35,7 +35,7 @@ sub load {
   chomp $am_name;
 
   $self->find_or_create(
-    { name => $am_name },
+    { name => lc $am_name },
     { key => 'primary' }
   );
 }
