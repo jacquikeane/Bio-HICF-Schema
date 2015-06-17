@@ -2,7 +2,7 @@
 use strict;
 use warnings;
 
-use Test::More tests => 65;
+use Test::More tests => 74;
 use File::Temp;
 use Test::DBIx::Class qw( :resultsets );
 use Test::Exception;
@@ -28,192 +28,213 @@ lives_ok { Schema->storage->dbh_do($preload) } 'successfully turned on "foreign_
 
 # make sure we can retrieve samples and manifests
 
-SKIP: {
-  skip 'sample/manifest retrieval', 32 if $ENV{SKIP_RETRIEVAL_TESTS};
+my $c = Bio::Metadata::Checklist->new( config_file => 't/data/01_checklist.conf' );
+my $r = Bio::Metadata::Reader->new( checklist => $c );
+my $m = $r->read_csv('t/data/01_manifest.csv');
 
-  my $c = Bio::Metadata::Checklist->new( config_file => 't/data/01_checklist.conf' );
-  my $r = Bio::Metadata::Reader->new( checklist => $c );
-  my $m = $r->read_csv('t/data/01_manifest.csv');
+# check loading shortcuts on the schema; load a manifest and an assembly file
+lives_ok { Schema->load_manifest($m) } 'loading valid manifest works';
+lives_ok { Schema->load_assembly('/home/testuser/ERS111111_123456789012345678901234567890ab_12345678-1234-1234-1234-1234567890ab.fa') } 'loading an assembly works';
 
-  # check loading shortcuts on the schema; load a manifest and an assembly file
-  lives_ok { Schema->load_manifest($m) } 'loading valid manifest works';
-  lives_ok { Schema->load_assembly('/home/testuser/ERS111111_123456789012345678901234567890ab_12345678-1234-1234-1234-1234567890ab.fa') } 'loading an assembly works';
+# retrieve a manifest row
+my $retrieved_manifest_row;
+lives_ok { $retrieved_manifest_row = Schema->get_manifest($m->uuid) }
+  '"get_manifest" lives';
+isa_ok $retrieved_manifest_row, 'Bio::HICF::Schema::Result::Manifest';
 
-  # retrieve a manifest row
-  my $retrieved_manifest_row;
-  lives_ok { $retrieved_manifest_row = Schema->get_manifest($m->uuid) }
-    '"get_manifest" lives';
-  isa_ok $retrieved_manifest_row, 'Bio::HICF::Schema::Result::Manifest';
+# retrieve a manifest object
+my $retrieved_manifest_object;
+lives_ok { $retrieved_manifest_object = Schema->get_manifest_object($m->uuid) }
+  '"get_manifest_object" lives';
+isa_ok $retrieved_manifest_object, 'Bio::Metadata::Manifest';
 
-  # retrieve a manifest object
-  my $retrieved_manifest_object;
-  lives_ok { $retrieved_manifest_object = Schema->get_manifest_object($m->uuid) }
-    '"get_manifest_object" lives';
-  isa_ok $retrieved_manifest_object, 'Bio::Metadata::Manifest';
+# generate a manifest from the DB and compare it to the one we used to load the
+# data. Spoof the MD5, UUID and config filename
+my $new_m = Schema->get_manifest_object($m->uuid);
+$new_m->md5($m->md5);
+$new_m->uuid($m->uuid);
+$new_m->checklist->{config_file} = 't/data/01_checklist.conf';
+$new_m->_set_fh($m->_fh);
+$new_m->_set_csv($m->_csv);
 
-  # generate a manifest from the DB and compare it to the one we used to load the
-  # data. Spoof the MD5, UUID and config filename
-  my $new_m = Schema->get_manifest_object($m->uuid);
-  $new_m->md5($m->md5);
-  $new_m->uuid($m->uuid);
-  $new_m->checklist->{config_file} = 't/data/01_checklist.conf';
-  $new_m->_set_fh($m->_fh);
-  $new_m->_set_csv($m->_csv);
+is_deeply( $m, $new_m, 'manifest generated from the DB matches original' );
 
-  is_deeply( $m, $new_m, 'manifest generated from the DB matches original' );
+throws_ok { Schema->get_manifest_object('x') }
+  qr/not a valid manifest ID/,
+  '"get_manifest_object" throws an exception with bad manifest ID';
 
-  throws_ok { Schema->get_manifest_object('x') }
-    qr/not a valid manifest ID/,
-    '"get_manifest_object" throws an exception with bad manifest ID';
+# load a new version of one of the samples
 
-  # load a new version of one of the samples
+# this manifest is pre-loaded as a fixture
+my $other_manifest_id = '0162F712-1DD2-11B2-B17E-C09EFE1DC403';
 
-  # this manifest is pre-loaded as a fixture
-  my $other_manifest_id = '0162F712-1DD2-11B2-B17E-C09EFE1DC403';
+my $duplicate_row = {
+  manifest_id              => $other_manifest_id,
+  raw_data_accession       => 'rda:2',       #\_ these two rows are the ones that
+  sample_accession         => 'ERS333333',   #/  determine if it's a duplicate
+  sample_description       => 'New sample',
+  collected_at             => 'CAMBRIDGE',
+  tax_id                   => 9606,
+  scientific_name          => 'Homo sapiens',
+  collected_by             => 'Tate JG',
+  source                   => undef,
+  collection_date          => 1428658943,
+  location                 => 'GAZ:00444180',
+  host_associated          => 1,
+  specific_host            => 'Homo sapiens',
+  host_disease_status      => 'healthy',
+  host_isolation_source    => 'BTO:0000645',
+  patient_location         => 'inpatient',
+  isolation_source         => undef,
+  serovar                  => 'serovar',
+  other_classification     => undef,
+  strain                   => 'strain',
+  isolate                  => undef,
+  antimicrobial_resistance => 'am1;I;25',
+};
+Sample->load($duplicate_row);
 
-  my $duplicate_row = {
-    manifest_id              => $other_manifest_id,
-    raw_data_accession       => 'rda:2',       #\_ these two rows are the ones that
-    sample_accession         => 'ERS333333',   #/  determine if it's a duplicate
-    sample_description       => 'New sample',
-    collected_at             => 'CAMBRIDGE',
-    tax_id                   => 9606,
-    scientific_name          => 'Homo sapiens',
-    collected_by             => 'Tate JG',
-    source                   => undef,
-    collection_date          => 1428658943,
-    location                 => 'GAZ:00444180',
-    host_associated          => 1,
-    specific_host            => 'Homo sapiens',
-    host_disease_status      => 'healthy',
-    host_isolation_source    => 'BTO:0000645',
-    patient_location         => 'inpatient',
-    isolation_source         => undef,
-    serovar                  => 'serovar',
-    other_classification     => undef,
-    strain                   => 'strain',
-    isolate                  => undef,
-    antimicrobial_resistance => 'am1;I;25',
-  };
-  Sample->load($duplicate_row);
+# retrieve all versions of a sample using a sample accession
+my @samples;
+lives_ok { @samples = Schema->get_sample_versions_by_accession('ERS333333') }
+  'got sample versions using accession';
+is scalar @samples, 2, 'got expected number of samples (2)';
 
-  # retrieve all versions of a sample using a sample accession
-  my @samples;
-  lives_ok { @samples = Schema->get_sample_versions_by_accession('ERS333333') }
-    'got sample versions using accession';
-  is scalar @samples, 2, 'got expected number of samples (2)';
+# same but for a sample with only a single version
+lives_ok { @samples = Schema->get_sample_versions_by_accession('ERS444444') }
+  'got sample with a single version using accession';
+is scalar @samples, 1, 'got expected number of samples (1)';
 
-  # same but for a sample with only a single version
-  lives_ok { @samples = Schema->get_sample_versions_by_accession('ERS444444') }
-    'got sample with a single version using accession';
-  is scalar @samples, 1, 'got expected number of samples (1)';
+# check it works in scalar context too
+my $sample;
+lives_ok { $sample = Schema->get_sample_versions_by_accession('ERS444444') }
+  'got single sample version using accession';
 
-  # check it works in scalar context too
-  my $sample;
-  lives_ok { $sample = Schema->get_sample_versions_by_accession('ERS444444') }
-    'got single sample version using accession';
+# retrieve latest version of a sample using a sample accession
+lives_ok { $sample = Schema->get_sample_by_accession('ERS333333') }
+  'got latest sample version using accession';
+is $sample->sample_id, 4, 'sample has correct ID (4)';
 
-  # retrieve latest version of a sample using a sample accession
-  lives_ok { $sample = Schema->get_sample_by_accession('ERS333333') }
-    'got latest sample version using accession';
-  is $sample->sample_id, 4, 'sample has correct ID (4)';
+# retrieve a sample using a sample ID
+lives_ok { $sample = Schema->get_sample_by_id(2) }
+  'got sample using id';
+is $sample->sample_accession, 'ERS333333', 'sample has correct accession (ERS333333)';
 
-  # retrieve a sample using a sample ID
-  lives_ok { $sample = Schema->get_sample_by_id(2) }
-    'got sample using id';
-  is $sample->sample_accession, 'ERS333333', 'sample has correct accession (ERS333333)';
+# retrieve all samples
+my $all_samples_rs;
+lives_ok { $all_samples_rs = Schema->get_all_samples } 'ran get_all_samples successfully';
+is $all_samples_rs->count, 3, 'got expected number of samples (3)';
 
-  # retrieve all samples
-  my $all_samples_rs;
-  lives_ok { $all_samples_rs = Schema->get_all_samples } 'ran get_all_samples successfully';
-  is $all_samples_rs->count, 3, 'got expected number of samples (3)';
+lives_ok { $all_samples_rs = Schema->get_all_samples(1) } 'ran get_all_samples successfully with $include_deleted set true';
+is $all_samples_rs->count, 4, 'got expected number of samples (4)';
 
-  lives_ok { $all_samples_rs = Schema->get_all_samples(1) } 'ran get_all_samples successfully with $include_deleted set true';
-  is $all_samples_rs->count, 4, 'got expected number of samples (4)';
+# check filtering
+my $filtered_rs;
+lives_ok { $filtered_rs = Schema->filter_rs($all_samples_rs, [ qw( scientific_name sample_description ) ], 'neander' ) }
+  'filter_rs ran successfully';
+is( $filtered_rs->count, 2, 'filtered down to expected number of samples (2)' );
 
-  # retrieve samples for a specified organism
-  my $samples_for_organism_rs;
-  lives_ok { $samples_for_organism_rs = Schema->get_samples_from_organism(9606) }
-    'call to get samples by tax ID succeeds';
-  is $samples_for_organism_rs->count, 1, 'got one sample for 9606';
+my @found_sample_ids = ();
+push @found_sample_ids, $_->sample_id for $filtered_rs->all;
+is_deeply( \@found_sample_ids, [ 2, 3 ], 'got expected samples' );
 
-  $samples_for_organism_rs = Schema->get_samples_from_organism(63221);
-  is $samples_for_organism_rs->count, 1, 'got one sample for 63221';
+# retrieve a page of samples
+lives_ok { $all_samples_rs = Schema->get_samples(0,1) } 'ran get_samples successfully';
+is $all_samples_rs->count, 2, 'got expected_number of samples (2)';
 
-  lives_ok { $samples_for_organism_rs = Schema->get_samples_from_organism(63221, 1) }
-    'call to get ALL (deleted and otherwise) samples by tax ID succeeds';
-  is $samples_for_organism_rs->count, 2, 'got two samples for 63221';
+@found_sample_ids = ();
+push @found_sample_ids, $_->sample_id for $all_samples_rs->all;
+is_deeply( \@found_sample_ids, [ 1, 3 ], 'got expected samples' );
 
-  my @found_sample_ids = ();
-  push @found_sample_ids, $_->sample_id for $samples_for_organism_rs->all;
-  is_deeply( \@found_sample_ids, [ 2, 3 ], 'got expected samples' );
+lives_ok { $all_samples_rs = Schema->get_samples(1,2) } 'ran get_samples successfully';
+is $all_samples_rs->count, 2, 'got expected_number of samples (2)';
 
-  lives_ok { $samples_for_organism_rs = Schema->get_samples_from_organism('Homo sapiens') }
-    'call to get samples by sci name succeeds';
-  is $samples_for_organism_rs->count, 1, 'got one sample for "Homo sapiens"';
+@found_sample_ids = ();
+push @found_sample_ids, $_->sample_id for $all_samples_rs->all;
+is_deeply( \@found_sample_ids, [ 3, 4 ], 'got expected samples' );
 
-  # check missing/non-existent accession/ID
-  throws_ok { Schema->get_sample_by_accession() }
-    qr/must supply a sample accession/,
-    'got error with missing accession';
-  throws_ok { Schema->get_sample_by_id() }
-    qr/must supply a sample ID/,
-    'got error with missing ID';
-  is Schema->get_sample_by_accession('ERS999999'), undef,
-    '"get_sample_by_accession" returns undef with non-existent accession';
-  is Schema->get_sample_by_id(999999), undef,
-    '"get_sample_by_id" returns undef with non-existent id';
+# retrieve samples for a specified organism
+my $samples_for_organism_rs;
+lives_ok { $samples_for_organism_rs = Schema->get_all_samples_from_organism(9606) }
+  'call to get all samples by tax ID succeeds';
+is $samples_for_organism_rs->count, 1, 'got one sample for 9606';
 
-  # TODO make these tests reflect the reality described in the POD for
-  # TODO get_samples_in_manifest...
+$samples_for_organism_rs = Schema->get_all_samples_from_organism(63221);
+is $samples_for_organism_rs->count, 1, 'got one sample for 63221';
 
-  # check sample rows returned via a manifest
-  my $samples_in_manifest;
-  lives_ok { $samples_in_manifest = Schema->get_samples_in_manifest($m->uuid) }
-    "'get_samples_in_manifest' successful";
-  is $samples_in_manifest->count, 1, 'got expected 1 sample in resultset';
-  is $samples_in_manifest->first->sample_accession, 'ERS444444',
-    'sample has expected accession';
+lives_ok { $samples_for_organism_rs = Schema->get_all_samples_from_organism(63221, 1) }
+  'call to get ALL (deleted and otherwise) samples by tax ID succeeds';
+is $samples_for_organism_rs->count, 2, 'got two samples for 63221';
 
-  lives_ok { $samples_in_manifest = Schema->get_samples_in_manifest($m->uuid, 1) }
-    q('get_samples_in_manifest' successful with $included_deleted true);
+@found_sample_ids = ();
+push @found_sample_ids, $_->sample_id for $samples_for_organism_rs->all;
+is_deeply( \@found_sample_ids, [ 2, 3 ], 'got expected samples' );
 
-  is( $samples_in_manifest->count, 2, 'got expected 2 samples in resultset' );
-  is( $samples_in_manifest->first->sample_accession, 'ERS333333', 'first sample looks right' );
-  is( $samples_in_manifest->next->sample_accession, 'ERS444444', 'second sample looks right' );
+lives_ok { $samples_for_organism_rs = Schema->get_all_samples_from_organism('Homo sapiens') }
+  'call to get all samples by sci name succeeds';
+is $samples_for_organism_rs->count, 1, 'got one sample for "Homo sapiens"';
 
-  # test insert failure behaviour
-  $m->rows->[0]->[0] = 'rda:99';
-  $m->rows->[0]->[9] = undef;
+# check missing/non-existent accession/ID
+throws_ok { Schema->get_sample_by_accession() }
+  qr/must supply a sample accession/,
+  'got error with missing accession';
+throws_ok { Schema->get_sample_by_id() }
+  qr/must supply a sample ID/,
+  'got error with missing ID';
+is Schema->get_sample_by_accession('ERS999999'), undef,
+  '"get_sample_by_accession" returns undef with non-existent accession';
+is Schema->get_sample_by_id(999999), undef,
+  '"get_sample_by_id" returns undef with non-existent id';
 
-  # check for error messages in the manifest after a failure
-  throws_ok { Schema->load_manifest($m) } qr/the data in the manifest are not valid/,
-    'got an exception when loading a manifest without a "location" value';
+# TODO make these tests reflect the reality described in the POD for
+# TODO get_samples_in_manifest...
 
-  like( $m->row_errors->[0], qr/'location' is a required field/,
-    'error in manifest shows "location" as a required field' );
+# check sample rows returned via a manifest
+my $samples_in_manifest;
+lives_ok { $samples_in_manifest = Schema->get_samples_in_manifest($m->uuid) }
+  "'get_samples_in_manifest' successful";
+is $samples_in_manifest->count, 1, 'got expected 1 sample in resultset';
+is $samples_in_manifest->first->sample_accession, 'ERS444444',
+  'sample has expected accession';
 
-  # check sample summary
-  my $summary;
-  lives_ok { $summary = Schema->get_sample_summary } 'got summary successfully';
+lives_ok { $samples_in_manifest = Schema->get_samples_in_manifest($m->uuid, 1) }
+  q('get_samples_in_manifest' successful with $included_deleted true);
 
-  my $expected_summary = {
-    collected_at => {
-      CAMBRIDGE => 1,
-      OXFORD    => 1,
-      UCL       => 2,
+is( $samples_in_manifest->count, 2, 'got expected 2 samples in resultset' );
+is( $samples_in_manifest->first->sample_accession, 'ERS333333', 'first sample looks right' );
+is( $samples_in_manifest->next->sample_accession, 'ERS444444', 'second sample looks right' );
+
+# test insert failure behaviour
+$m->rows->[0]->[0] = 'rda:99';
+$m->rows->[0]->[9] = undef;
+
+# check for error messages in the manifest after a failure
+throws_ok { Schema->load_manifest($m) } qr/the data in the manifest are not valid/,
+  'got an exception when loading a manifest without a "location" value';
+
+like( $m->row_errors->[0], qr/'location' is a required field/,
+  'error in manifest shows "location" as a required field' );
+
+# check sample summary
+my $summary;
+lives_ok { $summary = Schema->get_sample_summary } 'got summary successfully';
+
+my $expected_summary = {
+  collected_at => {
+    CAMBRIDGE => 1,
+    OXFORD    => 1,
+    UCL       => 2,
+  },
+  scientific_names => {
+    'Homo sapiens neanderthalensis' => 2,
+    'Homo sapiens'                  => 1,
+    'Mus musculus'                  => 1,
     },
-    scientific_names => {
-      'Homo sapiens neanderthalensis' => 2,
-      'Homo sapiens'                  => 1,
-      'Mus musculus'                  => 1,
-      },
-    total_number_of_manifests => 3,
-    total_number_of_samples   => 4,
-  };
+  total_number_of_manifests => 3,
+  total_number_of_samples   => 4,
+};
 
-  is_deeply $summary, $expected_summary, 'summary looks right';
-}
+is_deeply $summary, $expected_summary, 'summary looks right';
 
 #-------------------------------------------------------------------------------
 
