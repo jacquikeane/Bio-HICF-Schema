@@ -438,6 +438,43 @@ with 'Bio::HICF::Schema::Role::Sample', 'Bio::HICF::Schema::Role::Undeletable';
 # Created by DBIx::Class::Schema::Loader v0.07042 @ 2015-06-12 16:07:46
 # DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:OEUk9JennJTHaTlip4KELg
 
+=head2 get_amr
+
+Returns a L<DBIx::Class::ResultSet|ResultSet> containing AMR data for this
+sample.
+
+=cut
+
+sub get_amr {
+  my $self = shift;
+
+  my $rs = $self->search_related(
+    'antimicrobial_resistances',
+    {
+      deleted_at => { '=', undef }
+    }
+  );
+
+  return $rs;
+}
+
+#-------------------------------------------------------------------------------
+
+=head2 has_amr
+
+Returns true if this sample has one or more live (not deleted) antimicrobial
+resistance test results.
+
+=cut
+
+sub has_amr {
+  my $self = shift;
+
+  return $self->get_amr->count ? 1 : 0;
+}
+
+#-------------------------------------------------------------------------------
+
 __PACKAGE__->add_unique_constraint(
   sample_uc => [ qw( manifest_id raw_data_accession sample_accession ) ]
 );
@@ -448,6 +485,8 @@ __PACKAGE__->might_have(
   'Bio::HICF::Schema::Result::Gazetteer',
   { 'foreign.id' => 'self.location' },
 );
+
+#-------------------------------------------------------------------------------
 
 __PACKAGE__->meta->make_immutable;
 1;
