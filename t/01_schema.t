@@ -2,12 +2,9 @@
 use strict;
 use warnings;
 
-use Test::More tests => 74;
-use File::Temp;
+use Test::More tests => 83;
 use Test::DBIx::Class qw( :resultsets );
 use Test::Exception;
-use Archive::Tar;
-use Data::UUID;
 
 use Bio::Metadata::Checklist;
 use Bio::Metadata::Reader;
@@ -90,7 +87,7 @@ my $duplicate_row = {
   other_classification     => undef,
   strain                   => 'strain',
   isolate                  => undef,
-  antimicrobial_resistance => 'am1;I;25',
+  antimicrobial_resistance => 'am1;R;25',
 };
 Sample->load($duplicate_row);
 
@@ -174,6 +171,30 @@ lives_ok { $samples_for_organism_rs = Schema->get_all_samples_from_organism('Hom
   'call to get all samples by sci name succeeds';
 is $samples_for_organism_rs->count, 1, 'got one sample for "Homo sapiens"';
 
+# retrieve samples with specified AMR results
+my $amr_rs;
+lives_ok { $amr_rs = Schema->get_samples_with_amr( sir => 'S' ) } '"get_samples_with_amr" succeeeds';
+is $amr_rs->count, 2, 'got expected number of susceptible samples (2)';
+
+$amr_rs = Schema->get_samples_with_amr( sir => 'R' );
+is $amr_rs->count, 1, 'got expected number of resistant samples (1)';
+is $amr_rs->first->sample_id, 4, 'got expected samples (sample_id == 4)';
+
+$amr_rs = Schema->get_samples_with_amr( name => 'am1', sir => 'S' );
+is $amr_rs->count, 2, 'got expected number of samples susceptible to "am1" (2)';
+@found_sample_ids = ();
+push @found_sample_ids, $_->sample_id for $amr_rs->all;
+is_deeply( \@found_sample_ids, [ 1, 3 ], 'got expected samples' );
+
+$amr_rs = Schema->get_samples_with_amr( name => 'am1', sir => 'S', equality => 'le' );
+is $amr_rs->count, 1, 'got one sample susceptible to "am1" with equality "le"';
+
+$amr_rs = Schema->get_samples_with_amr( name => 'am1', sir => 'S', equality => 'le', mic => 10 );
+is $amr_rs->count, 1, 'got one sample susceptible to "am1" with mic <= 10';
+
+$amr_rs = Schema->get_samples_with_amr( name => 'am1', sir => 'S', equality => 'le', mic => 99 );
+is $amr_rs->count, 0, 'got no samples susceptible to "am1" with mic <= 99';
+
 # check missing/non-existent accession/ID
 throws_ok { Schema->get_sample_by_accession() }
   qr/must supply a sample accession/,
@@ -192,7 +213,7 @@ is Schema->get_sample_by_id(999999), undef,
 # check sample rows returned via a manifest
 my $samples_in_manifest;
 lives_ok { $samples_in_manifest = Schema->get_samples_in_manifest($m->uuid) }
-  "'get_samples_in_manifest' successful";
+  '"get_samples_in_manifest" successful';
 is $samples_in_manifest->count, 1, 'got expected 1 sample in resultset';
 is $samples_in_manifest->first->sample_accession, 'ERS444444',
   'sample has expected accession';
@@ -229,9 +250,24 @@ my $expected_summary = {
     'Homo sapiens neanderthalensis' => 2,
     'Homo sapiens'                  => 1,
     'Mus musculus'                  => 1,
-    },
+  },
+
   total_number_of_manifests => 3,
-  total_number_of_samples   => 4,
+  sir_counts                => {
+    S => 3,
+    I => 2,
+    R => 1,
+  },
+  total_number_of_samples => 4,
+  compound_counts         => {
+    am1 => {
+      R => 1,
+      S => 3,
+    },
+    am2 => {
+      I => 2,
+    },
+  },
 };
 
 is_deeply $summary, $expected_summary, 'summary looks right';

@@ -36,7 +36,9 @@ use Email::Valid;
 use File::Basename;
 use List::MoreUtils qw( mesh );
 
-use Bio::Metadata::Types qw( UUID OntologyTerm );
+use MooseX::Types::Moose qw( Str Int Num );
+
+use Bio::Metadata::Types qw( UUID OntologyTerm SIRTerm AMREquality );
 use Bio::Metadata::Checklist;
 use Bio::Metadata::Validator;
 use Bio::Metadata::TaxTree;
@@ -367,13 +369,13 @@ sub get_all_samples {
 
   my $query = $include_deleted
             ? { }
-            : { deleted_at => { '=', undef } };
+            : { 'me.deleted_at' => { '=', undef } };
 
   my $samples_rs = $self->resultset('Sample')->search(
     $query,
     {
-      join     => [ 'location_description' ],
-      prefetch => [ 'location_description' ]
+      join     => [ qw( location_description antimicrobial_resistances ) ],
+      prefetch => [ qw( location_description antimicrobial_resistances ) ]
     }
   );
 
@@ -382,9 +384,9 @@ sub get_all_samples {
 
 #-------------------------------------------------------------------------------
 
-=head2 get_samples_from_organism($organism, ?$include_deleted)
+=head2 get_all_samples_from_organism($organism, ?$include_deleted)
 
-Returns a L<DBIx::Class::ResultSet|ResultSet> containing samples from the
+Returns a L<DBIx::Class::ResultSet|ResultSet> containing all samples from the
 specified organism. C<$organism> can be either the taxonomy ID or scientific
 name for the desired organism.
 
@@ -399,7 +401,7 @@ giving the location description from the ontology.
 
 =cut
 
-sub get_samples_from_organism {
+sub get_all_samples_from_organism {
   my ( $self, $organism, $include_deleted ) = @_;
 
   # in principle we could just throw the organism string at either the
@@ -415,7 +417,7 @@ sub get_samples_from_organism {
 
   $query->{deleted_at} = { '=', undef } unless $include_deleted;
 
-  return $self->resultset('Sample')->search(
+  return $self->resultset('Sample')->search_rs(
     $query,
     {
       join     => ['location_description'],
@@ -423,6 +425,171 @@ sub get_samples_from_organism {
     }
   );
 }
+
+#-------------------------------------------------------------------------------
+
+=head2 get_samples(?$first, ?$last)
+
+Returns a L<DBIx::Class::ResultSet|ResultSet> containing a subset of samples in
+the database, corresponding to rows C<first> to C<$last>. If C<$first> is not given it
+default to 0, the first row in the C<sample> table. If C<$last> is not given
+it defaults to 9, the 10th row in the table.
+
+=cut
+
+sub get_samples {
+  my ( $self, $first, $last ) = @_;
+
+  my $rs = $self->resultset('Sample')->search(
+    {
+      deleted_at => { '=', undef },
+    },
+    {
+      join     => [ 'location_description' ],
+      prefetch => [ 'location_description' ]
+    }
+  )->slice( $first || 0, $last || 9 );
+
+  return $rs;
+}
+
+#-------------------------------------------------------------------------------
+
+=head2 get_samples_with_amr(%params_hash)
+
+Returns samples with AMR records that exactly match those specified in
+C<%params_hash>. The parameters hash should contain one or more of the following
+keys, but all are otherwise optional:
+
+=over
+
+=item name
+
+antimicrobial compound name
+
+=item sir
+
+susceptibility code. Must be one of C<S>, C<I> or C<R>
+
+=item equality
+
+equality for AMR test. See below
+
+=item mic
+
+minimum inhibitory concentration (in mg/l)
+
+=back
+
+The equality must be one of:
+
+=over
+
+=item le
+
+less than or equal to
+
+=item lt
+
+less than
+
+=item eq
+
+equals
+
+=item gt
+
+greater than
+
+=item ge
+
+greater than or equal to
+
+=back
+
+=cut
+
+sub get_samples_with_amr {
+  my ( $self, %params ) = validated_hash(
+    \@_,
+    name     => { isa => Str,         optional => 1 },
+    sir      => { isa => SIRTerm,     optional => 1 },
+    equality => { isa => AMREquality, optional => 1 },
+    mic      => { isa => Num,         optional => 1 }
+  );
+
+  die 'Not enough parameters' unless scalar keys %params;
+
+  my $query = { 'me.deleted_at' => { '=', undef } };
+
+  $query->{antimicrobial_name} = $params{name}     if $params{name};
+  $query->{susceptibility}     = $params{sir}      if $params{sir};
+  $query->{equality}           = $params{equality} if $params{equality};
+  $query->{mic}                = $params{mic}      if $params{mic};
+
+  my $rs = $self->resultset('Sample')->search(
+    $query,
+    {
+      join     => [ qw( antimicrobial_resistances location_description ) ],
+      prefetch => [ qw( antimicrobial_resistances location_description ) ],
+    }
+  );
+
+  return $rs;
+}
+
+#-------------------------------------------------------------------------------
+
+=head2 get_samples_by_amr(%params_hash)
+
+Returns all samples matching the AMR parameters specified in C<%params_hash>.
+Note that the equality and MIC are treated as a cut-off, rather being matched
+exactly to the values in the C<antimicrobial_resistance> table. Use
+L<get_samples_with_amr> to perform a straight comparison of values.
+
+=cut
+
+# TODO this method is intended to answer the question: "show me all samples
+# TODO that are resistant to vancomycin at <= 50 mg/l"
+
+# sub get_samples_by_amr {
+#   my ( $self, %params ) = validated_hash(
+#     \@_,
+#     name     => { isa => Str,         optional => 1 },
+#     sir      => { isa => SIRTerm,     optional => 1, depends => [ 'mic' ] },
+#     equality => { isa => AMREquality, optional => 1, default => 'eq' },
+#     mic      => { isa => Num,         optional => 1 }
+#   );
+#
+#   die 'Not enough parameters' unless scalar keys %params;
+#
+#   my $query = { 'me.deleted_at' => { '=', undef } };
+#
+#   my $equality_mapping = {
+#     le => '<=',
+#     lt => '<',
+#     eq => '=',
+#     gt => '>',
+#     ge => '>=',
+#   };
+#
+#
+#
+#   $query->{antimicrobial_name} = $params{name}     if $params{name};
+#   $query->{susceptibility}     = $params{sir}      if $params{sir};
+#   $query->{equality}           = $params{equality};
+#   $query->{mic}                = $params{mic}      if $params{mic};
+#
+#   my $rs = $self->resultset('Sample')->search(
+#     $query,
+#     {
+#       join     => [ qw( antimicrobial_resistances location_description ) ],
+#       prefetch => [ qw( antimicrobial_resistances location_description ) ],
+#     }
+#   );
+#
+#   return $rs;
+# }
 
 #-------------------------------------------------------------------------------
 #- assemblies ------------------------------------------------------------------
@@ -524,7 +691,7 @@ sub load_ontology {
   my ( $table, $file, $slice_size ) = pos_validated_list(
     \@_,
     { isa => 'Bio::Metadata::Types::OntologyName' },
-    { isa => 'Str' },
+    { isa => Str },
     { isa => 'Bio::Metadata::Types::PositiveInt', optional => 1 },
   );
   # TODO the error message that comes back from the validation call is dumb
@@ -675,8 +842,15 @@ sub add_external_resource {
 }
 
 #-------------------------------------------------------------------------------
-#- summary ---------------------------------------------------------------------
+#- miscellaneous methods -------------------------------------------------------
 #-------------------------------------------------------------------------------
+
+=head2 get_sample_summary
+
+Returns a reference to a hash containing various summary information about the
+loaded sample data.
+
+=cut
 
 sub get_sample_summary {
   my ( $self ) = @_;
@@ -727,7 +901,71 @@ sub get_sample_summary {
 
   #---------------------------------------
 
+  # count of the numbers of samples with S, I and R AMR results
+  my $s_count = $samples->search_related(
+    'antimicrobial_resistances',
+    {},
+    {
+      select => [
+        'susceptibility',
+        { count => 'antimicrobial_resistances.antimicrobial_name' }
+      ],
+      as       => [ 'sir', 'sir_count' ],
+      group_by => ['susceptibility'],
+    }
+  );
+
+  my %sir_counts = map { $_->get_column('sir') => $_->get_column('sir_count') } $s_count->all;
+
+  $summary->{sir_counts} = \%sir_counts;
+
+  #---------------------------------------
+
+  my $compound_counts = $samples->search_related(
+    'antimicrobial_resistances',
+    {},
+    {
+      select   => [ 'antimicrobial_name', 'susceptibility', { count => 'susceptibility' } ],
+      as       => [ 'antimicrobial_name', 'susceptibility', 'sir_count' ],
+      group_by => [ 'antimicrobial_name', 'susceptibility' ],
+    }
+  );
+
+  my @cc;
+  while ( my $row = $compound_counts->next ) {
+    $summary->{compound_counts}
+      ->{ $row->get_column('antimicrobial_name') }
+      ->{ $row->get_column('susceptibility') } = $row->get_column('sir_count');
+  }
+
+  #---------------------------------------
+
   return $summary;
+}
+
+#-------------------------------------------------------------------------------
+
+=head2 filter_rs($rs, $columns, $term)
+
+Filters the specified L<DBIx::Class::ResultSet|ResultSet> (C<$rs> by looking for
+the supplied C<$term> in the listed C<$columns>. Returns a filtered ResultSet.
+
+=cut
+
+sub filter_rs {
+  my ( $self, $rs, $columns, $term ) = @_;
+
+  croak 'ERROR: must supply a ResultSet to filter, a list of columns to filter and a query term'
+    unless ( defined $rs and defined $columns and defined $term );
+
+  my $query_term = "%${term}%";
+
+  my $filters = [];
+  foreach my $column ( @$columns ) {
+    push @$filters, { $column => { 'like', $query_term } };
+  }
+
+  return $rs->search_rs( $filters );
 }
 
 #-------------------------------------------------------------------------------
