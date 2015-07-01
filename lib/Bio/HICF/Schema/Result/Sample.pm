@@ -486,6 +486,12 @@ __PACKAGE__->might_have(
   { 'foreign.id' => 'self.location' },
 );
 
+# __PACKAGE__->belongs_to(
+#   'brenda_description',
+#   'Bio::HICF::Schema::Result::Brenda',
+#   { 'foreign.id' => 'self.host_isolation_source' },
+# );
+
 #-------------------------------------------------------------------------------
 
 __PACKAGE__->meta->make_immutable;
