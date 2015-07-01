@@ -857,7 +857,7 @@ sub get_sample_summary {
 
   my $summary = {};
 
-  my $samples   = $self->resultset('Sample');
+  my $samples   = $self->get_all_samples;
   my $manifests = $self->resultset('Manifest');
 
   #---------------------------------------
