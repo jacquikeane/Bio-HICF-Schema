@@ -244,28 +244,28 @@ my $expected_summary = {
   collected_at => {
     CAMBRIDGE => 1,
     OXFORD    => 1,
-    UCL       => 2,
+    UCL       => 1,
   },
   scientific_names => {
-    'Homo sapiens neanderthalensis' => 2,
+    'Homo sapiens neanderthalensis' => 1,
     'Homo sapiens'                  => 1,
     'Mus musculus'                  => 1,
   },
 
   total_number_of_manifests => 3,
   sir_counts                => {
-    S => 3,
-    I => 2,
+    S => 2,
+    I => 1,
     R => 1,
   },
-  total_number_of_samples => 4,
+  total_number_of_samples => 3,
   compound_counts         => {
     am1 => {
       R => 1,
-      S => 3,
+      S => 2,
     },
     am2 => {
-      I => 2,
+      I => 1,
     },
   },
 };

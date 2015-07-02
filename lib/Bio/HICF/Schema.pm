@@ -857,14 +857,13 @@ sub get_sample_summary {
 
   my $summary = {};
 
-  my $samples   = $self->get_all_samples;
-  my $manifests = $self->resultset('Manifest');
-
   #---------------------------------------
 
   # counts of samples with given scientific names
-  my $rs = $samples->search(
-    {},
+  my $rs = $self->resultset('Sample')->search(
+    {
+      'me.deleted_at' => { '=', undef }
+    },
     {
       select   => [ 'scientific_name', { count => 'sample_id' } ],
       as       => [ 'scientific_name', 'sample_count' ],
@@ -880,18 +879,23 @@ sub get_sample_summary {
 
   #---------------------------------------
 
+  my $samples   = $self->get_all_samples;
+  my $manifests = $self->resultset('Manifest');
+
   $summary->{total_number_of_samples}   = $samples->count;
   $summary->{total_number_of_manifests} = $manifests->count;
 
   #---------------------------------------
 
   # count of the number of samples from each of the sites
-  $rs = $samples->search(
-    {},
+  $rs = $self->resultset('Sample')->search(
+    {
+      'me.deleted_at' => { '=', undef }
+    },
     {
       select   => [ 'collected_at', { count => 'sample_id' } ],
       as       => [ 'collected_at', 'sample_count' ],
-      group_by => [ 'collected_at' ]
+      group_by => [ 'collected_at' ],
     }
   );
 
