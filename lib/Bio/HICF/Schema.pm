@@ -70,12 +70,12 @@ B<Note>: this is the canonical source for this list.
 
 sub unknown_terms {
   return {
-    'not available: not collected'                        => 1,
-    'not available: restricted access'                    => 1,
-    'not available: to be reported later (35 characters)' => 1,
-    'not applicable'                                      => 1,
-    'obscured'                                            => 1,
-    'temporarily obscured'                                => 1,
+    'not available: not collected'        => 1,
+    'not available: restricted access'    => 1,
+    'not available: to be reported later' => 1,
+    'not applicable'                      => 1,
+    'obscured'                            => 1,
+    'temporarily obscured'                => 1,
   };
 }
 
