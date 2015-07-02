@@ -53,7 +53,6 @@ my %amr_params = (
   name              => 'am3',
   susceptibility    => 'R',
   mic               => 10,
-  diagnostic_centre => 'Peru',
 );
 lives_ok { AntimicrobialResistance->load(%amr_params) }
   'no error when adding a new valid amr';

@@ -1,0 +1,141 @@
+#!/usr/bin/env perl
+#
+# add_multiple_midas_users
+# jt6 20150601 WTSI
+#
+# ABSTRACT: add multiple new MIDAS website users
+# PODNAME: add_multiple_midas_users
+
+use strict;
+use warnings;
+
+use utf8;
+use Config::General;
+use Getopt::Long::Descriptive;
+use Bio::HICF::User;
+use Email::Sender::Simple qw( sendmail );
+use Template;
+use Try::Tiny;
+use Carp qw( croak );
+
+#-------------------------------------------------------------------------------
+# configuration
+
+my ( $opt, $usage ) = describe_options(
+  '%c %o',
+  [ 'dbconfig|d=s',   'path to the database configuration file' ],
+  [ 'help|h',         'print usage message' ],
+);
+
+pod2usage( { -verbose => 2, -exitval => 0 } ) if $opt->help;
+
+my $config_file = $opt->dbconfig || $ENV{HICF_CONFIG};
+my $file        = shift;
+
+croak 'ERROR: you must specify a script configuration file'
+  unless defined $config_file;
+
+croak 'ERROR: you must specify a file containing the list of users'
+  unless ( defined $file and -f $file and -s $file );
+
+my $cg;
+try {
+  $cg = Config::General->new($config_file);
+} catch {
+  croak "ERROR: there was a problem reading the configuration file: $_";
+};
+
+my %config = $cg->getall;
+
+my $schema = Bio::HICF::User->connect( @{ $config{database}->{user}->{connect_info} } );
+
+#-------------------------------------------------------------------------------
+
+my $tt = Template->new;
+my $template = join '', <DATA>;
+
+open ( FILE, $file )
+  or croak "ERROR: couldn't open file of user details: $!";
+
+while ( <FILE> ) {
+  my ( $name, $username, $email_address ) = split /,/;
+  chomp $email_address;
+
+  my $user_details = {
+    username    => $username,
+    email       => $email_address,
+    displayname => $name,
+  };
+
+  my $returned_passphrase;
+  try {
+    $returned_passphrase = $schema->add_new_user($user_details);
+  } catch {
+    warn "WARNING: something went wrong when adding new user '$username': $_";
+    next;
+  };
+
+  # get back a User object, so that we can set an API key
+  my $user = $schema->resultset('User')->find($username);
+  unless ( defined $user ) {
+    warn "WARNING: something went wrong with the creation of a new user for '$username'";
+    next;
+  }
+
+  # give the user an API key
+  my $api_key = $user->reset_api_key;
+
+  $user_details->{passphrase} = $returned_passphrase;
+  $user_details->{api_key}    = $api_key;
+
+  my $email_body = '';
+  unless ( $tt->process( \$template, $user_details, \$email_body ) ) {
+    warn "WARNING: something went wrong when generating the email body for '$username': "
+      . $tt->error;
+    next;
+  }
+
+  my $email = Email::Simple->create(
+    header => [
+      From    => '"MIDAS" <contact@midasuk.org>',
+      To      => qq("$name" <$email_address>),
+      Subject => 'Your account on the MIDAS website',
+    ],
+    body => $email_body,
+  );
+
+  try {
+    sendmail($email);
+  } catch {
+    warn "WARNING: failed to send mail to '$email_address': $_";
+  };
+
+  print STDERR "done creating account for '$username'\n";
+}
+
+exit;
+
+__END__
+
+Dear [% displayname %],
+
+We have just created an account for you on the MIDAS web site
+(https://www.midasuk.org/). The details are as follows:
+
+Username: [% username %]
+Password: [% passphrase %]
+API key:  [% api_key %]
+
+Please sign in on the website (https://www.midasuk.org/login) and visit the
+account management page (https://www.midasuk.org/account) as soon as possible,
+to change your password and reset your API key. Please make sure that you use a
+strong password and that you keep both your password and API key secure.
+
+If you have any questions about this account or if you find any issues with
+the website, please let us know. You can email us at contact@midasuk.org and
+we'll do our best to help.
+
+Best regards,
+
+John Tate.
+

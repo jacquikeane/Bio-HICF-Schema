@@ -56,7 +56,8 @@ sub load {
     equality          => { isa => AMREquality,
                            default => 'eq',
                            optional => 1 },
-    diagnostic_centre => { isa => Str },
+    diagnostic_centre => { isa => Str,
+                           optional => 1 },
   );
 
   my $amr = $self->find_or_new(

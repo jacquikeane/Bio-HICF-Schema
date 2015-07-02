@@ -64,7 +64,7 @@ The ID of the manifest from which the sample was loaded
 
   data_type: 'varchar'
   is_nullable: 0
-  size: 45
+  size: 200
 
 The accession for the raw sequencing data corresponding to this sample
 
@@ -72,7 +72,7 @@ The accession for the raw sequencing data corresponding to this sample
 
   data_type: 'varchar'
   is_nullable: 0
-  size: 20
+  size: 200
 
 The accession for this sample in the sequence repository where is has been deposited
 
@@ -86,10 +86,10 @@ A free-text description of the sample
 =head2 collected_at
 
   data_type: 'enum'
-  extra: {list => ["WTSI","UCL","OXFORD"]}
+  extra: {list => ["CAMBRIDGE","UCL","OXFORD"]}
   is_nullable: 1
 
-The site at which the sample was collected. Must be one of `WTSI`, `UCL`, `OXFORD`.
+The site at which the sample was collected. Must be one of `CAMBRIDGE`, `UCL`, `OXFORD`.
 
 =head2 tax_id
 
@@ -260,15 +260,15 @@ __PACKAGE__->add_columns(
   "manifest_id",
   { data_type => "char", is_foreign_key => 1, is_nullable => 0, size => 36 },
   "raw_data_accession",
-  { data_type => "varchar", is_nullable => 0, size => 45 },
+  { data_type => "varchar", is_nullable => 0, size => 200 },
   "sample_accession",
-  { data_type => "varchar", is_nullable => 0, size => 20 },
+  { data_type => "varchar", is_nullable => 0, size => 200 },
   "sample_description",
   { data_type => "tinytext", is_nullable => 1 },
   "collected_at",
   {
     data_type => "enum",
-    extra => { list => ["WTSI", "UCL", "OXFORD"] },
+    extra => { list => ["CAMBRIDGE", "UCL", "OXFORD"] },
     is_nullable => 1,
   },
   "tax_id",
@@ -435,8 +435,45 @@ __PACKAGE__->belongs_to(
 with 'Bio::HICF::Schema::Role::Sample', 'Bio::HICF::Schema::Role::Undeletable';
 
 
-# Created by DBIx::Class::Schema::Loader v0.07042 @ 2015-04-23 14:38:51
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:Z6nG+MEYr5IhVrXY2Rt29A
+# Created by DBIx::Class::Schema::Loader v0.07042 @ 2015-06-12 16:07:46
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:OEUk9JennJTHaTlip4KELg
+
+=head2 get_amr
+
+Returns a L<DBIx::Class::ResultSet|ResultSet> containing AMR data for this
+sample.
+
+=cut
+
+sub get_amr {
+  my $self = shift;
+
+  my $rs = $self->search_related(
+    'antimicrobial_resistances',
+    {
+      deleted_at => { '=', undef }
+    }
+  );
+
+  return $rs;
+}
+
+#-------------------------------------------------------------------------------
+
+=head2 has_amr
+
+Returns true if this sample has one or more live (not deleted) antimicrobial
+resistance test results.
+
+=cut
+
+sub has_amr {
+  my $self = shift;
+
+  return $self->get_amr->count ? 1 : 0;
+}
+
+#-------------------------------------------------------------------------------
 
 __PACKAGE__->add_unique_constraint(
   sample_uc => [ qw( manifest_id raw_data_accession sample_accession ) ]
@@ -448,6 +485,14 @@ __PACKAGE__->might_have(
   'Bio::HICF::Schema::Result::Gazetteer',
   { 'foreign.id' => 'self.location' },
 );
+
+# __PACKAGE__->belongs_to(
+#   'brenda_description',
+#   'Bio::HICF::Schema::Result::Brenda',
+#   { 'foreign.id' => 'self.host_isolation_source' },
+# );
+
+#-------------------------------------------------------------------------------
 
 __PACKAGE__->meta->make_immutable;
 1;

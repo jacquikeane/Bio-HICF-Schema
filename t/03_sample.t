@@ -3,7 +3,7 @@
 use strict;
 use warnings;
 
-use Test::More tests => 105;
+use Test::More tests => 109;
 use Test::Exception;
 use Test::DBIx::Class qw( :resultsets );
 use DateTime;
@@ -144,6 +144,26 @@ is $deleted_amrs->count, 1, 'got expected deleted AMR';
 
 # reset the sample accession so we can load further sample metadata as new rows
 $columns->{sample_accession} = 'ERS654321';
+
+# check AMR
+my @all_samples = Sample->all_rs(1);
+is $all_samples[0]->has_amr, 1, 'first sample has AMR results';
+is $all_samples[1]->has_amr, 0, 'second sample has no live AMR results';
+
+# load another AMR result to make sure we get back multiple results from
+# "get_amr"
+AntimicrobialResistance->load(
+  {
+    sample_id      => 1,
+    name           => 'am1',
+    susceptibility => 'R',
+    mic            => 10,
+    equality       => 'le',
+  }
+);
+my $amrs = Sample->find(1)->get_amr;
+is $amrs->count, 2, 'found two AMR results for sample 1';
+is( ( $amrs->all )[1]->mic, 10, 'got expected value for AMR' );
 
 #-------------------------------------------------------------------------------
 
