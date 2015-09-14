@@ -58,6 +58,8 @@ open ( FILE, $file )
   or croak "ERROR: couldn't open file of user details: $!";
 
 while ( <FILE> ) {
+  next if m/^#/;
+
   my ( $name, $username, $email_address ) = split /,/;
   chomp $email_address;
 
@@ -72,8 +74,8 @@ while ( <FILE> ) {
     $returned_passphrase = $schema->add_new_user($user_details);
   } catch {
     warn "WARNING: something went wrong when adding new user '$username': $_";
-    next;
   };
+  next unless $returned_passphrase;
 
   # get back a User object, so that we can set an API key
   my $user = $schema->resultset('User')->find($username);

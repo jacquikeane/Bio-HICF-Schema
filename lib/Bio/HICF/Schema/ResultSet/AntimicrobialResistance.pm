@@ -77,7 +77,7 @@ sub load {
   try {
     $amr->insert;
   } catch {
-    if ( m/FOREIGN KEY constraint failed/ ) {
+    if ( m/FOREIGN KEY constraint failed/i ) {
       croak 'ERROR: both the antimicrobial and the sample must exist';
     }
     else {
