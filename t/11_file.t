@@ -36,7 +36,7 @@ is( $file->version, 3, 'new File has correct version (3)' );
 # try loading the same file. Should fail because we can't have exactly
 # the same file loaded twice (MD5 in filename should differ)
 throws_ok { $file = File->load($assembly, '/home/testuser/ERS111111_123456789a123456789b123456789cdc_12345678-1234-1234-1234-1234567890ab.fa') }
-  qr/UNIQUE constraint failed: file.path/,
+  qr/(UNIQUE constraint failed|not unique)/,
   'loading same file again fails';
 
 # variously broken filenames

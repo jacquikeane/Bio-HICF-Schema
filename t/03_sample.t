@@ -111,7 +111,7 @@ is( $samples->next->sample_id, 2, 'got second sample via "all"' );
 is( $samples->next, undef, 'got expected number of samples via "all"' );
 
 # load the same sample again
-throws_ok { $sample_id = Sample->load($columns) } qr/UNIQUE constraint failed/,
+throws_ok { $sample_id = Sample->load($columns) } qr/(UNIQUE constraint failed|not unique)/,
   'error when loading same sample with same manifest ID';
 $columns->{manifest_id} = $other_manifest_id;
 lives_ok { $sample_id = Sample->load($columns) } 'row loads ok a second time';
