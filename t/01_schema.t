@@ -2,7 +2,7 @@
 use strict;
 use warnings;
 
-use Test::More tests => 83;
+use Test::More tests => 84;
 use Test::DBIx::Class qw( :resultsets );
 use Test::Exception;
 
@@ -271,6 +271,15 @@ my $expected_summary = {
 };
 
 is_deeply $summary, $expected_summary, 'summary looks right';
+
+# reload a manifest and make sure that the manifest count in the summary is
+# correct
+
+$m = $r->read_csv('t/data/01_duplicate_manifest.csv');
+Schema->load_manifest($m);
+$summary = Schema->get_sample_summary;
+
+is $summary->{total_number_of_manifests}, 2, 'manifest count correct after overloading samples';
 
 #-------------------------------------------------------------------------------
 
