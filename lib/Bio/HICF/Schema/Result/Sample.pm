@@ -76,6 +76,15 @@ The accession for the raw sequencing data corresponding to this sample
 
 The accession for this sample in the sequence repository where is has been deposited
 
+=head2 donor_id
+
+  data_type: 'varchar'
+  is_nullable: 0
+  size: 200
+
+An internal identifier for the sample, assigned by the depositing institute.
+Must be unique across all samples from a given institute.
+
 =head2 sample_description
 
   data_type: 'tinytext'
@@ -83,13 +92,13 @@ The accession for this sample in the sequence repository where is has been depos
 
 A free-text description of the sample
 
-=head2 collected_at
+=head2 submitted_by
 
   data_type: 'enum'
   extra: {list => ["CAMBRIDGE","UCL","OXFORD"]}
   is_nullable: 1
 
-The site at which the sample was collected. Must be one of `CAMBRIDGE`, `UCL`, `OXFORD`.
+The site that submitted the sample. Must be one of `CAMBRIDGE`, `UCL`, `OXFORD`.
 
 =head2 tax_id
 
@@ -263,9 +272,11 @@ __PACKAGE__->add_columns(
   { data_type => "varchar", is_nullable => 0, size => 200 },
   "sample_accession",
   { data_type => "varchar", is_nullable => 0, size => 200 },
+  "donor_id",
+  { data_type => "varchar", is_nullable => 0, size => 50 },
   "sample_description",
   { data_type => "tinytext", is_nullable => 1 },
-  "collected_at",
+  "submitted_by",
   {
     data_type => "enum",
     extra => { list => ["CAMBRIDGE", "UCL", "OXFORD"] },
@@ -434,9 +445,16 @@ __PACKAGE__->belongs_to(
 
 with 'Bio::HICF::Schema::Role::Sample', 'Bio::HICF::Schema::Role::Undeletable';
 
+# NOTE the automatically generated class definition has been edited to add
+# NOTE extra columns (donor_id) and to rename existing columns (collected_at to
+# NOTE submitted_by) above this point, so re-generating the class using the
+# NOTE schema build script will no longer work
+#
+### Created by DBIx::Class::Schema::Loader v0.07042 @ 2015-06-12 16:07:46
+### DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:OEUk9JennJTHaTlip4KELg
 
-# Created by DBIx::Class::Schema::Loader v0.07042 @ 2015-06-12 16:07:46
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:OEUk9JennJTHaTlip4KELg
+
+#-------------------------------------------------------------------------------
 
 =head2 get_amr
 
@@ -458,7 +476,7 @@ sub get_amr {
   return $rs;
 }
 
-#-------------------------------------------------------------------------------
+#---------------------------------------
 
 =head2 has_amr
 
@@ -475,8 +493,9 @@ sub has_amr {
 
 #-------------------------------------------------------------------------------
 
-__PACKAGE__->add_unique_constraint(
-  sample_uc => [ qw( manifest_id raw_data_accession sample_accession ) ]
+__PACKAGE__->add_unique_constraints(
+  sample_uc => [ qw( manifest_id raw_data_accession sample_accession ) ],
+  donor_uc  => [ qw( donor_id submitted_by deleted_at ) ],
 );
 
 # map the location term to the ontology, giving us the place description
@@ -486,6 +505,9 @@ __PACKAGE__->might_have(
   { 'foreign.id' => 'self.location' },
 );
 
+# this relationship breaks if the Brenda table is older than the data that's
+# being loaded and a term is found in the sample data but not in the loaded
+# ontology
 # __PACKAGE__->belongs_to(
 #   'brenda_description',
 #   'Bio::HICF::Schema::Result::Brenda',

@@ -21,8 +21,9 @@
         [ qw( manifest_id
               raw_data_accession
               sample_accession
+              donor_id
               sample_description
-              collected_at
+              submitted_by
               tax_id
               scientific_name
               collected_by
@@ -44,6 +45,7 @@
         [ '4162F712-1DD2-11B2-B17E-C09EFE1DC403',
           'data:2',
           'ERS222222',
+          'donor2',
           'New sample',
           'OXFORD',
           9606,
@@ -67,6 +69,7 @@
         [ '4162F712-1DD2-11B2-B17E-C09EFE1DC403',
           'data:3',
           'ERS333333',
+          'donor3',
           'New sample',
           'OXFORD',
           9606,

@@ -16,6 +16,7 @@ lives_ok { Schema->storage->dbh_do( sub { $_[1]->do('PRAGMA foreign_keys = ON') 
 my $expected_values = [
   'data:1',
   'ERS111111',
+  'donor1',
   'New sample',
   'CAMBRIDGE',
   9606,
@@ -39,9 +40,9 @@ my $expected_values = [
 
 my $expected_hash = {
   antimicrobial_resistance => 'am1;S;50;WTSI',
-  collected_at             => 'CAMBRIDGE',
   collected_by             => 'Tate JG',
   collection_date          => 1428658943,
+  donor_id                 => 'donor1',
   host_associated          => 1,
   host_disease_status      => 'healthy',
   host_isolation_source    => 'BTO:0000645',
@@ -58,7 +59,8 @@ my $expected_hash = {
   source                   => undef,
   specific_host            => 'Homo sapiens',
   strain                   => 'strain',
-  tax_id                   => 9606
+  submitted_by             => 'CAMBRIDGE',
+  tax_id                   => 9606,
 };
 
 my $sample;
@@ -75,9 +77,9 @@ my $manifest_id       = '4162F712-1DD2-11B2-B17E-C09EFE1DC403';
 my $other_manifest_id = '0162F712-1DD2-11B2-B17E-C09EFE1DC403';
 my $columns = {
   antimicrobial_resistance => 'am1;I;25',
-  collected_at             => 'CAMBRIDGE',
   collected_by             => 'Tate JG',
   collection_date          => 1428658943,
+  donor_id                 => 'donor2',
   host_associated          => 1,
   host_disease_status      => 'healthy',
   host_isolation_source    => 'BTO:0000645',
@@ -95,6 +97,7 @@ my $columns = {
   source                   => undef,
   specific_host            => 'Homo sapiens',
   strain                   => 'strain',
+  submitted_by             => 'CAMBRIDGE',
   tax_id                   => 9606,
 };
 

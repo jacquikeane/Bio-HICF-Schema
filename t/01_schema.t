@@ -69,8 +69,9 @@ my $duplicate_row = {
   manifest_id              => $other_manifest_id,
   raw_data_accession       => 'rda:2',       #\_ these two rows are the ones that
   sample_accession         => 'ERS333333',   #/  determine if it's a duplicate
+  donor_id                 => 'donor3',
   sample_description       => 'New sample',
-  collected_at             => 'CAMBRIDGE',
+  submitted_by             => 'CAMBRIDGE',
   tax_id                   => 9606,
   scientific_name          => 'Homo sapiens',
   collected_by             => 'Tate JG',
@@ -205,7 +206,7 @@ throws_ok { Schema->get_sample_by_id() }
 is Schema->get_sample_by_accession('ERS999999'), undef,
   '"get_sample_by_accession" returns undef with non-existent accession';
 is Schema->get_sample_by_id(999999), undef,
-  '"get_sample_by_id" returns undef with non-existent id';
+  '"get_sample_by_id" returns undef wiah non-existent id';
 
 # TODO make these tests reflect the reality described in the POD for
 # TODO get_samples_in_manifest...
@@ -226,8 +227,8 @@ is( $samples_in_manifest->first->sample_accession, 'ERS333333', 'first sample lo
 is( $samples_in_manifest->next->sample_accession, 'ERS444444', 'second sample looks right' );
 
 # test insert failure behaviour
-$m->rows->[0]->[0] = 'rda:99';
-$m->rows->[0]->[9] = undef;
+$m->rows->[0]->[0]  = 'rda:99';
+$m->rows->[0]->[10] = undef;
 
 # check for error messages in the manifest after a failure
 throws_ok { Schema->load_manifest($m) } qr/the data in the manifest are not valid/,
@@ -241,7 +242,7 @@ my $summary;
 lives_ok { $summary = Schema->get_sample_summary } 'got summary successfully';
 
 my $expected_summary = {
-  collected_at => {
+  submitted_by => {
     CAMBRIDGE => 1,
     OXFORD    => 1,
     UCL       => 1,

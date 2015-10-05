@@ -78,12 +78,18 @@
     required     1
   </field>
   <field>
+    name         donor_id
+    description  'Internal ID for the sample.'
+    type         Str
+    required     1
+  </field>
+  <field>
     name         sample_description
     description  'Free text description of the sample.'
     type         Str
   </field>
   <field>
-    name         collected_at
+    name         submitted_by
     description  'ID of the institute that performed the study. Must be one of "CAMBRIDGE", "UCL", or "OXFORD".'
     type         Enum
     values       CAMBRIDGE
@@ -215,8 +221,9 @@
         [ qw( manifest_id
               raw_data_accession
               sample_accession
+              donor_id
               sample_description
-              collected_at
+              submitted_by
               tax_id
               scientific_name
               collected_by
@@ -238,6 +245,7 @@
         [ '4162F712-1DD2-11B2-B17E-C09EFE1DC403',
           'data:1',
           'ERS111111',
+          'donor1',
           'New sample',
           'CAMBRIDGE',
           9606,

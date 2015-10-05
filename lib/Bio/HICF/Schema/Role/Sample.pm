@@ -13,8 +13,9 @@ requires qw(
   manifest_id
   raw_data_accession
   sample_accession
+  donor_id
   sample_description
-  collected_at
+  submitted_by
   tax_id
   scientific_name
   collected_by
@@ -98,8 +99,9 @@ sub field_names {
   return [ qw(
     raw_data_accession
     sample_accession
+    donor_id
     sample_description
-    collected_at
+    submitted_by
     tax_id
     scientific_name
     collected_by

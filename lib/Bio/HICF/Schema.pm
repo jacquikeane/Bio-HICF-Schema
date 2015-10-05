@@ -901,15 +901,15 @@ sub get_sample_summary {
       'me.deleted_at' => { '=', undef }
     },
     {
-      select   => [ 'collected_at', { count => 'sample_id' } ],
-      as       => [ 'collected_at', 'sample_count' ],
-      group_by => [ 'collected_at' ],
+      select   => [ 'submitted_by', { count => 'sample_id' } ],
+      as       => [ 'submitted_by', 'sample_count' ],
+      group_by => [ 'submitted_by' ],
     }
   );
 
-  my %collected_at = map { $_->collected_at => $_->get_column('sample_count') } $rs->all;
+  my %submitted_by = map { $_->submitted_by => $_->get_column('sample_count') } $rs->all;
 
-  $summary->{collected_at} = \%collected_at;
+  $summary->{submitted_by} = \%submitted_by;
 
   #---------------------------------------
 
