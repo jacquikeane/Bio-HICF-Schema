@@ -879,10 +879,18 @@ sub get_sample_summary {
 
   #---------------------------------------
 
-  my $samples   = $self->get_all_samples;
-  my $manifests = $self->resultset('Manifest');
+  my $samples = $self->get_all_samples;
+  $summary->{total_number_of_samples} = $samples->count;
 
-  $summary->{total_number_of_samples}   = $samples->count;
+  # TODO this query should probably be in a different place, either the
+  # TODO Manifest ResultSet or a specific method in this module
+  my $manifests = $self->resultset('Manifest')->search(
+    { 'samples.deleted_at' => { '=', undef } },
+    {
+      join     => ['samples'],
+      group_by => ['me.manifest_id']
+    }
+  );
   $summary->{total_number_of_manifests} = $manifests->count;
 
   #---------------------------------------
