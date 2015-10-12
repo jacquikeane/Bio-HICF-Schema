@@ -37,7 +37,7 @@ test. The hash must contain the following five keys:
 
 =item C<mic> - minimum inhibitor concentration, in microgrammes per millilitre; must be a valid integer
 
-=item C<diagnostic_centre> - name of the centre that carried out the susceptibility testing; optional
+=item C<method> - name of the method used to determine the susceptibility; optional
 
 =back
 
@@ -49,15 +49,15 @@ test result is already present in the database.
 sub load {
   my ( $self, %params ) = validated_hash(
     \@_,
-    sample_id         => { isa => Int },
-    name              => { isa => AntimicrobialName },
-    susceptibility    => { isa => SIRTerm },
-    mic               => { isa => Int },
-    equality          => { isa => AMREquality,
-                           default => 'eq',
-                           optional => 1 },
-    diagnostic_centre => { isa => Str,
-                           optional => 1 },
+    sample_id      => { isa => Int },
+    name           => { isa => AntimicrobialName },
+    susceptibility => { isa => SIRTerm },
+    mic            => { isa => Int },
+    equality       => { isa => AMREquality,
+                        default => 'eq',
+                        optional => 1 },
+    method         => { isa => Str,
+                        optional => 1 },
   );
 
   my $amr = $self->find_or_new(
@@ -67,7 +67,7 @@ sub load {
       susceptibility     => $params{susceptibility},
       mic                => $params{mic},
       equality           => $params{equality},
-      diagnostic_centre  => $params{diagnostic_centre}
+      method             => $params{method}
     },
     { key => 'primary' }
   );
