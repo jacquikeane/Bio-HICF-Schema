@@ -896,20 +896,20 @@ sub get_sample_summary {
   #---------------------------------------
 
   # count of the number of samples from each of the sites
-  # $rs = $self->resultset('Sample')->search(
-  #   {
-  #     'me.deleted_at' => { '=', undef }
-  #   },
-  #   {
-  #     select   => [ 'submitted_by', { count => 'sample_id' } ],
-  #     as       => [ 'submitted_by', 'sample_count' ],
-  #     group_by => [ 'submitted_by' ],
-  #   }
-  # );
-  #
-  # my %submitted_by = map { $_->submitted_by => $_->get_column('sample_count') } $rs->all;
-  #
-  # $summary->{submitted_by} = \%submitted_by;
+  $rs = $self->resultset('Sample')->search(
+    {
+      'me.deleted_at' => { '=', undef }
+    },
+    {
+      select   => [ 'submitted_by', { count => 'sample_id' } ],
+      as       => [ 'submitted_by', 'sample_count' ],
+      group_by => [ 'submitted_by' ],
+    }
+  );
+
+  my %submitted_by = map { $_->submitted_by => $_->get_column('sample_count') } $rs->all;
+
+  $summary->{submitted_by} = \%submitted_by;
 
   #---------------------------------------
 
