@@ -307,11 +307,11 @@ SKIP: {
   skip 'antimicrobial resistance result loading', 3 if $ENV{SKIP_AMR_LOADING_TESTS};
 
   my %amr = (
-    sample_id         => 1,
-    name              => 'am1',
-    susceptibility    => 'R',
-    mic               => 10,
-    diagnostic_centre => 'Peru',
+    sample_id      => 1,
+    name           => 'am1',
+    susceptibility => 'R',
+    mic            => 10,
+    method         => 'vitek',
   );
   lives_ok { Schema->load_antimicrobial_resistance(%amr) }
     'no error when adding a new valid amr';
@@ -322,12 +322,12 @@ SKIP: {
     'error when adding an amr with a missing sample ID';
 
   %amr = (
-    sample_id         => 1,
-    name              => 'am1',
-    susceptibility    => 'S',
-    mic               => 50,
-    equality          => 'eq',
-    diagnostic_centre => 'WTSI',
+    sample_id      => 1,
+    name           => 'am1',
+    susceptibility => 'S',
+    mic            => 50,
+    equality       => 'eq',
+    method         => 'abc',
   );
   throws_ok { Schema->load_antimicrobial_resistance(%amr) }
     qr/already exists/,

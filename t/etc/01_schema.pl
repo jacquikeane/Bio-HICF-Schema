@@ -28,7 +28,7 @@
               susceptibility
               mic
               equality
-              diagnostic_centre
+              method
               created_at ) ],
         [ 1, 'am1', 'S', 50, 'eq', 'WTSI', '2014-12-02 16:55:00' ],
       ],
@@ -191,7 +191,7 @@
   </field>
   <field>
     name         antimicrobial_resistance
-    description  'Comma-separated list of antibiotics to which the sampled organism displays resistance. Each antibiotic must be followed by the MIC, SIR and, optionally, the diagnostic centre. See notes.'
+    description  'Comma-separated list of antibiotics to which the sampled organism displays resistance. Each antibiotic must be followed by the SIR and, optionally, the MIC, and method used. See notes.'
     type         Str
     validation   ^((([A-Za-z\d\- ]+);([SIR]);(\d+)(;(\w+))?),? *)+$
   </field>
