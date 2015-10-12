@@ -913,23 +913,43 @@ sub get_sample_summary {
 
   #---------------------------------------
 
-  # count of the numbers of samples with S, I and R AMR results
-  my $s_count = $samples->search_related(
-    'antimicrobial_resistances',
-    {},
-    {
-      select => [
-        'susceptibility',
-        { count => 'antimicrobial_resistances.antimicrobial_name' }
-      ],
-      as       => [ 'sir', 'sir_count' ],
-      group_by => ['susceptibility'],
-    }
-  );
+  # This piece of code is ugly. It's perfectly possible to do all of this in a
+  # single SQL query:
+  #
+  #   SELECT susceptibility, COUNT(sample_id)
+  #   FROM (
+  #     SELECT DISTINCT s.sample_id, susceptibility
+  #     FROM antimicrobial_resistance a
+  #     JOIN sample s USING (sample_id)
+  #     WHERE s.deleted_at IS NULL
+  #     AND   a.deleted_at IS NULL
+  #   ) t
+  #   GROUP BY susceptibility;
+  #
+  # but, once again, I can't figure out how to do that in DBIC. I keep hitting
+  # an esoteric exception ("Result collapse not possible"; see
+  # https://rt.cpan.org/Public/Bug/Display.html?id=88923)
+  #
+  # Instead of doing it nicely and cleanly in one SQL query, we resort to
+  # running three queries and a loop... There must be a better way.
 
-  my %sir_counts = map { $_->get_column('sir') => $_->get_column('sir_count') } $s_count->all;
+  $summary->{sir_counts} = {};
 
-  $summary->{sir_counts} = \%sir_counts;
+  foreach my $sir ( qw[ S I R U ] ) {
+    my $distinct_samples = $self->resultset('Sample')->search(
+      {
+        'me.deleted_at'                            => { '=', undef },
+        'antimicrobial_resistances.deleted_at'     => { '=', undef },
+        'antimicrobial_resistances.susceptibility' => $sir,
+      },
+      {
+        join     => ['antimicrobial_resistances'],
+        select   => ['me.sample_id'],
+        distinct => 1,
+      }
+    );
+    $summary->{sir_counts}->{$sir} = $distinct_samples->count;
+  }
 
   #---------------------------------------
 

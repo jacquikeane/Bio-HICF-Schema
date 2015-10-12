@@ -258,6 +258,7 @@ my $expected_summary = {
     S => 2,
     I => 1,
     R => 1,
+    U => 0,
   },
   total_number_of_samples => 3,
   compound_counts         => {
