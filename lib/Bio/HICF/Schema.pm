@@ -896,20 +896,20 @@ sub get_sample_summary {
   #---------------------------------------
 
   # count of the number of samples from each of the sites
-  $rs = $self->resultset('Sample')->search(
-    {
-      'me.deleted_at' => { '=', undef }
-    },
-    {
-      select   => [ 'submitted_by', { count => 'sample_id' } ],
-      as       => [ 'submitted_by', 'sample_count' ],
-      group_by => [ 'submitted_by' ],
-    }
-  );
-
-  my %submitted_by = map { $_->submitted_by => $_->get_column('sample_count') } $rs->all;
-
-  $summary->{submitted_by} = \%submitted_by;
+  # $rs = $self->resultset('Sample')->search(
+  #   {
+  #     'me.deleted_at' => { '=', undef }
+  #   },
+  #   {
+  #     select   => [ 'submitted_by', { count => 'sample_id' } ],
+  #     as       => [ 'submitted_by', 'sample_count' ],
+  #     group_by => [ 'submitted_by' ],
+  #   }
+  # );
+  #
+  # my %submitted_by = map { $_->submitted_by => $_->get_column('sample_count') } $rs->all;
+  #
+  # $summary->{submitted_by} = \%submitted_by;
 
   #---------------------------------------
 
@@ -932,6 +932,19 @@ sub get_sample_summary {
   #
   # Instead of doing it nicely and cleanly in one SQL query, we resort to
   # running three queries and a loop... There must be a better way.
+
+  # this *might* do something like:
+  # my $distinct_rs = $self->resultset('Sample')->search(
+  #   {
+  #     'me.deleted_at' => { '=', undef },
+  #     'antimicrobial_resistances.deleted_at' => { '=', undef },
+  #   },
+  #   {
+  #     prefetch => 'antimicrobial_resistances',
+  #     '+columns' => { num => { count => 'antimicrobial_resistances.sample_id' } },
+  #     group_by => 'antimicrobial_resistances.susceptibility',
+  #   }
+  # );
 
   $summary->{sir_counts} = {};
 
