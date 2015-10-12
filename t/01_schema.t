@@ -206,7 +206,7 @@ throws_ok { Schema->get_sample_by_id() }
 is Schema->get_sample_by_accession('ERS999999'), undef,
   '"get_sample_by_accession" returns undef with non-existent accession';
 is Schema->get_sample_by_id(999999), undef,
-  '"get_sample_by_id" returns undef wiah non-existent id';
+  '"get_sample_by_id" returns undef with non-existent id';
 
 # TODO make these tests reflect the reality described in the POD for
 # TODO get_samples_in_manifest...
