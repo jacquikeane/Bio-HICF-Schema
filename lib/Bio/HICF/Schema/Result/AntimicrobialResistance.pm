@@ -81,13 +81,13 @@ Minimum inhibitory concentration
 
 The susceptibility of the tested sample to a given antimicrobial may be given in terms of a lower or upper limit, e.g. sample was found susceptible to compound at an MIC of less than 4 microgrammes/millilitre. This field specifies the equality. Must be one of le (<=), lt (<), eq (=), gt (>), ge (>=). The default is eq.
 
-=head2 diagnostic_centre
+=head2 method
 
   data_type: 'varchar'
   is_nullable: 1
   size: 45
 
-Short label for the centre where the antimicrobial testing was carried out
+The method used for antimicrobial testing
 
 =head2 created_at
 
@@ -133,7 +133,7 @@ __PACKAGE__->add_columns(
     extra => { list => ["le", "lt", "eq", "gt", "ge"] },
     is_nullable => 0,
   },
-  "diagnostic_centre",
+  "method",
   { data_type => "varchar", is_nullable => 1, size => 45 },
   "created_at",
   {
@@ -223,9 +223,11 @@ __PACKAGE__->belongs_to(
 
 with 'Bio::HICF::Schema::Role::AntimicrobialResistance', 'Bio::HICF::Schema::Role::Undeletable';
 
-
-# Created by DBIx::Class::Schema::Loader v0.07042 @ 2015-04-23 14:38:51
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:qwSOs5dye63ZzXY0Y1TKgg
+# NOTE the automatically generated code above has been altered, so
+# NOTE re-generating the class using the loader will no longer work
+#
+### Created by DBIx::Class::Schema::Loader v0.07042 @ 2015-04-23 14:38:51
+### DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:qwSOs5dye63ZzXY0Y1TKgg
 
 
 __PACKAGE__->meta->make_immutable;
