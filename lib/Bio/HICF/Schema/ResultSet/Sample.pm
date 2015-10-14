@@ -148,13 +148,14 @@ sub _parse_amr_string {
   # TODO like the Types module, rather than having to cart it around like this
   my $amr = [];
   while ( $amr_string =~ m/(([A-Za-z0-9\-\/\(\)\s]+);([SIR]);(lt|le|eq|gt|ge)?(\d+)(;(\w+))?),?\s*/g) {
-    push @$amr, {
-      antimicrobial_name => lc $2,
-      susceptibility     => uc $3,
-      mic                => $5,
-      equality           => lc( $4 || 'eq' ),
-      diagnostic_centre  => $7
-    }
+    push @$amr,
+      {
+        antimicrobial_name => lc $2,
+        susceptibility     => uc $3,
+        mic                => $5,
+        equality           => lc( $4 || 'eq' ),
+        method             => $7
+      };
   }
   return $amr;
 }

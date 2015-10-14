@@ -12,7 +12,7 @@ fixtures_ok 'main', 'installed fixtures';
 
 lives_ok { Schema->storage->dbh_do( sub { $_[1]->do('PRAGMA foreign_keys = ON') } ) } 'successfully turned on "foreign_keys" pragma';
 
-is_fields [ qw( antimicrobial_name susceptibility mic diagnostic_centre ) ],
+is_fields [ qw( antimicrobial_name susceptibility mic method ) ],
  AntimicrobialResistance,
  [ [ 'am1', 'S', 50, 'WTSI' ] ],
  'found expected pre-loaded values in amr table';
@@ -26,8 +26,8 @@ is( $rs->count, 1, 'found expected row in amr table' );
 my $amr = $rs->first;
 
 is( $amr->get_amr_string, 'am1;S;50;WTSI', 'got expected amr string' );
-$amr->diagnostic_centre(undef);
-is( $amr->get_amr_string, 'am1;S;50', 'got expected amr string after removing diagnostic centre' );
+$amr->method(undef);
+is( $amr->get_amr_string, 'am1;S;50', 'got expected amr string after removing method' );
 
 #-------------------------------------------------------------------------------
 
@@ -69,11 +69,11 @@ throws_ok { AntimicrobialResistance->load(%amr_params) }
   'error when adding an amr with a missing compound name';
 
 %amr_params = (
-  sample_id         => 1,
-  name              => 'am1',
-  susceptibility    => 'S',
-  mic               => 50,
-  diagnostic_centre => 'WTSI',
+  sample_id      => 1,
+  name           => 'am1',
+  susceptibility => 'S',
+  mic            => 50,
+  method         => 'WTSI',
 );
 throws_ok { AntimicrobialResistance->load(%amr_params) }
   qr/already exists/,

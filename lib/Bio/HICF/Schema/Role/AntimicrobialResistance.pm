@@ -11,7 +11,7 @@ requires qw(
   susceptibility
   mic
   equality
-  diagnostic_centre
+  method
   created_at
   deleted_at
 );
@@ -37,8 +37,8 @@ sub get_amr_string {
                  . $self->susceptibility . ';'
                  . $equality . $self->mic;
 
-  $amr_string .= ';' . $self->diagnostic_centre
-    if defined $self->diagnostic_centre;
+  $amr_string .= ';' . $self->method
+    if defined $self->method;
 
   return $amr_string;
 }

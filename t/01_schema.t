@@ -69,8 +69,9 @@ my $duplicate_row = {
   manifest_id              => $other_manifest_id,
   raw_data_accession       => 'rda:2',       #\_ these two rows are the ones that
   sample_accession         => 'ERS333333',   #/  determine if it's a duplicate
+  donor_id                 => 'donor3',
   sample_description       => 'New sample',
-  collected_at             => 'CAMBRIDGE',
+  submitted_by             => 'CAMBRIDGE',
   tax_id                   => 9606,
   scientific_name          => 'Homo sapiens',
   collected_by             => 'Tate JG',
@@ -226,8 +227,8 @@ is( $samples_in_manifest->first->sample_accession, 'ERS333333', 'first sample lo
 is( $samples_in_manifest->next->sample_accession, 'ERS444444', 'second sample looks right' );
 
 # test insert failure behaviour
-$m->rows->[0]->[0] = 'rda:99';
-$m->rows->[0]->[9] = undef;
+$m->rows->[0]->[0]  = 'rda:99';
+$m->rows->[0]->[10] = undef;
 
 # check for error messages in the manifest after a failure
 throws_ok { Schema->load_manifest($m) } qr/the data in the manifest are not valid/,
@@ -241,7 +242,7 @@ my $summary;
 lives_ok { $summary = Schema->get_sample_summary } 'got summary successfully';
 
 my $expected_summary = {
-  collected_at => {
+  submitted_by => {
     CAMBRIDGE => 1,
     OXFORD    => 1,
     UCL       => 1,
@@ -257,6 +258,7 @@ my $expected_summary = {
     S => 2,
     I => 1,
     R => 1,
+    U => 0,
   },
   total_number_of_samples => 3,
   compound_counts         => {
@@ -305,11 +307,11 @@ SKIP: {
   skip 'antimicrobial resistance result loading', 3 if $ENV{SKIP_AMR_LOADING_TESTS};
 
   my %amr = (
-    sample_id         => 1,
-    name              => 'am1',
-    susceptibility    => 'R',
-    mic               => 10,
-    diagnostic_centre => 'Peru',
+    sample_id      => 1,
+    name           => 'am1',
+    susceptibility => 'R',
+    mic            => 10,
+    method         => 'vitek',
   );
   lives_ok { Schema->load_antimicrobial_resistance(%amr) }
     'no error when adding a new valid amr';
@@ -320,12 +322,12 @@ SKIP: {
     'error when adding an amr with a missing sample ID';
 
   %amr = (
-    sample_id         => 1,
-    name              => 'am1',
-    susceptibility    => 'S',
-    mic               => 50,
-    equality          => 'eq',
-    diagnostic_centre => 'WTSI',
+    sample_id      => 1,
+    name           => 'am1',
+    susceptibility => 'S',
+    mic            => 50,
+    equality       => 'eq',
+    method         => 'abc',
   );
   throws_ok { Schema->load_antimicrobial_resistance(%amr) }
     qr/already exists/,

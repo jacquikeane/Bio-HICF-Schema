@@ -1,2 +1,2 @@
-raw data accession,sample accession,sample description,collected at,tax ID,scientific name,collected by,source,collection date,location,host associated,specific host,host disease status,host isolation source,patient location,isolation source,serovar,other classification,strain,isolate,antimicrobial resistance
-rda:4,ERS444444,test sample,CAMBRIDGE,9606,,Tate JG,BSACID:1,2014-01-10T11:20:30,GAZ:00444180,1,Homo sapiens,healthy,BTO:0000645,inpatient,,serovar,,strain,,"am1;S;10"
+raw data accession,sample accession,donor id,sample description,submitted by,tax ID,scientific name,collected by,source,collection date,location,host associated,specific host,host disease status,host isolation source,patient location,isolation source,serovar,other classification,strain,isolate,antimicrobial resistance
+rda:4,ERS444444,donor4,test sample,CAMBRIDGE,9606,,Tate JG,BSACID:1,2014-01-10T11:20:30,GAZ:00444180,1,Homo sapiens,healthy,BTO:0000645,inpatient,,serovar,,strain,,"am1;S;10"
