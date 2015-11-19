@@ -144,10 +144,9 @@ sub _parse_amr_string {
     { isa => AMRString },
   );
 
-  # TODO there must be a way to put a big regex like this into a common file
-  # TODO like the Types module, rather than having to cart it around like this
+  # TODO use Type::Tiny to set up a library and put this regex in there
   my $amr = [];
-  while ( $amr_string =~ m/(([A-Za-z0-9\-\/\(\)\s]+);([SIR]);(lt|le|eq|gt|ge)?(\d+)(;(\w+))?),?\s*/g) {
+  while ( $amr_string =~ m/(([A-Za-z0-9\-\/\(\)\s]+);([SIRU]);(lt|le|eq|gt|ge)?(\d+)(;(\w+))?),?\s*/g) {
     push @$amr,
       {
         antimicrobial_name => lc $2,
