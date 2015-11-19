@@ -54,7 +54,7 @@ $new_m->checklist->{config_file} = 't/data/01_checklist.conf';
 $new_m->_set_fh($m->_fh);
 $new_m->_set_csv($m->_csv);
 
-is_deeply( $m, $new_m, 'manifest generated from the DB matches original' );
+is_deeply( $new_m, $m, 'manifest generated from the DB matches original' );
 
 throws_ok { Schema->get_manifest_object('x') }
   qr/not a valid manifest ID/,
