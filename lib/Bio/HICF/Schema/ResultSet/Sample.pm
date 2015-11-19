@@ -145,16 +145,17 @@ sub _parse_amr_string {
   );
 
   # TODO use the Bio::Metadata::Types library to validate the AMR string,
-  # TODO rather than carrying around the regex
+  # TODO rather than carrying around the regex. But can we get the captures
+  # TODO out of that ?
   my $amr = [];
-  while ( $amr_string =~ m/^((([A-Za-z0-9\-\/\(\)\s]+);([SIRU])(;(?=[\w;])((lt|le|eq|gt|ge)?(((\d+)?\.)?\d+))?(;(\w+))?)?),?\s*)+$/g) {
+  while ( $amr_string =~ m/(([A-Za-z0-9\-\/\(\)\s]+);([SIRU])(;(?=[\w;])((lt|le|eq|gt|ge)?(((\d+)?\.)?\d+))?(;(\w+))?)?),?\s*/g) {
     push @$amr,
       {
         antimicrobial_name => lc $2,
         susceptibility     => uc $3,
-        mic                => $5,
-        equality           => lc( $4 || 'eq' ),
-        method             => $12
+        mic                => $7,
+        equality           => lc( $6 || 'eq' ),
+        method             => $11,
       };
   }
   return $amr;
