@@ -144,16 +144,17 @@ sub _parse_amr_string {
     { isa => AMRString },
   );
 
-  # TODO use Type::Tiny to set up a library and put this regex in there
+  # TODO use the Bio::Metadata::Types library to validate the AMR string,
+  # TODO rather than carrying around the regex
   my $amr = [];
-  while ( $amr_string =~ m/(([A-Za-z0-9\-\/\(\)\s]+);([SIRU]);(lt|le|eq|gt|ge)?(\d+)(;(\w+))?),?\s*/g) {
+  while ( $amr_string =~ m/^((([A-Za-z0-9\-\/\(\)\s]+);([SIRU])(;(?=[\w;])((lt|le|eq|gt|ge)?(((\d+)?\.)?\d+))?(;(\w+))?)?),?\s*)+$/g) {
     push @$amr,
       {
         antimicrobial_name => lc $2,
         susceptibility     => uc $3,
         mic                => $5,
         equality           => lc( $4 || 'eq' ),
-        method             => $7
+        method             => $12
       };
   }
   return $amr;
