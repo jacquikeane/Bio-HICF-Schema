@@ -67,7 +67,7 @@ Susceptibility to the antimicrobial. One of `Susceptible`, `Intermediate` or `Re
 =head2 mic
 
   data_type: 'varchar'
-  is_nullable: 0
+  is_nullable: 1
   size: 45
 
 Minimum inhibitory concentration
@@ -79,7 +79,7 @@ Minimum inhibitory concentration
   extra: {list => ["le","lt","eq","gt","ge"]}
   is_nullable: 0
 
-The susceptibility of the tested sample to a given antimicrobial may be given in terms of a lower or upper limit, e.g. sample was found susceptible to compound at an MIC of less than 4 microgrammes/millilitre. This field specifies the equality. Must be one of le (<=), lt (<), eq (=), gt (>), ge (>=). The default is eq.
+The susceptibility of the tested sample to a given antimicrobial may be given in terms of a lower or upper limit, e.g. sample was found susceptible to compound at an MIC of less than 4 microgrammes/millilitre. This field specifies the equality. Must be one of `le` (<=), `lt` (<), `eq` (=), `gt` (>), `ge` (>=). The default is `eq`.
 
 =head2 method
 
@@ -125,7 +125,7 @@ __PACKAGE__->add_columns(
     is_nullable => 0,
   },
   "mic",
-  { data_type => "varchar", is_nullable => 0, size => 45 },
+  { data_type => "varchar", is_nullable => 1, size => 45 },
   "equality",
   {
     data_type => "enum",
@@ -160,10 +160,6 @@ __PACKAGE__->add_columns(
 
 =item * L</susceptibility>
 
-=item * L</mic>
-
-=item * L</equality>
-
 =back
 
 =cut
@@ -172,8 +168,6 @@ __PACKAGE__->set_primary_key(
   "sample_id",
   "antimicrobial_name",
   "susceptibility",
-  "mic",
-  "equality",
 );
 
 =head1 RELATIONS
