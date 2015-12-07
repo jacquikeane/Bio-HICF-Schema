@@ -45,21 +45,37 @@ sub load {
   $self->_do_taxonomy_checks($upload);
 
   # by this point we know that either "tax_id" or "scientific_name" is a valid
-  # and real taxonomy label. The database requires that "tax_id" is populated
-  # and if it's missing we can now look it up
-  if ( not defined $upload->{tax_id}                       and
-           defined $upload->{scientific_name}              and
-       not $schema->is_accepted_unknown($upload->{tax_id}) and
-       not $schema->is_accepted_unknown($upload->{scientific_name}) ) {
+  # and real taxonomy label. Look up the other one, so that we can populate
+  # both fields in the database
 
-    my $tax_id = $schema->resultset('Taxonomy')
-                        ->find({ name => $upload->{scientific_name} } )
-                        ->tax_id;
-    croak 'failed to look up taxonomy ID from scientific name; not found'
-      unless defined $tax_id;
+  my $search_params = [];
 
-    $upload->{tax_id} = $tax_id;
+  if ( defined $upload->{tax_id} and
+       not $schema->is_accepted_unknown($upload->{tax_id}) ) {
+    push @$search_params, { tax_id => $upload->{tax_id} };
   }
+
+  if ( defined $upload->{scientific_name} and
+       not $schema->is_accepted_unknown($upload->{scientific_name}) ) {
+    push @$search_params, { name => $upload->{scientific_name} };
+  }
+
+  my $tax_row = $schema->resultset('Taxonomy')->search(
+    $search_params,
+    {}
+  )->single;
+
+  my $tax_id   = $tax_row->tax_id;
+  my $sci_name = $tax_row->name;
+
+  croak 'failed to look up taxonomy ID from scientific name; not found'
+    unless defined $tax_id;
+
+  croak 'failed to look up scientific name from taxonomy ID; not found'
+    unless defined $sci_name;
+
+  $upload->{tax_id}          ||= $tax_id;
+  $upload->{scientific_name} ||= $sci_name;
 
   # check that the ontology terms exist
   $self->_do_ontology_term_check($upload);
@@ -184,14 +200,8 @@ sub _do_tax_id_name_check {
   my $tax_id = $upload->{tax_id};
   my $name   = $upload->{scientific_name};
 
-  my $schema = $self->result_source->schema;
-
   # we can only validate taxonomy ID/name if we have both
   return unless ( defined $tax_id and defined $name );
-
-  # additionally, we can't cross-validate if either one is "unknown"
-  # return if ( $schema->is_accepted_unknown($tax_id) or
-  #             $schema->is_accepted_unknown($name) );
 
   # find tax ID(s) using the given name. There can, it appears, be multiple
   # nodes with different tax IDs but the same scientific name, so we need to
