@@ -3,7 +3,7 @@
 use strict;
 use warnings;
 
-use Test::More tests => 109;
+use Test::More tests => 111;
 use Test::Exception;
 use Test::DBIx::Class qw( :resultsets );
 use DateTime;
@@ -104,6 +104,9 @@ my $columns = {
 my $sample_id;
 lives_ok { $sample_id = Sample->load($columns) } 'row loads ok';
 
+is Sample->find($sample_id)->scientific_name, 'Homo sapiens',
+  'loaded sample has scientific name filled in';
+
 is( $sample_id, 2, '"load" returns expected sample_id for new row' );
 is( AntimicrobialResistance->count, 2, 'found expected row in antimicrobial_resistance table' );
 
@@ -113,11 +116,18 @@ is( $samples->next->sample_id, 1, 'got first sample via "all"' );
 is( $samples->next->sample_id, 2, 'got second sample via "all"' );
 is( $samples->next, undef, 'got expected number of samples via "all"' );
 
-# load the same sample again
+# load the same sample again, this time with the scientific name field
+# filled in but the tax ID empty
+$columns->{scientific_name} = 'Homo sapiens';
+$columns->{tax_id}          = undef;
+
 throws_ok { $sample_id = Sample->load($columns) } qr/(UNIQUE constraint failed|not unique)/,
   'error when loading same sample with same manifest ID';
 $columns->{manifest_id} = $other_manifest_id;
 lives_ok { $sample_id = Sample->load($columns) } 'row loads ok a second time';
+
+is Sample->find($sample_id)->tax_id, 9606,
+  'reloaded sample has tax ID filled in';
 
 # after loading the same sample a second time we should have two rows, with the
 # older one having a value for "deleted_at"
