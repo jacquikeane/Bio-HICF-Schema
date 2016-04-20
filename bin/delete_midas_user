@@ -27,6 +27,7 @@ my ( $opt, $usage ) = describe_options(
   '%c %o',
   [ 'dbconfig|d=s',   'path to the database configuration file' ],
   [ 'username|u=s',   'the username for the user to be deleted' ],
+  [ 'help|h',         'print usage message' ],
 );
 
 pod2usage( { -verbose => 2, -exitval => 0 } ) if $opt->help;
@@ -66,7 +67,7 @@ $schema->delete_user($username);
 $user = $schema->find_user($username);
 die 'ERROR: there was a problem deleting the user' if defined $user;
 
-print "user '$username' has been deleted";
+print "user '$username' has been deleted\n";
 
 exit;
 
