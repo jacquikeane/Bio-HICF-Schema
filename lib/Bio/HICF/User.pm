@@ -45,6 +45,7 @@ use Try::Tiny;
 use Email::Valid;
 use File::Basename;
 use List::MoreUtils qw( mesh );
+use DateTime;
 
 use Bio::Metadata::Types qw( UUID OntologyTerm );
 use Bio::Metadata::Checklist;
@@ -132,6 +133,61 @@ sub add_new_user {
 
 #-------------------------------------------------------------------------------
 
+=head2 find_user($username)
+
+Returns the row for the specified user. Requires one argument, giving the
+username of the user. Croaks if the username is not supplied. Returns undef if
+the username does not return a row.
+
+=cut
+
+sub find_user {
+  my ( $self, $username ) = @_;
+
+  croak 'ERROR: must supply a username'
+    unless defined $username;
+
+  my $user_rs = $self->resultset('User')->search(
+    {
+      username   => $username,
+      deleted_at => undef,
+    }
+  );
+
+  return unless ( defined $user_rs and $user_rs->count == 1 );
+
+  return $user_rs->first;
+}
+
+#-------------------------------------------------------------------------------
+
+=head2 delete_user($username)
+
+Delete the specified user. Requires one argument, the username of the user to
+be deleted. Croaks is a username is not supplied, or if a user with that
+username is not found.
+
+Note that the user account is not really deleted. Instead, its "deleted_at"
+field is set to the current time.
+
+=cut
+
+sub delete_user {
+  my ( $self, $username ) = @_;
+
+  croak 'ERROR: must supply a username'
+    unless defined $username;
+
+  my $user = $self->find_user($username);
+
+  croak "ERROR: user '$username' does not exist"
+    unless defined $user;
+
+  $user->update( { deleted_at => DateTime->now } );
+}
+
+#-------------------------------------------------------------------------------
+
 =head2 update_user($user_details)
 
 Update the details for the specified user. Requires a single argument, a
@@ -182,8 +238,7 @@ sub update_user {
 
   # TODO maybe implement roles
 
-  my $user = $self->resultset('User')
-                  ->find( $column_values->{username} );
+  my $user = $self->find_user( $column_values->{username} );
 
   croak "ERROR: user '$fields->{username}' does not exist; use 'add_user' to add"
     unless defined $user;
@@ -205,8 +260,7 @@ sub set_passphrase {
   croak 'ERROR: must supply a username and a passphrase'
     unless ( defined $username and defined $passphrase );
 
-  my $user = $self->resultset('User')
-                  ->find($username);
+  my $user = $self->find_user($username);
 
   croak "ERROR: user '$username' does not exist; use 'add_user' to add"
     unless defined $user;
@@ -228,7 +282,7 @@ sub reset_passphrase {
 
   croak 'ERROR: must supply a username' unless defined $username;
 
-  my $user = $self->resultset('User')->find($username);
+  my $user = $self->find_user($username);
 
   croak "ERROR: user '$username' does not exist; use 'add_user' to add"
     unless defined $user;
@@ -250,8 +304,7 @@ sub reset_api_key {
 
   croak 'ERROR: must supply a username' unless defined $username;
 
-  my $user = $self->resultset('User')
-                  ->find($username);
+  my $user = $self->find_user($username);
 
   croak "ERROR: user '$username' does not exist; use 'add_user' to add"
     unless defined $user;

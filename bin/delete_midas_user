@@ -1,0 +1,133 @@
+#!/usr/bin/env perl
+#
+# delete_midas_user
+# jt6 20160420 WTSI
+#
+# "delete" a MIDAS website user. The user information isn't really deleted, just
+# flagged as such by setting the "deleted_at" value to a date
+
+# ABSTRACT: delete a MIDAS website user
+# PODNAME: delete_midas_user
+
+use strict;
+use warnings;
+
+use utf8;
+use Config::General;
+use Getopt::Long::Descriptive;
+use Pod::Usage;
+use Bio::HICF::User;
+use Try::Tiny;
+use Carp qw( croak );
+
+#-------------------------------------------------------------------------------
+# configuration
+
+my ( $opt, $usage ) = describe_options(
+  '%c %o',
+  [ 'dbconfig|d=s',   'path to the database configuration file' ],
+  [ 'username|u=s',   'the username for the user to be deleted' ],
+);
+
+pod2usage( { -verbose => 2, -exitval => 0 } ) if $opt->help;
+
+my $config_file = $opt->dbconfig || $ENV{HICF_CONFIG};
+my $username    = $opt->username;
+
+_usage($usage, 'ERROR: you must specify a script configuration file')
+  unless defined $config_file;
+
+_usage($usage, 'ERROR: you must specify a username')
+  unless defined $username;
+
+my $cg;
+try {
+  $cg = Config::General->new($config_file);
+} catch {
+  croak "ERROR: there was a problem reading the configuration file: $_";
+};
+
+my %config = $cg->getall;
+
+my $schema = Bio::HICF::User->connect( @{ $config{database}->{user}->{connect_info} } );
+
+#-------------------------------------------------------------------------------
+
+# get the user row
+my $user = $schema->find_user($username);
+
+# spit the dummy unless the user exists
+die 'ERROR: no such user' unless defined $user;
+
+# delete the user
+$schema->delete_user($username);
+
+# and check that really happened...
+$user = $schema->find_user($username);
+die 'ERROR: there was a problem deleting the user' if defined $user;
+
+print "user '$username' has been deleted";
+
+exit;
+
+#-------------------------------------------------------------------------------
+#- functions -------------------------------------------------------------------
+#-------------------------------------------------------------------------------
+
+sub _usage {
+  my ( $usage, $msg ) = @_;
+
+  print STDERR "$msg\n";
+  print $usage->text;
+  exit 1;
+}
+
+#-------------------------------------------------------------------------------
+
+__END__
+
+=head1 SYNOPSIS
+
+ shell% delete_midas_user -d db.conf -u abc
+ user 'abc' has been deleted
+
+=head1 DESCRIPTION
+
+This script deletes a user from the MIDAS user database. The database
+connection parameters are obtained from the configuration file specified using
+C<--dbconfig>. The username must be supplied.
+
+B<Note> that the user account is not actually deleted, but is flagged as
+deleted in the user-tracking database. Specifically, the C<deleted_at> field
+for the user is set to the date at which the script was run.
+
+=head1 OPTIONS
+
+=over 4
+
+=item -d --dbconfig
+
+configuration file with database connection parameters. B<Required>.
+
+=item -u --username
+
+username for the new user. B<Required>.
+
+=item -h --help
+
+display help text
+
+=back
+
+=head1 SEE ALSO
+
+C<Bio::HICF::Schema>
+C<Bio::HICF::User>
+C<add_midas_user>
+
+=head1 CONTACT
+
+path-help@sanger.ac.uk
+
+=cut
+
