@@ -2,7 +2,7 @@
 use strict;
 use warnings;
 
-use Test::More tests => 49;
+use Test::More tests => 57;
 use Test::Exception;
 
 #-------------------------------------------------------------------------------
@@ -53,6 +53,12 @@ ok $user = Schema->find_user('user1'), '"find_user" returns a user';
 
 isa_ok $user, 'Bio::HICF::User::Result::User', 'got User row';
 
+ok   Schema->is_active('user1'), 'user is active';
+ok ! Schema->is_deleted('user1'), 'user is not deleted';
+
+ok   $user->is_active, 'user is active';
+ok ! $user->is_deleted, 'user is not deleted';
+
 my $user_row = User->find('user1');
 is $user_row->deleted_at, undef, '"deleted_at" has NO value for live user';
 
@@ -73,6 +79,16 @@ is Schema->find_user('user1'), undef, 'no deleted user via "find_user"';
 
 $user_row = User->find('user1');
 ok $user_row->deleted_at, '"deleted_at" has a value for deleted user';
+
+ok ! Schema->is_active('user1'), 'user is not active';
+ok   Schema->is_deleted('user1'), 'user is deleted';
+
+# because the state of the object in $user is not updated when we run
+# Schema->delete_user, checking it with $user->is_active will give us
+# a result from *before* we ran "delete_user". Instead we need to
+# check with the row that we created after we ran "delete_user".
+ok ! $user_row->is_active, 'user is not active';
+ok   $user_row->is_deleted, 'user is deleted';
 
 # re-enable the deleted user
 $user_row->update( { deleted_at => undef } );

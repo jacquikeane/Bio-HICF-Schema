@@ -69,5 +69,32 @@ sub reset_api_key {
 
 #-------------------------------------------------------------------------------
 
+=head2 is_deleted
+
+Returns true if this user is deleted, i.e. has a value for the C<deleted_at>
+field, false otherwise.
+
+=cut
+
+sub is_deleted {
+  my $self = shift;
+
+  return $self->deleted_at ? 1 : 0;
+}
+
+#-------------------------------------------------------------------------------
+
+=head2 is_active
+
+Returns true is this user is active, i.e. not deleted, or false otherwise.
+
+=cut
+
+sub is_active {
+  return ! shift->is_deleted;
+}
+
+#-------------------------------------------------------------------------------
+
 1;
 

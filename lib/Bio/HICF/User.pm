@@ -188,6 +188,44 @@ sub delete_user {
 
 #-------------------------------------------------------------------------------
 
+=head2 is_deleted($username)
+
+Returns true if the user with the specified username has been deleted, or false
+if the user is still active.
+
+=cut
+
+sub is_deleted {
+  my ( $self, $username ) = @_;
+
+  croak 'ERROR: must supply a username'
+    unless defined $username;
+
+  my $user = $self->resultset('User')->find($username);
+
+  croak "ERROR: user '$username' does not exist"
+    unless defined $user;
+
+  return $user->deleted_at ? 1 : 0;
+}
+
+#-------------------------------------------------------------------------------
+
+=head is_active($username)
+
+Returns true if the user with the specified username is active, or false if the
+user is has been deleted.
+
+=cut
+
+sub is_active {
+  my ( $self, $username ) = @_;
+
+  return $self->is_deleted($username) ? 0 : 1;
+}
+
+#-------------------------------------------------------------------------------
+
 =head2 update_user($user_details)
 
 Update the details for the specified user. Requires a single argument, a
