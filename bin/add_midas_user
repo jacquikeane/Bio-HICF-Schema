@@ -90,7 +90,7 @@ my $user_details = {
 # passphrase is provided, the schema sets a random passphrase and returns it.
 my $returned_passphrase = $schema->add_new_user($user_details);
 
-my $user = $schema->resultset('User')->find($username);
+my $user = $schema->find_user($username);
 die 'ERROR: something went wrong with the creation of the new user'
   unless defined $user;
 
