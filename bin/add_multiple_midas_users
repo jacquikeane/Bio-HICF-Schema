@@ -12,6 +12,7 @@ use warnings;
 use utf8;
 use Config::General;
 use Getopt::Long::Descriptive;
+use Pod::Usage;
 use Bio::HICF::User;
 use Email::Sender::Simple qw( sendmail );
 use Template;
@@ -32,10 +33,10 @@ pod2usage( { -verbose => 2, -exitval => 0 } ) if $opt->help;
 my $config_file = $opt->dbconfig || $ENV{HICF_CONFIG};
 my $file        = shift;
 
-croak 'ERROR: you must specify a script configuration file'
+_usage($usage, 'ERROR: you must specify a script configuration file')
   unless defined $config_file;
 
-croak 'ERROR: you must specify a file containing the list of users'
+_usage($usage, 'ERROR: you must specify a file containing the list of users')
   unless ( defined $file and -f $file and -s $file );
 
 my $cg;
@@ -116,6 +117,74 @@ while ( <FILE> ) {
 }
 
 exit;
+
+#-------------------------------------------------------------------------------
+#- functions -------------------------------------------------------------------
+#-------------------------------------------------------------------------------
+
+sub _usage {
+  my ( $usage, $msg ) = @_;
+
+  print STDERR "$msg\n";
+  print $usage->text;
+  exit 1;
+}
+
+#-------------------------------------------------------------------------------
+
+=head1 SYNOPSIS
+
+ shell% add_multiple_midas_users -d db.conf users.csv
+ done creating account for 'john'
+ done creating account for 'jacqui'
+
+=head1 DESCRIPTION
+
+This script reads a CSV file containing details of a set of MIDAS accounts
+that are to be created. The CSV file must contain three columns:
+
+=over
+
+=item real name - real name for the user
+
+=item username - name of the account
+
+=item email - email address of the user
+
+=back
+
+For example:
+
+  John Tate,john,john@email.edu
+  Jacqui Keane,jacqui,jk@somewhere.ac.uk
+
+The account password is automatically generated and emailed to each user.
+
+You must specify a configuration file that provides the database connection
+parameters, using C<--dbconfig> (C<-d>), and the path to the CSV file
+with the account details.
+
+=head1 OPTIONS
+
+=over 4
+
+=item -d --dbconfig
+
+configuration file with database connection parameters. B<Required>.
+
+=back
+
+=head1 SEE ALSO
+
+C<Bio::HICF::Schema>
+C<add_midas_user>
+C<delete_midas_user>
+
+=head1 CONTACT
+
+path-help@sanger.ac.uk
+
+=cut
 
 __END__
 
