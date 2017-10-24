@@ -24,8 +24,8 @@ BMV_LIB=$(pwd)/lib
 
 cd $start_dir
 
-export PATH=${BMV_bin}:${PATH}
-export PERL5LIB=${BMV_lib}:${PERL5LIB}
+export PATH=${BMV_BIN}:${PATH}
+export PERL5LIB=${BMV_LIB}:${PERL5LIB}
 
 cpanm DBIx::Class::PassphraseColumn --notest
 dzil authordeps --missing | cpanm --notest
@@ -33,5 +33,5 @@ dzil listdeps --missing | cpanm --notest
 
 
 echo "Add the following lines to your ~/.bashrc profile"
-echo "export PATH=${BMV_bin}:${PATH}"
-echo "export PERL5LIB=${BMV_lib}:${PERL5LIB}"
+echo "export PATH=${BMV_BIN}:${PATH}"
+echo "export PERL5LIB=${BMV_LIB}:${PERL5LIB}"
