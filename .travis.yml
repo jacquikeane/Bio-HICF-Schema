@@ -1,0 +1,7 @@
+language: perl
+perl:
+  - "5.14"
+sudo: false
+install:
+  - 'cpanm Dist::Zilla'
+script: dzil test
