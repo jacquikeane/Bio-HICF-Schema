@@ -4,4 +4,5 @@ perl:
 sudo: false
 install:
   - 'cpanm Dist::Zilla'
+  - "source ./install_dependencies.sh"
 script: dzil test
