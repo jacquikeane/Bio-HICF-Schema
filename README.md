@@ -1,0 +1,1 @@
+Build status: [![Build Status](https://travis-ci.org/sanger-pathogens/Bio-HICF-Schema.svg?branch=master)](https://travis-ci.org/sanger-pathogens/Bio-HICF-Schema)
