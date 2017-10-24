@@ -1,0 +1,8 @@
+language: perl
+perl:
+  - "5.14"
+sudo: false
+install:
+  - 'cpanm Dist::Zilla'
+  - "source ./install_dependencies.sh"
+script: dzil test
